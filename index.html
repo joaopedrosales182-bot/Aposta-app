@@ -8,6 +8,9 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
+:root.light{--bg0:#f0f4ff;--bg1:#ffffff;--bg2:#e8eeff;--bg3:#d8e2ff;--acc:#5b63e8;--bdr:#c5ccf0;--txt:#1e2a4a;--txt2:#5a6a8a;--grn:#16a34a;--grn-bg:#dcfce7;--red:#dc2626;--red-bg:#fee2e2;--yel:#b45309;--yel-bg:#fef3c7}
+.theme-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.theme-btn:hover{border-color:var(--acc);color:var(--acc)}
 body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min-height:100vh}
 #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;padding:2rem}
 #login-screen h1{color:var(--acc);font-size:24px;font-weight:600;margin-bottom:4px}
@@ -101,6 +104,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
     <h1><i class="ti ti-chart-bar" style="margin-right:6px"></i>Controle de Apostas</h1>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="user-badge"><i class="ti ti-cloud" style="font-size:14px"></i><span id="username-display"></span></div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i><span id="theme-label">Claro</span></button>
       <button class="logout-btn" onclick="sair()">Sair</button>
     </div>
   </div>
@@ -202,6 +206,17 @@ window.sair=function(){
   document.getElementById('app').style.display='none';
   document.getElementById('username-input').value='';
 };
+
+// Theme toggle
+window.toggleTheme=function(){
+  const isLight=document.documentElement.classList.toggle("light");
+  const icon=document.getElementById("theme-icon");
+  const label=document.getElementById("theme-label");
+  if(isLight){icon.className="ti ti-moon";label.textContent="Escuro";}else{icon.className="ti ti-sun";label.textContent="Claro";}
+  try{localStorage.setItem("apostas_theme",isLight?"light":"dark");}catch(e){}
+};
+// Restore saved theme
+try{if(localStorage.getItem("apostas_theme")==="light"){document.documentElement.classList.add("light");setTimeout(()=>{const i=document.getElementById("theme-icon");const l=document.getElementById("theme-label");if(i)i.className="ti ti-moon";if(l)l.textContent="Escuro";},100);}}catch(e){}
 
 document.getElementById('username-input').addEventListener('keydown',e=>{if(e.key==='Enter')window.entrar()});
 
