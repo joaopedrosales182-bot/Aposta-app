@@ -97,11 +97,28 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .timeline-container {display:none; margin-top:8px; background:rgba(0,0,0,0.18); border:1px solid var(--bdr); border-radius:6px; padding:12px 14px;}
 .timeline-container.open {display:block}
 
-/* Linha do tempo vertical bem visível (PC e Mobile) */
-.timeline-view {position:relative; padding-left:20px; margin-bottom:6px; display:flex; flex-direction:column; gap:12px;}
-.timeline-view::before {content:''; position:absolute; left:4px; top:6px; bottom:6px; width:2.5px; background:var(--bdr); display:block !important;}
-.timeline-node {position:relative; font-size:12px; color:var(--txt); line-height:1.4; word-break:break-word; text-align:left;}
-.timeline-node::before {content:''; position:absolute; left:-20px; top:4px; width:9px; height:9px; background:var(--acc); border-radius:50%; box-shadow:0 0 0 2.5px var(--bg1); display:block !important;}
+/* Linha do tempo vertical com suporte a Subtópicos e Checklist */
+.timeline-view {position:relative; padding-left:22px; margin-bottom:6px; display:flex; flex-direction:column; gap:10px;}
+.timeline-view::before {content:''; position:absolute; left:4px; top:8px; bottom:8px; width:2.5px; background:var(--bdr); display:block !important;}
+
+.timeline-node {position:relative; font-size:12px; color:var(--txt); line-height:1.5; text-align:left; display:flex; align-items:flex-start; gap:8px; user-select:none;}
+.timeline-node::before {content:''; position:absolute; left:-22px; top:5px; width:9px; height:9px; background:var(--acc); border-radius:50%; box-shadow:0 0 0 2.5px var(--bg1); display:block !important; transition: background 0.2s}
+
+/* Modificadores para Subtópicos */
+.timeline-node.sub-node {margin-left:16px; font-size:11.5px; color:var(--txt2);}
+.timeline-node.sub-node::before {left:-20px; width:6px; height:6px; top:6px; background:var(--bdr)}
+
+/* Estilo para Nós Concluídos/Batidos (Check) */
+.timeline-node.checked-node {color:var(--txt2); text-decoration:line-through; opacity:0.75}
+.timeline-node.checked-node::before {background:var(--grn) !important;}
+
+/* Checkbox customizado discreto e elegante */
+.node-checkbox {appearance:none; -webkit-appearance:none; width:14px; height:14px; border:1px solid var(--bdr); border-radius:3px; background:var(--bg0); cursor:pointer; position:relative; margin-top:3px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s}
+.node-checkbox:checked {background:var(--grn); border-color:var(--grn)}
+.node-checkbox:checked::after {content:'✓'; color:#0a1628; font-size:10px; font-weight:900; position:absolute; top:-1px}
+.node-checkbox:hover {border-color:var(--acc)}
+
+.node-text-wrapper {word-break:break-word; cursor:pointer; flex:1; padding-top:1px;}
 
 /* Botão para alternar a exibição do editor de tópicos */
 .toggle-editor-btn {background:transparent; border:0.5px solid var(--bdr); color:var(--txt2); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin-top:6px;}
@@ -109,8 +126,9 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 
 .timeline-editor {display:none; margin-top:10px; border-top:0.5px dashed var(--bdr); padding-top:10px;}
 .timeline-editor.open {display:block}
-.timeline-editor label {display:block; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:5px; font-weight:600}
-.timeline-textarea {width:100%; min-height:70px; background:var(--bg0); border:0.5px solid var(--bdr); border-radius:5px; color:var(--txt); font-size:12px; padding:6px 8px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
+.timeline-editor label {display:block; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px; font-weight:600}
+.timeline-editor .hint {font-size:10px; color:var(--txt2); opacity:0.7; margin-bottom:6px; display:block;}
+.timeline-textarea {width:100%; min-height:85px; background:var(--bg0); border:0.5px solid var(--bdr); border-radius:5px; color:var(--txt); font-size:12px; padding:6px 8px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
 .timeline-textarea:focus {border-color:var(--acc)}
 
 /* Adaptabilidade Mobile / Layout Responsivo de Verdade */
@@ -161,9 +179,9 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
     border: none;
   }
   
-  /* Garante visibilidade total da linha no mobile dentro dos cards */
   .timeline-view::before { display:block !important; left: 4px; }
-  .timeline-node::before { display:block !important; left: -20px; }
+  .timeline-node::before { display:block !important; left: -22px; }
+  .timeline-node.sub-node::before { left: -20px; }
 }
 </style>
 </head>
@@ -382,18 +400,66 @@ window.toggleEditorBox=function(ticketUniqueId){
   }
 };
 
-window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
+// Nova lógica de parse estruturado para suportar subtópicos e checks individuais
+window.buildTimelineDOM=function(ticketUniqueId, textValue, checkedMap, bet, idx) {
   const view = document.getElementById('timeline-view-'+ticketUniqueId);
   if(!view) return;
   
-  window.updateField(bet, idx, 'notas', textValue);
+  const lines = textValue.split('\n');
+  let html = '';
+  let validCount = 0;
   
-  const lines = textValue.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  if(lines.length === 0) {
+  lines.forEach((line, lineId) => {
+    const trimmed = line.trim();
+    if(!trimmed) return;
+    
+    validCount++;
+    // Se a linha começar originalmente com espaço ou caracteres de lista, trata como sub-nó
+    const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
+    let cleanText = trimmed;
+    if(cleanText.startsWith('-') || cleanText.startsWith('*')) {
+      cleanText = cleanText.substring(1).trim();
+    }
+    
+    const isChecked = !!checkedMap[lineId];
+    const nodeClass = `timeline-node ${isSub ? 'sub-node' : ''} ${isChecked ? 'checked-node' : ''}`;
+    
+    html += `
+      <div class="${nodeClass}">
+        <input type="checkbox" class="node-checkbox" ${isChecked ? 'checked' : ''} 
+          onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})"/>
+        <div class="node-text-wrapper" onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})">
+          ${cleanText}
+        </div>
+      </div>
+    `;
+  });
+  
+  if(validCount === 0) {
     view.innerHTML = `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum palpite em tópicos criado.</div>`;
   } else {
-    view.innerHTML = lines.map(line => `<div class="timeline-node">${line}</div>`).join('');
+    view.innerHTML = html;
   }
+};
+
+window.toggleNodeCheck=function(ticketUniqueId, lineId, bet, idx) {
+  const ticket = appData.tickets[bet][idx];
+  if(!ticket.checkedItems) ticket.checkedItems = {};
+  
+  ticket.checkedItems[lineId] = !ticket.checkedItems[lineId];
+  
+  // Atualiza visualmente em tempo real sem precisar redesenhar toda a tabela
+  window.buildTimelineDOM(ticketUniqueId, ticket.notas || '', ticket.checkedItems, bet, idx);
+  scheduleSave();
+};
+
+window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
+  const ticket = appData.tickets[bet][idx];
+  ticket.notas = textValue;
+  if(!ticket.checkedItems) ticket.checkedItems = {};
+  
+  window.buildTimelineDOM(ticketUniqueId, textValue, ticket.checkedItems, bet, idx);
+  scheduleSave();
 };
 
 function initDragAndDrop() {
@@ -480,11 +546,29 @@ function renderBet(bet){
             const tUniqueId = sid + '_' + t.id;
             const isNxtOpen = !!expandedNotes[tUniqueId];
             const isEdOpen = !!openEditors[tUniqueId];
+            if(!t.checkedItems) t.checkedItems = {};
             
-            const lines = (t.notas||'').split('\n').map(l => l.trim()).filter(l => l.length > 0);
-            const timelineHTML = lines.length === 0 
-              ? `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum palpite em tópicos criado.</div>`
-              : lines.map(line => `<div class="timeline-node">${line}</div>`).join('');
+            // Renderização estruturada inicial
+            const lines = (t.notas||'').split('\n');
+            let timelineHTML = '';
+            let validCount = 0;
+            lines.forEach((line, lineId) => {
+              const trimmed = line.trim();
+              if(!trimmed) return;
+              validCount++;
+              const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
+              let cleanText = trimmed;
+              if(cleanText.startsWith('-') || cleanText.startsWith('*')) cleanText = cleanText.substring(1).trim();
+              const isChecked = !!t.checkedItems[lineId];
+              
+              timelineHTML += `
+                <div class="timeline-node ${isSub ? 'sub-node' : ''} ${isChecked ? 'checked-node' : ''}">
+                  <input type="checkbox" class="node-checkbox" ${isChecked ? 'checked' : ''} onclick="window.toggleNodeCheck('${tUniqueId}', ${lineId}, '${be}', ${i})"/>
+                  <div class="node-text-wrapper" onclick="window.toggleNodeCheck('${tUniqueId}', ${lineId}, '${be}', ${i})">${cleanText}</div>
+                </div>
+              `;
+            });
+            if(validCount === 0) timelineHTML = `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum palpite em tópicos criado.</div>`;
             
             return`<tr>
               <td>
@@ -503,8 +587,9 @@ function renderBet(bet){
                     </button>
 
                     <div class="timeline-editor ${isEdOpen?'open':''}" id="edit-box-${tUniqueId}">
-                      <label>Lista de Palpites (Quebre linha para cada item):</label>
-                      <textarea class="timeline-textarea" placeholder="Ex: Flamengo ganha o jogo&#10;Mais de 1.5 gols do Real Madrid" oninput="window.updateTimelinePreview('${tUniqueId}', this.value, '${be}', ${i})">${t.notas||''}</textarea>
+                      <label>Lista de Palpites:</label>
+                      <span class="hint">Inicie com um traço (-) ou espaço para criar um sub-item recuado.</span>
+                      <textarea class="timeline-textarea" placeholder="Ex: Vitória de Portugal&#10; - Cristiano Ronaldo dá 1 chute ao gol" oninput="window.updateTimelinePreview('${tUniqueId}', this.value, '${be}', ${i})">${t.notas||''}</textarea>
                     </div>
                   </div>
                 </div>
@@ -555,7 +640,7 @@ window.toggleSection=function(bet){
 window.addTicket=function(bet){
   openSections[bet]=true;
   if(!appData.tickets[bet])appData.tickets[bet]=[];
-  appData.tickets[bet].push({id:Date.now(),nome:'',odd:'',gasto:'',resultado:'Pendente',notas:''});
+  appData.tickets[bet].push({id:Date.now(),nome:'',odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{}});
   refreshBet(bet);updateGlobals();scheduleSave();
 };
 
