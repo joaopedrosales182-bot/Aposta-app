@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Controle de Apostas</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
+body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min-height:100vh}
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;padding:2rem}
+#login-screen h1{color:var(--acc);font-size:24px;font-weight:600;margin-bottom:4px}
+#login-screen p{color:var(--txt2);font-size:14px;text-align:center;max-width:300px;line-height:1.6}
+.login-input{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 16px;color:var(--txt);font-size:15px;width:280px;outline:none}
+.login-input:focus{border-color:var(--acc)}
+.login-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
+.login-btn:hover{opacity:.9}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
+.login-error{color:var(--red);font-size:13px;text-align:center;min-height:18px}
+#app{display:none;padding:1rem;max-width:900px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px;padding-top:.5rem}
+.topbar h1{color:var(--acc);font-size:18px;font-weight:600}
+.user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:4px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:6px}
+.logout-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--txt2);cursor:pointer}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.2rem}
+.stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
+.stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.stat-val{font-size:19px;font-weight:600}
+.stat-val.green{color:var(--grn)}.stat-val.red{color:var(--red)}.stat-val.yellow{color:var(--yel)}.stat-val.white{color:var(--txt)}
+.saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
+.saving-indicator.ok{color:var(--grn)}
+.saving-indicator.err{color:var(--red)}
+.bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none}
+.bet-header:hover{background:var(--bg3)}
+.bet-name{font-weight:600;font-size:14px;color:var(--txt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
+.bet-actions{display:flex;align-items:center;gap:8px}
+.add-ticket-btn{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
+.add-ticket-btn:hover{opacity:.85}
+.del-bet-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--txt2);cursor:pointer}
+.del-bet-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+.tickets-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.tickets-table th{background:var(--bg0);color:var(--acc);font-size:10px;font-weight:600;padding:7px 8px;text-align:center;border-bottom:0.5px solid var(--bdr);letter-spacing:.4px;text-transform:uppercase}
+.tickets-table th:first-child{text-align:left;width:20%}
+.tickets-table th:last-child{width:36px}
+.tickets-table td{padding:6px 8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
+.tickets-table td:first-child{text-align:left}
+.tickets-table tr:last-child td{border-bottom:none}
+.tickets-table tr:hover td{background:rgba(124,131,253,.04)}
+.cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:5px 7px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
+.cell-input:focus{border-color:var(--acc)}
+.cell-input.name-input{text-align:left}
+.result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
+.result-select.ganhou{background:var(--grn-bg);color:var(--grn);border-color:#34d39955}
+.result-select.perdeu{background:var(--red-bg);color:var(--red);border-color:#f8717155}
+.result-select.pendente{background:var(--yel-bg);color:var(--yel);border-color:#fcd34d55}
+.del-btn{background:transparent;border:none;color:#3a3a3a;cursor:pointer;font-size:16px;padding:2px 5px;border-radius:4px}
+.del-btn:hover{color:var(--red);background:var(--red-bg)}
+.computed{color:var(--grn);font-size:13px}
+.computed.loss{color:var(--red)}
+.computed.pending{color:var(--txt2)}
+.no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
+.bet-totals{background:var(--bg0);padding:8px 14px;display:flex;gap:20px;flex-wrap:wrap;border-top:0.5px solid var(--bdr)}
+.bet-total-item{font-size:12px;color:var(--txt2)}
+.bet-total-item span{font-weight:600;margin-left:4px}
+.add-bet-section{background:var(--bg1);border:0.5px dashed var(--acc);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.add-bet-trigger{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;color:var(--acc);font-size:14px;font-weight:500}
+.add-bet-trigger:hover{background:var(--bg2)}
+.add-bet-form{padding:14px 16px;border-top:0.5px solid var(--bdr);display:none;gap:10px;align-items:center;flex-wrap:wrap}
+.add-bet-form.open{display:flex}
+.add-bet-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:7px;padding:9px 12px;color:var(--txt);font-size:14px;flex:1;min-width:180px;outline:none;font-family:inherit}
+.add-bet-input:focus{border-color:var(--acc)}
+.confirm-add-btn{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.cancel-add-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:9px 14px;font-size:14px;color:var(--txt2);cursor:pointer}
+.cancel-add-btn:hover{border-color:var(--red);color:var(--red)}
+.loading-overlay{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--txt2);font-size:14px;gap:8px}
+@media(max-width:600px){
+  .tickets-table th:nth-child(4),.tickets-table td:nth-child(4){display:none}
+  .tickets-table th:first-child{width:25%}
+}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <i class="ti ti-chart-bar" style="font-size:52px;color:var(--acc)"></i>
+  <h1>Controle de Apostas</h1>
+  <p>Digite seu nome para acessar suas apostas. Dados salvos na nuvem — acesse de qualquer dispositivo.</p>
+  <input class="login-input" id="username-input" placeholder="Seu nome ou apelido" maxlength="30"/>
+  <button class="login-btn" id="login-btn" onclick="entrar()">Entrar</button>
+  <div class="login-error" id="login-error"></div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <h1><i class="ti ti-chart-bar" style="margin-right:6px"></i>Controle de Apostas</h1>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="user-badge"><i class="ti ti-cloud" style="font-size:14px"></i><span id="username-display"></span></div>
+      <button class="logout-btn" onclick="sair()">Sair</button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="stat-card"><div class="stat-label">Total gasto</div><div class="stat-val white" id="total-gasto">R$ 0,00</div></div>
+    <div class="stat-card"><div class="stat-label">Possível retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
+    <div class="stat-card"><div class="stat-label">Lucro / Prejuízo</div><div class="stat-val white" id="total-lucro">R$ 0,00</div></div>
+    <div class="stat-card"><div class="stat-label">Bilhetes abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
+  </div>
+
+  <div class="saving-indicator" id="saving-indicator"></div>
+  <div id="bets-container"><div class="loading-overlay"><i class="ti ti-loader-2"></i>&nbsp;Carregando...</div></div>
+
+  <div class="add-bet-section">
+    <div class="add-bet-trigger" onclick="toggleAddForm()">
+      <i class="ti ti-plus" style="font-size:18px"></i>
+      Adicionar casa de aposta
+    </div>
+    <div class="add-bet-form" id="add-bet-form">
+      <input class="add-bet-input" id="new-bet-input" placeholder="Nome da casa (ex: Pixbet)" maxlength="40" onkeydown="if(event.key==='Enter')confirmarNovaAposta()"/>
+      <button class="confirm-add-btn" onclick="confirmarNovaAposta()">Adicionar</button>
+      <button class="cancel-add-btn" onclick="toggleAddForm()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCeDME3AoZQ81HKwGzvhzFXPcfs5krr3vc",
+  authDomain: "apostas-app-6b448.firebaseapp.com",
+  projectId: "apostas-app-6b448",
+  storageBucket: "apostas-app-6b448.firebasestorage.app",
+  messagingSenderId: "615567160984",
+  appId: "1:615567160984:web:a221aa5bcb06f05c0002ed",
+  measurementId: "G-LJN47J18H6"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+const DEFAULT_BETS=["Betano","BetMGM","Superbet","Esportes da Sorte","Lottu","Betnacional","BetGorillas","Bet365","KTO","Vupi","Estrela Bet","Betesporte","Sportingbet","Novibet","Rei do Pitaco","BRX"];
+let currentUser='';
+let openSections={};
+let addFormOpen=false;
+let saveTimer=null;
+let appData={bets:[...DEFAULT_BETS],tickets:{}};
+
+function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')}
+
+async function cloudSave(){
+  try{
+    await setDoc(doc(db,'usuarios',userDocId()),{data:JSON.stringify(appData),updatedAt:Date.now()});
+    showSaving('✓ Salvo na nuvem','ok');
+  }catch(e){showSaving('Erro ao salvar','err');}
+}
+
+async function cloudLoad(){
+  try{
+    const snap=await getDoc(doc(db,'usuarios',userDocId()));
+    if(snap.exists()){
+      const d=JSON.parse(snap.data().data);
+      appData=d;
+      if(!appData.bets)appData.bets=[...DEFAULT_BETS];
+      if(!appData.tickets)appData.tickets={};
+    }else{
+      appData={bets:[...DEFAULT_BETS],tickets:{}};
+    }
+  }catch(e){appData={bets:[...DEFAULT_BETS],tickets:{}};}
+}
+
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSave(),900);}
+function showSaving(msg,cls){
+  const el=document.getElementById('saving-indicator');
+  el.textContent=msg;el.className='saving-indicator '+(cls||'');
+  setTimeout(()=>{el.textContent='';el.className='saving-indicator';},3000);
+}
+
+window.entrar=async function(){
+  const v=document.getElementById('username-input').value.trim();
+  if(!v)return;
+  currentUser=v;
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Carregando...';
+  await cloudLoad();
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('username-display').textContent=v;
+  renderAll();
+  btn.disabled=false;btn.textContent='Entrar';
+};
+
+window.sair=function(){
+  currentUser='';appData={bets:[...DEFAULT_BETS],tickets:{}};openSections={};addFormOpen=false;
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('username-input').value='';
+};
+
+document.getElementById('username-input').addEventListener('keydown',e=>{if(e.key==='Enter')window.entrar()});
+
+function fmt(n){return'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
+
+function calcTicket(t){
+  const odd=parseFloat(String(t.odd||'').replace(',','.'));
+  const gasto=parseFloat(String(t.gasto||'').replace(',','.'));
+  const vO=!isNaN(odd)&&odd>0,vG=!isNaN(gasto)&&gasto>0;
+  const retorno=vO&&vG?odd*gasto:0;
+  let lucro=0,lucroClass='pending',lucroTxt='Aguardando';
+  if(t.resultado==='Ganhou'&&vG){lucro=retorno-gasto;lucroClass=lucro>=0?'':'loss';lucroTxt=fmt(lucro);}
+  else if(t.resultado==='Perdeu'&&vG){lucro=-gasto;lucroClass='loss';lucroTxt=fmt(lucro);}
+  return{retorno:vO&&vG?retorno:0,lucro,lucroClass,lucroTxt,retornoTxt:vO&&vG?fmt(retorno):'—',gastoVal:vG?gasto:0};
+}
+
+function updateGlobals(){
+  let tG=0,tR=0,tL=0,tP=0;
+  appData.bets.forEach(bet=>{
+    (appData.tickets[bet]||[]).forEach(t=>{
+      const c=calcTicket(t);tG+=c.gastoVal;
+      if(t.resultado==='Pendente'){tR+=c.retorno;tP++;}
+      else if(t.resultado==='Ganhou'){tL+=c.lucro;}
+      else if(t.resultado==='Perdeu'){tL+=c.lucro;}
+    });
+  });
+  document.getElementById('total-gasto').textContent=fmt(tG);
+  document.getElementById('total-retorno').textContent=fmt(tR);
+  const lEl=document.getElementById('total-lucro');
+  lEl.textContent=fmt(tL);lEl.className='stat-val '+(tL>0?'green':tL<0?'red':'white');
+  document.getElementById('total-pendentes').textContent=tP;
+}
+
+function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
+
+function renderBet(bet){
+  const tickets=appData.tickets[bet]||[];
+  const isOpen=openSections[bet]!==false;
+  const sid=safeId(bet);
+  const isCustom=!DEFAULT_BETS.includes(bet);
+  const section=document.createElement('div');
+  section.className='bet-section';section.id='section-'+sid;
+  let tG=0,tR=0,tL=0;
+  tickets.forEach(t=>{const c=calcTicket(t);tG+=c.gastoVal;if(t.resultado==='Pendente')tR+=c.retorno;tL+=c.lucro;});
+  const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  section.innerHTML=`
+    <div class="bet-header" onclick="toggleSection('${be}')">
+      <div class="bet-name">
+        <i class="ti ti-device-gamepad-2" style="color:var(--acc);font-size:15px"></i>
+        ${bet}
+        ${isCustom?'<span class="bet-badge" style="color:var(--acc);border-color:var(--acc)44">personalizada</span>':''}
+        <span class="bet-badge">${tickets.length} bilhete${tickets.length!==1?'s':''}</span>
+      </div>
+      <div class="bet-actions" onclick="event.stopPropagation()">
+        <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Bilhete</button>
+        ${isCustom?`<button class="del-bet-btn" onclick="deleteBet('${be}')"><i class="ti ti-trash"></i></button>`:''}
+        <i class="ti ti-chevron-down chevron ${isOpen?'open':''}" id="chev-${sid}"></i>
+      </div>
+    </div>
+    <div id="body-${sid}" style="display:${isOpen?'block':'none'}">
+      ${tickets.length===0
+        ?`<div class="no-tickets"><i class="ti ti-receipt-off"></i> Nenhum bilhete. Clique em "+ Bilhete" para adicionar.</div>`
+        :`<table class="tickets-table">
+          <thead><tr><th>Nome da aposta</th><th>Odd</th><th>Gasto (R$)</th><th>Retorno</th><th>Lucro/Prej.</th><th>Resultado</th><th></th></tr></thead>
+          <tbody>${tickets.map((t,i)=>{
+            const c=calcTicket(t);
+            return`<tr>
+              <td><input class="cell-input name-input" value="${(t.nome||'').replace(/"/g,'&quot;')}" placeholder="Ex: Flamengo" onchange="updateField('${be}',${i},'nome',this.value)"/></td>
+              <td><input class="cell-input" type="number" step="0.01" min="1" value="${t.odd||''}" placeholder="2.50" onchange="updateField('${be}',${i},'odd',this.value)"/></td>
+              <td><input class="cell-input" type="number" step="0.01" min="0" value="${t.gasto||''}" placeholder="10.00" onchange="updateField('${be}',${i},'gasto',this.value)"/></td>
+              <td class="computed">${c.retornoTxt}</td>
+              <td class="computed ${c.lucroClass}">${c.lucroTxt}</td>
+              <td><select class="result-select ${t.resultado.toLowerCase()}" onchange="updateField('${be}',${i},'resultado',this.value)">
+                <option ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
+                <option ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
+                <option ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
+              </select></td>
+              <td><button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti ti-trash"></i></button></td>
+            </tr>`;}).join('')}</tbody>
+        </table>
+        <div class="bet-totals">
+          <div class="bet-total-item">Gasto:<span style="color:var(--txt)">${fmt(tG)}</span></div>
+          <div class="bet-total-item">Possível retorno:<span style="color:var(--grn)">${fmt(tR)}</span></div>
+          <div class="bet-total-item">Lucro/Prejuízo:<span style="color:${tL>=0?'var(--grn)':'var(--red)'}">${fmt(tL)}</span></div>
+        </div>`
+      }
+    </div>`;
+  return section;
+}
+
+function renderAll(){
+  const container=document.getElementById('bets-container');
+  container.innerHTML='';
+  appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
+  updateGlobals();
+  const form=document.getElementById('add-bet-form');
+  if(form)form.className='add-bet-form'+(addFormOpen?' open':'');
+}
+
+window.toggleSection=function(bet){
+  openSections[bet]=openSections[bet]===false?true:false;
+  const sid=safeId(bet);
+  const body=document.getElementById('body-'+sid);
+  const chev=document.getElementById('chev-'+sid);
+  if(body)body.style.display=openSections[bet]===false?'none':'block';
+  if(chev)chev.classList.toggle('open',openSections[bet]!==false);
+};
+
+window.addTicket=function(bet){
+  openSections[bet]=true;
+  if(!appData.tickets[bet])appData.tickets[bet]=[];
+  appData.tickets[bet].push({id:Date.now(),nome:'',odd:'',gasto:'',resultado:'Pendente'});
+  refreshBet(bet);updateGlobals();scheduleSave();
+};
+
+window.updateField=function(bet,idx,field,value){
+  if(!appData.tickets[bet])return;
+  appData.tickets[bet][idx][field]=value;
+  refreshBet(bet);updateGlobals();scheduleSave();
+};
+
+window.deleteTicket=function(bet,idx){
+  if(!appData.tickets[bet])return;
+  appData.tickets[bet].splice(idx,1);
+  refreshBet(bet);updateGlobals();scheduleSave();
+};
+
+window.deleteBet=function(bet){
+  appData.bets=appData.bets.filter(b=>b!==bet);
+  delete appData.tickets[bet];
+  renderAll();scheduleSave();
+};
+
+function refreshBet(bet){
+  const section=document.getElementById('section-'+safeId(bet));
+  if(section)section.replaceWith(renderBet(bet));
+}
+
+window.toggleAddForm=function(){
+  addFormOpen=!addFormOpen;
+  const form=document.getElementById('add-bet-form');
+  form.className='add-bet-form'+(addFormOpen?' open':'');
+  if(addFormOpen)setTimeout(()=>document.getElementById('new-bet-input').focus(),50);
+};
+
+window.confirmarNovaAposta=function(){
+  const input=document.getElementById('new-bet-input');
+  const nome=input.value.trim();
+  if(!nome)return;
+  if(appData.bets.map(b=>b.toLowerCase()).includes(nome.toLowerCase())){
+    input.style.borderColor='var(--red)';setTimeout(()=>input.style.borderColor='',1500);return;
+  }
+  appData.bets.push(nome);
+  input.value='';addFormOpen=false;openSections[nome]=true;
+  renderAll();scheduleSave();
+};
+</script>
+</body>
+</html>
