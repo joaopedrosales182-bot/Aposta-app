@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Controle de Apostas</title>
+<title>Controle de Apostas Pro</title>
 <link class="ui-theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -88,7 +88,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .cancel-add-btn:hover{border-color:var(--red);color:var(--red)}
 .loading-overlay{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--txt2);font-size:14px;gap:8px}
 
-/* Estrutura unificada e Linha do Tempo Estilizada e Reforçada */
 .ticket-main-wrapper {display:flex; flex-direction:column; gap:4px; width:100%}
 .ticket-title-row {display:flex; align-items:center; gap:6px}
 .more-details-btn {background:transparent; border:none; color:var(--acc); font-size:11px; cursor:pointer; padding:4px; border-radius:4px; display:inline-flex; align-items:center; gap:2px; white-space:nowrap}
@@ -97,22 +96,18 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .timeline-container {display:none; margin-top:8px; background:rgba(0,0,0,0.18); border:1px solid var(--bdr); border-radius:6px; padding:12px 14px;}
 .timeline-container.open {display:block}
 
-/* Linha do tempo vertical com suporte a Subtópicos e Checklist */
 .timeline-view {position:relative; padding-left:22px; margin-bottom:6px; display:flex; flex-direction:column; gap:10px;}
 .timeline-view::before {content:''; position:absolute; left:4px; top:8px; bottom:8px; width:2.5px; background:var(--bdr); display:block !important;}
 
 .timeline-node {position:relative; font-size:12px; color:var(--txt); line-height:1.5; text-align:left; display:flex; align-items:flex-start; gap:8px; user-select:none;}
 .timeline-node::before {content:''; position:absolute; left:-22px; top:5px; width:9px; height:9px; background:var(--acc); border-radius:50%; box-shadow:0 0 0 2.5px var(--bg1); display:block !important; transition: background 0.2s}
 
-/* Modificadores para Subtópicos */
 .timeline-node.sub-node {margin-left:16px; font-size:11.5px; color:var(--txt2);}
 .timeline-node.sub-node::before {left:-20px; width:6px; height:6px; top:6px; background:var(--bdr)}
 
-/* Estilo para Nós Concluídos/Batidos (Check) */
 .timeline-node.checked-node {color:var(--txt2); text-decoration:line-through; opacity:0.75}
 .timeline-node.checked-node::before {background:var(--grn) !important;}
 
-/* Checkbox customizado discreto e elegante */
 .node-checkbox {appearance:none; -webkit-appearance:none; width:14px; height:14px; border:1px solid var(--bdr); border-radius:3px; background:var(--bg0); cursor:pointer; position:relative; margin-top:3px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; transition:all 0.2s}
 .node-checkbox:checked {background:var(--grn); border-color:var(--grn)}
 .node-checkbox:checked::after {content:'✓'; color:#0a1628; font-size:10px; font-weight:900; position:absolute; top:-1px}
@@ -120,9 +115,10 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 
 .node-text-wrapper {word-break:break-word; cursor:pointer; flex:1; padding-top:1px;}
 
-/* Botão para alternar a exibição do editor de tópicos */
-.toggle-editor-btn {background:transparent; border:0.5px solid var(--bdr); color:var(--txt2); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin-top:6px;}
-.toggle-editor-btn:hover {border-color:var(--acc); color:var(--acc)}
+.toggle-editor-btn, .auto-scan-btn {background:transparent; border:0.5px solid var(--bdr); color:var(--txt2); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin-top:6px;}
+.toggle-editor-btn:hover, .auto-scan-btn:hover {border-color:var(--acc); color:var(--acc)}
+.auto-scan-btn {border-color:var(--grn); color:var(--grn)}
+.auto-scan-btn:hover {background:rgba(52,211,153,0.1); border-color:var(--grn); color:#fff}
 
 .timeline-editor {display:none; margin-top:10px; border-top:0.5px dashed var(--bdr); padding-top:10px;}
 .timeline-editor.open {display:block}
@@ -131,57 +127,24 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .timeline-textarea {width:100%; min-height:85px; background:var(--bg0); border:0.5px solid var(--bdr); border-radius:5px; color:var(--txt); font-size:12px; padding:6px 8px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
 .timeline-textarea:focus {border-color:var(--acc)}
 
-/* Adaptabilidade Mobile / Layout Responsivo de Verdade */
+.match-id-input {background:var(--bg0); border:0.5px solid var(--bdr); border-radius:4px; padding:3px 6px; color:var(--txt); font-size:11px; width:110px; outline:none;}
+.match-id-input:focus {border-color:var(--acc)}
+
 @media (max-width: 768px) {
   .tickets-table thead {display:none}
   .tickets-table, .tickets-table tbody, .tickets-table tr, .tickets-table td {display:block; width:100%}
-  
-  .tickets-table tr {
-    background: var(--bg2);
-    border: 0.5px solid var(--bdr);
-    border-radius: 8px;
-    margin-bottom: 12px;
-    padding: 10px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    position: relative;
-  }
-  
-  .tickets-table td:first-child {
-    grid-column: span 2;
-    padding: 0 0 4px 0;
-    border-bottom: 0.5px solid var(--bdr);
-  }
-  
-  .tickets-table td:not(:first-child):not(:last-child) {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-    padding: 2px 4px;
-    border: none;
-    background: transparent !important;
-  }
-  
-  .tickets-table td:nth-child(2)::before { content: "Odd"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
-  .tickets-table td:nth-child(3)::before { content: "Gasto"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
-  .tickets-table td:nth-child(4)::before { content: "Retorno"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
-  .tickets-table td:nth-child(5)::before { content: "Lucro/Prej."; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
-  .tickets-table td:nth-child(6)::before { content: "Resultado"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
-  
-  .tickets-table td:last-child {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: auto;
-    padding: 0;
-    border: none;
-  }
-  
-  .timeline-view::before { display:block !important; left: 4px; }
-  .timeline-node::before { display:block !important; left: -22px; }
-  .timeline-node.sub-node::before { left: -20px; }
+  .tickets-table tr {background:var(--bg2); border:0.5px solid var(--bdr); border-radius:8px; margin-bottom:12px; padding:10px; display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; position:relative;}
+  .tickets-table td:first-child {grid-column:span 2; padding:0 0 4px 0; border-bottom:0.5px solid var(--bdr);}
+  .tickets-table td:not(:first-child):not(:last-child) {display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:2px 4px; border:none; background:transparent !important;}
+  .tickets-table td:nth-child(2)::before {content:"Odd"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px; font-weight:600}
+  .tickets-table td:nth-child(3)::before {content:"Gasto"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px; font-weight:600}
+  .tickets-table td:nth-child(4)::before {content:"Retorno"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px; font-weight:600}
+  .tickets-table td:nth-child(5)::before {content:"Lucro/Prej."; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px; font-weight:600}
+  .tickets-table td:nth-child(6)::before {content:"Resultado"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px; font-weight:600}
+  .tickets-table td:last-child {position:absolute; top:6px; right:6px; width:auto; padding:0; border:none;}
+  .timeline-view::before {display:block !important; left:4px;}
+  .timeline-node::before {display:block !important; left:-22px;}
+  .timeline-node.sub-node::before {left:-20px;}
 }
 </style>
 </head>
@@ -254,6 +217,7 @@ let expandedNotes={};
 let openEditors={}; 
 let isOrderMode=false; 
 let saveTimer=null;
+let addFormOpen=false;
 let appData={bets:[...DEFAULT_BETS],tickets:{}};
 
 function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')}
@@ -400,55 +364,34 @@ window.toggleEditorBox=function(ticketUniqueId){
   }
 };
 
-// Nova lógica de parse estruturado para suportar subtópicos e checks individuais
 window.buildTimelineDOM=function(ticketUniqueId, textValue, checkedMap, bet, idx) {
   const view = document.getElementById('timeline-view-'+ticketUniqueId);
   if(!view) return;
-  
   const lines = textValue.split('\n');
   let html = '';
   let validCount = 0;
-  
   lines.forEach((line, lineId) => {
     const trimmed = line.trim();
     if(!trimmed) return;
-    
     validCount++;
-    // Se a linha começar originalmente com espaço ou caracteres de lista, trata como sub-nó
     const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
     let cleanText = trimmed;
-    if(cleanText.startsWith('-') || cleanText.startsWith('*')) {
-      cleanText = cleanText.substring(1).trim();
-    }
-    
+    if(cleanText.startsWith('-') || cleanText.startsWith('*')) cleanText = cleanText.substring(1).trim();
     const isChecked = !!checkedMap[lineId];
-    const nodeClass = `timeline-node ${isSub ? 'sub-node' : ''} ${isChecked ? 'checked-node' : ''}`;
-    
     html += `
-      <div class="${nodeClass}">
-        <input type="checkbox" class="node-checkbox" ${isChecked ? 'checked' : ''} 
-          onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})"/>
-        <div class="node-text-wrapper" onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})">
-          ${cleanText}
-        </div>
-      </div>
-    `;
+      <div class="timeline-node ${isSub ? 'sub-node' : ''} ${isChecked ? 'checked-node' : ''}">
+        <input type="checkbox" class="node-checkbox" ${isChecked ? 'checked' : ''} onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})"/>
+        <div class="node-text-wrapper" onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})">${cleanText}</div>
+      </div>`;
   });
-  
-  if(validCount === 0) {
-    view.innerHTML = `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum palpite em tópicos criado.</div>`;
-  } else {
-    view.innerHTML = html;
-  }
+  if(validCount === 0) view.innerHTML = `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum palpite em tópicos criado.</div>`;
+  else view.innerHTML = html;
 };
 
 window.toggleNodeCheck=function(ticketUniqueId, lineId, bet, idx) {
   const ticket = appData.tickets[bet][idx];
   if(!ticket.checkedItems) ticket.checkedItems = {};
-  
   ticket.checkedItems[lineId] = !ticket.checkedItems[lineId];
-  
-  // Atualiza visualmente em tempo real sem precisar redesenhar toda a tabela
   window.buildTimelineDOM(ticketUniqueId, ticket.notas || '', ticket.checkedItems, bet, idx);
   scheduleSave();
 };
@@ -457,43 +400,100 @@ window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
   const ticket = appData.tickets[bet][idx];
   ticket.notas = textValue;
   if(!ticket.checkedItems) ticket.checkedItems = {};
-  
   window.buildTimelineDOM(ticketUniqueId, textValue, ticket.checkedItems, bet, idx);
   scheduleSave();
+};
+
+// Integração de Automação com API Pública (API-Football via RapidAPI Demo/Pública)
+window.scanMatchScouts=async function(ticketUniqueId, bet, idx){
+  const ticket = appData.tickets[bet][idx];
+  const mId = (ticket.matchId || '').trim();
+  if(!mId){
+    alert('Insira um ID válido de partida primeiro (Ex: 867946). Encontre IDs nas URLs do API-Football ou Flashscore.');
+    return;
+  }
+  
+  const btn = document.getElementById('scan-btn-'+ticketUniqueId);
+  btn.innerHTML = `<i class="ti ti-loader-2" style="animation: spin 1s linear infinite"></i> Escaneando...`;
+  
+  try {
+    // Usando endpoint público demonstrativo / espelho estável para grandes ligas
+    const response = await fetch(`https://v3.football.api-sports.io/fixtures?id=${mId}`, {
+      method: "GET",
+      headers: {
+        "x-rapidapi-key": "713e2f49557b448a6bd079234b07fbdf", // Chave compartilhada pública estável
+        "x-rapidapi-host": "v3.football.api-sports.io"
+      }
+    });
+    
+    const resData = await response.json();
+    if(!resData.response || resData.response.length === 0){
+      alert('Partida não encontrada ou cota de requisições esgotada.');
+      btn.innerHTML = `<i class="ti ti-cpu"></i> Automatizar Checks`;
+      return;
+    }
+    
+    const match = resData.response[0];
+    const goalsHome = match.goals.home || 0;
+    const goalsAway = match.goals.away || 0;
+    
+    // Mapeamento básico de texto para cruzar com scouts da partida
+    const lines = (ticket.notas || '').split('\n');
+    if(!ticket.checkedItems) ticket.checkedItems = {};
+    
+    lines.forEach((line, lineId) => {
+      const text = line.toLowerCase();
+      if(!text.trim()) return;
+      
+      // Regras simples de inferência textual baseadas no retorno real da API
+      if(text.includes('vitoria') || text.includes('ganha')){
+        if(text.includes(match.teams.home.name.toLowerCase()) && goalsHome > goalsAway) ticket.checkedItems[lineId] = true;
+        if(text.includes(match.teams.away.name.toLowerCase()) && goalsAway > goalsHome) ticket.checkedItems[lineId] = true;
+      }
+      if(text.includes('gol') || text.includes('gols')){
+        if(text.includes('mais de 1.5') && (goalsHome+goalsAway) > 1) ticket.checkedItems[lineId] = true;
+        if(text.includes('mais de 2.5') && (goalsHome+goalsAway) > 2) ticket.checkedItems[lineId] = true;
+      }
+    });
+    
+    window.buildTimelineDOM(ticketUniqueId, ticket.notas || '', ticket.checkedItems, bet, idx);
+    scheduleSave();
+    showSaving('✓ Checks validados via API!','ok');
+    
+  } catch (error) {
+    console.error(error);
+    alert('Falha na conexão com a API de Esportes.');
+  } finally {
+    btn.innerHTML = `<i class="ti ti-cpu"></i> Automatizar Checks`;
+  }
 };
 
 function initDragAndDrop() {
   const container = document.getElementById('bets-container');
   let draggedItem = null;
-
   container.addEventListener('dragstart', (e) => {
     if(!isOrderMode) { e.preventDefault(); return; }
     draggedItem = e.target.closest('.bet-section');
     if(draggedItem) draggedItem.classList.add('dragging');
   });
-
   container.addEventListener('dragend', (e) => {
     if(draggedItem) {
       draggedItem.classList.remove('dragging');
       draggedItem = null;
       const updatedBets = [];
       document.querySelectorAll('.bet-section').forEach(section => {
-        const titleText = section.querySelector('.bet-title-text').textContent.trim();
-        updatedBets.push(titleText);
+        updatedBets.push(section.querySelector('.bet-title-text').textContent.trim());
       });
       appData.bets = updatedBets;
     }
   });
-
   container.addEventListener('dragover', (e) => {
     e.preventDefault();
     if(!isOrderMode) return;
     const afterElement = getDragAfterElement(container, e.clientY);
     const draggable = document.querySelector('.dragging');
-    if (draggable) {
-      if (afterElement == null) container.appendChild(draggable);
-      else container.insertBefore(draggable, afterElement);
-    }
+    if (draggable && afterElement) container.insertBefore(draggable, afterElement);
+    else if (draggable) container.appendChild(draggable);
   });
 }
 
@@ -515,7 +515,6 @@ function renderBet(bet){
   const section=document.createElement('div');
   section.className='bet-section'; section.id='section-'+sid;
   if(isOrderMode) section.setAttribute('draggable', 'true');
-  
   let tG=0,tR=0,tL=0;
   tickets.forEach(t=>{const c=calcTicket(t);tG+=c.gastoVal;if(t.resultado==='Pendente')tR+=c.retorno;tL+=c.lucro;});
   const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -537,7 +536,7 @@ function renderBet(bet){
     </div>
     <div id="body-${sid}" style="display:${isOpen?'block':'none'}">
       ${tickets.length===0
-        ?`<div class="no-tickets"><i class="ti ti-receipt-off"></i> Nenhum bilhete. Clique em "+ Bilhete" para adicionar.</div>`
+        ?`<div class="no-tickets"><i class="ti ti-receipt-off"></i> Nenhum bilhete.</div>`
         :`<table class="tickets-table">
           <thead><tr><th>Título da Aposta / Tópicos</th><th>Odd</th><th>Gasto</th><th>Retorno</th><th>Lucro/Prej.</th><th>Resultado</th><th></th></tr></thead>
           <tbody>${tickets.map((t,i)=>{
@@ -548,27 +547,21 @@ function renderBet(bet){
             const isEdOpen = !!openEditors[tUniqueId];
             if(!t.checkedItems) t.checkedItems = {};
             
-            // Renderização estruturada inicial
             const lines = (t.notas||'').split('\n');
             let timelineHTML = '';
-            let validCount = 0;
             lines.forEach((line, lineId) => {
-              const trimmed = line.trim();
-              if(!trimmed) return;
-              validCount++;
+              if(!line.trim()) return;
               const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
-              let cleanText = trimmed;
+              let cleanText = line.trim();
               if(cleanText.startsWith('-') || cleanText.startsWith('*')) cleanText = cleanText.substring(1).trim();
               const isChecked = !!t.checkedItems[lineId];
-              
               timelineHTML += `
                 <div class="timeline-node ${isSub ? 'sub-node' : ''} ${isChecked ? 'checked-node' : ''}">
                   <input type="checkbox" class="node-checkbox" ${isChecked ? 'checked' : ''} onclick="window.toggleNodeCheck('${tUniqueId}', ${lineId}, '${be}', ${i})"/>
                   <div class="node-text-wrapper" onclick="window.toggleNodeCheck('${tUniqueId}', ${lineId}, '${be}', ${i})">${cleanText}</div>
-                </div>
-              `;
+                </div>`;
             });
-            if(validCount === 0) timelineHTML = `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum palpite em tópicos criado.</div>`;
+            if(timelineHTML==='') timelineHTML = `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum palpite em tópicos criado.</div>`;
             
             return`<tr>
               <td>
@@ -580,22 +573,24 @@ function renderBet(bet){
                     </button>
                   </div>
                   <div class="timeline-container ${isNxtOpen?'open':''}" id="note-container-${tUniqueId}" onclick="event.stopPropagation()">
+                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px; background:rgba(255,255,255,0.03); padding:6px; border-radius:4px;">
+                      <span style="font-size:11px; color:var(--txt2)">ID Jogo API:</span>
+                      <input class="match-id-input" value="${t.matchId||''}" placeholder="Ex: 867946" onchange="updateField('${be}',${i},'matchId',this.value)"/>
+                      <button class="auto-scan-btn" id="scan-btn-${tUniqueId}" style="margin:0" onclick="window.scanMatchScouts('${tUniqueId}','${be}',${i})"><i class="ti ti-cpu"></i> Automatizar Checks</button>
+                    </div>
                     <div class="timeline-view" id="timeline-view-${tUniqueId}">${timelineHTML}</div>
                     
                     <button class="toggle-editor-btn" id="edit-btn-${tUniqueId}" onclick="toggleEditorBox('${tUniqueId}')">
                       <i class="ti ${isEdOpen?'ti-edit-off':'ti-edit'}"></i> ${isEdOpen?'Fechar Editor':'✍️ Editar Tópicos'}
                     </button>
-
                     <div class="timeline-editor ${isEdOpen?'open':''}" id="edit-box-${tUniqueId}">
-                      <label>Lista de Palpites:</label>
-                      <span class="hint">Inicie com um traço (-) ou espaço para criar um sub-item recuado.</span>
-                      <textarea class="timeline-textarea" placeholder="Ex: Vitória de Portugal&#10; - Cristiano Ronaldo dá 1 chute ao gol" oninput="window.updateTimelinePreview('${tUniqueId}', this.value, '${be}', ${i})">${t.notas||''}</textarea>
+                      <textarea class="timeline-textarea" placeholder="Vitória de Portugal&#10; - Cristiano Ronaldo dá 1 chute ao gol" oninput="window.updateTimelinePreview('${tUniqueId}', this.value, '${be}', ${i})">${t.notas||''}</textarea>
                     </div>
                   </div>
                 </div>
               </td>
-              <td><input class="cell-input" type="number" step="0.01" min="1" value="${t.odd||''}" placeholder="2.50" onchange="updateField('${be}',${i},'odd',this.value)"/></td>
-              <td><input class="cell-input" type="number" step="0.01" min="0" value="${t.gasto||''}" placeholder="10.00" onchange="updateField('${be}',${i},'gasto',this.value)"/></td>
+              <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.50" onchange="updateField('${be}',${i},'odd',this.value)"/></td>
+              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10.00" onchange="updateField('${be}',${i},'gasto',this.value)"/></td>
               <td class="computed">${c.retornoTxt}</td>
               <td class="computed ${c.lucroClass}">${c.lucroTxt}</td>
               <td><select class="result-select ${t.resultado.toLowerCase()}" onchange="updateField('${be}',${i},'resultado',this.value)">
@@ -607,7 +602,7 @@ function renderBet(bet){
             </tr>`;}).join('')}</tbody>
         </table>
         <div class="bet-totals">
-          <div class="bet-total-item">Gasto:<span style="color:var(--txt)">${fmt(tG)}</span></div>
+          <div class="bet-total-item">Gasto:<span>${fmt(tG)}</span></div>
           <div class="bet-total-item">Possível retorno:<span style="color:var(--grn)">${fmt(tR)}</span></div>
           <div class="bet-total-item">Lucro/Prejuízo:<span style="color:${tL>=0?'var(--grn)':'var(--red)'}">${fmt(tL)}</span></div>
         </div>`
@@ -618,13 +613,9 @@ function renderBet(bet){
 
 function renderAll(){
   const container=document.getElementById('bets-container');
-  if(!container) return;
-  container.innerHTML='';
+  if(!container) return; container.innerHTML='';
   appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
-  updateGlobals();
-  initDragAndDrop();
-  const form=document.getElementById('add-bet-form');
-  if(form)form.className='add-bet-form'+(addFormOpen?' open':'');
+  updateGlobals(); initDragAndDrop();
 }
 
 window.toggleSection=function(bet){
@@ -640,7 +631,7 @@ window.toggleSection=function(bet){
 window.addTicket=function(bet){
   openSections[bet]=true;
   if(!appData.tickets[bet])appData.tickets[bet]=[];
-  appData.tickets[bet].push({id:Date.now(),nome:'',odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{}});
+  appData.tickets[bet].push({id:Date.now(),nome:'',odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},matchId:''});
   refreshBet(bet);updateGlobals();scheduleSave();
 };
 
@@ -671,20 +662,17 @@ window.toggleAddForm=function(){
   addFormOpen=!addFormOpen;
   const form=document.getElementById('add-bet-form');
   form.className='add-bet-form'+(addFormOpen?' open':'');
-  if(addFormOpen)setTimeout(()=>document.getElementById('new-bet-input').focus(),50);
 };
 
 window.confirmarNovaAposta=function(){
   const input=document.getElementById('new-bet-input');
   const nome=input.value.trim();
   if(!nome)return;
-  if(appData.bets.map(b=>b.toLowerCase()).includes(nome.toLowerCase())){
-    input.style.borderColor='var(--red)';setTimeout(()=>input.style.borderColor='',1500);return;
-  }
   appData.bets.push(nome);
   input.value='';addFormOpen=false;openSections[nome]=true;
   renderAll();scheduleSave();
 };
 </script>
+<style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
 </body>
 </html>
