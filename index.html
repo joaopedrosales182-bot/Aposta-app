@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Controle de Apostas</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<link class="ui-theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
@@ -51,21 +51,23 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .del-bet-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
 .chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
 .chevron.open{transform:rotate(180deg)}
+
 .tickets-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .tickets-table th{background:var(--bg0);color:var(--acc);font-size:10px;font-weight:600;padding:7px 8px;text-align:center;border-bottom:0.5px solid var(--bdr);letter-spacing:.4px;text-transform:uppercase}
-.tickets-table th:first-child{text-align:left;width:35%}
+.tickets-table th:first-child{text-align:left;width:38%}
 .tickets-table th:last-child{width:36px}
-.tickets-table td{padding:6px 8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
+.tickets-table td{padding:8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
 .tickets-table td:first-child{text-align:left}
 .tickets-table tr:hover td{background:rgba(124,131,253,.02)}
-.cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:5px 7px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
+
+.cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
-.cell-input.name-input{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell-input.name-input{text-align:left;font-weight:600}
 .result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
 .result-select.ganhou{background:var(--grn-bg);color:var(--grn);border-color:#34d39955}
 .result-select.perdeu{background:var(--red-bg);color:var(--red);border-color:#f8717155}
 .result-select.pendente{background:var(--yel-bg);color:var(--yel);border-color:#fcd34d55}
-.del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:2px 5px;border-radius:4px}
+.del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px}
 .del-btn:hover{color:var(--red);background:var(--red-bg)}
 .computed{color:var(--grn);font-size:13px}
 .computed.loss{color:var(--red)}
@@ -86,14 +88,78 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .cancel-add-btn:hover{border-color:var(--red);color:var(--red)}
 .loading-overlay{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--txt2);font-size:14px;gap:8px}
 
-/* Estilos específicos para o bloco expansível de detalhes do bilhete em tópicos */
-.ticket-name-cell {display:flex; flex-direction:column; gap:4px; width:100%}
-.ticket-name-row {display:flex; align-items:center; gap:6px}
-.more-details-btn {background:transparent; border:none; color:var(--acc); font-size:11px; cursor:pointer; padding:2px 4px; border-radius:3px; display:inline-flex; align-items:center;}
+/* Estutura unificada e Linha do Tempo Estilizada */
+.ticket-main-wrapper {display:flex; flex-direction:column; gap:4px; width:100%}
+.ticket-title-row {display:flex; align-items:center; gap:6px}
+.more-details-btn {background:transparent; border:none; color:var(--acc); font-size:11px; cursor:pointer; padding:4px; border-radius:4px; display:inline-flex; align-items:center; gap:2px; white-space:nowrap}
 .more-details-btn:hover {background:rgba(124,131,253,.15)}
-.ticket-expanded-box {display:none; margin-top:6px; background:var(--bg0); border:0.5px dashed var(--bdr); border-radius:6px; padding:8px; text-align:left;}
-.ticket-expanded-box.open {display:block}
-.ticket-expanded-box textarea {width:100%; min-height:60px; background:transparent; border:none; color:var(--txt); font-size:12px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
+
+.timeline-container {display:none; margin-top:8px; background:rgba(0,0,0,0.15); border:0.5px solid var(--bdr); border-radius:6px; padding:12px 12px 12px 16px;}
+.timeline-container.open {display:block}
+
+/* Linha do tempo vertical em tópicos */
+.timeline-view {position:relative; padding-left:18px; margin-bottom:10px; display:flex; flex-direction:column; gap:12px;}
+.timeline-view::before {content:''; position:absolute; left:4px; top:6px; bottom:6px; width:1.5px; border-left:1.5px dashed var(--bdr)}
+.timeline-node {position:relative; font-size:12px; color:var(--txt); line-height:1.4; word-break:break-word; text-align:left;}
+.timeline-node::before {content:''; position:absolute; left:-18px; top:5px; width:7px; height:7px; background:var(--acc); border-radius:50%; box-shadow:0 0 0 2px var(--bg1)}
+
+.timeline-editor {margin-top:10px; border-top:0.5px dashed var(--bdr); padding-top:8px;}
+.timeline-editor label {display:block; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:4px; font-weight:600}
+.timeline-textarea {width:100%; min-height:65px; background:var(--bg0); border:0.5px solid var(--bdr); border-radius:5px; color:var(--txt); font-size:12px; padding:6px 8px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
+.timeline-textarea:focus {border-color:var(--acc)}
+
+/* Adaptabilidade Mobile / Layout Responsivo de Verdade */
+@media (max-width: 768px) {
+  .tickets-table thead {display:none} /* Esconde o cabeçalho original */
+  .tickets-table, .tickets-table tbody, .tickets-table tr, .tickets-table td {display:block; width:100%}
+  
+  .tickets-table tr {
+    background: var(--bg2);
+    border: 0.5px solid var(--bdr);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    position: relative;
+  }
+  
+  /* Faz o bloco de nome/tópicos ocupar a largura inteira do card mobile */
+  .tickets-table td:first-child {
+    grid-column: span 2;
+    padding: 0 0 4px 0;
+    border-bottom: 0.5px solid var(--bdr);
+  }
+  
+  /* Organiza os outros campos lado a lado com etiquetas */
+  .tickets-table td:not(:first-child):not(:last-child) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    padding: 2px 4px;
+    border: none;
+    background: transparent !important;
+  }
+  
+  /* Cria os títulos dinamicamente para o Mobile */
+  .tickets-table td:nth-child(2)::before { content: "Odd"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
+  .tickets-table td:nth-child(3)::before { content: "Gasto"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
+  .tickets-table td:nth-child(4)::before { content: "Retorno"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
+  .tickets-table td:nth-child(5)::before { content: "Lucro/Prej."; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
+  .tickets-table td:nth-child(6)::before { content: "Resultado"; font-size: 10px; color: var(--txt2); text-transform: uppercase; margin-bottom: 2px; font-weight: 600 }
+  
+  /* Botão excluir fixado no canto superior direito do card */
+  .tickets-table td:last-child {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: auto;
+    padding: 0;
+    border: none;
+  }
+}
 </style>
 </head>
 <body>
@@ -282,16 +348,32 @@ window.toggleOrderMode=function(){
 
 window.toggleNote=function(ticketUniqueId){
   expandedNotes[ticketUniqueId] = !expandedNotes[ticketUniqueId];
-  const box = document.getElementById('note-box-'+ticketUniqueId);
+  const container = document.getElementById('note-container-'+ticketUniqueId);
   const btn = document.getElementById('note-btn-'+ticketUniqueId);
-  if(box && btn){
+  if(container && btn){
     if(expandedNotes[ticketUniqueId]){
-      box.classList.add('open');
-      btn.innerHTML = `<i class="ti ti-chevron-up"></i> Ocultar`;
+      container.classList.add('open');
+      btn.innerHTML = `<i class="ti ti-chevron-up"></i> Menos`;
     } else {
-      box.classList.remove('open');
-      btn.innerHTML = `<i class="ti ti-chevron-down"></i> Detalhes`;
+      container.classList.remove('open');
+      btn.innerHTML = `<i class="ti ti-chevron-down"></i> Mais/Tópicos`;
     }
+  }
+};
+
+window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
+  const view = document.getElementById('timeline-view-'+ticketUniqueId);
+  if(!view) return;
+  
+  // Atualiza no banco
+  window.updateField(bet, idx, 'notas', textValue);
+  
+  // Gera os tópicos dinamicamente quebrando linhas
+  const lines = textValue.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  if(lines.length === 0) {
+    view.innerHTML = `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum tópico detalhado ainda.</div>`;
+  } else {
+    view.innerHTML = lines.map(line => `<div class="timeline-node">${line}</div>`).join('');
   }
 };
 
@@ -302,16 +384,13 @@ function initDragAndDrop() {
   container.addEventListener('dragstart', (e) => {
     if(!isOrderMode) { e.preventDefault(); return; }
     draggedItem = e.target.closest('.bet-section');
-    if(draggedItem) {
-      draggedItem.classList.add('dragging');
-    }
+    if(draggedItem) draggedItem.classList.add('dragging');
   });
 
   container.addEventListener('dragend', (e) => {
     if(draggedItem) {
       draggedItem.classList.remove('dragging');
       draggedItem = null;
-      
       const updatedBets = [];
       document.querySelectorAll('.bet-section').forEach(section => {
         const titleText = section.querySelector('.bet-title-text').textContent.trim();
@@ -327,11 +406,8 @@ function initDragAndDrop() {
     const afterElement = getDragAfterElement(container, e.clientY);
     const draggable = document.querySelector('.dragging');
     if (draggable) {
-      if (afterElement == null) {
-        container.appendChild(draggable);
-      } else {
-        container.insertBefore(draggable, afterElement);
-      }
+      if (afterElement == null) container.appendChild(draggable);
+      else container.insertBefore(draggable, afterElement);
     }
   });
 }
@@ -341,11 +417,8 @@ function getDragAfterElement(container, y) {
   return draggableElements.reduce((closest, child) => {
     const box = child.getBoundingClientRect();
     const offset = y - box.top - box.height / 2;
-    if (offset < 0 && offset > closest.offset) {
-      return { offset: offset, element: child };
-    } else {
-      return closest;
-    }
+    if (offset < 0 && offset > closest.offset) return { offset: offset, element: child };
+    else return closest;
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
@@ -381,24 +454,34 @@ function renderBet(bet){
       ${tickets.length===0
         ?`<div class="no-tickets"><i class="ti ti-receipt-off"></i> Nenhum bilhete. Clique em "+ Bilhete" para adicionar.</div>`
         :`<table class="tickets-table">
-          <thead><tr><th>Nome da aposta / Tópicos</th><th>Odd</th><th>Gasto (R$)</th><th>Retorno</th><th>Lucro/Prej.</th><th>Resultado</th><th></th></tr></thead>
+          <thead><tr><th>Título da Aposta / Tópicos</th><th>Odd</th><th>Gasto</th><th>Retorno</th><th>Lucro/Prej.</th><th>Resultado</th><th></th></tr></thead>
           <tbody>${tickets.map((t,i)=>{
             const c=calcTicket(t);
             if(!t.id) t.id = Date.now() + i;
             const tUniqueId = sid + '_' + t.id;
             const isNxtOpen = !!expandedNotes[tUniqueId];
             
+            // Renderização inicial das linhas da Timeline baseadas no texto salvo
+            const lines = (t.notas||'').split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const timelineHTML = lines.length === 0 
+              ? `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Nenhum tópico detalhado ainda.</div>`
+              : lines.map(line => `<div class="timeline-node">${line}</div>`).join('');
+            
             return`<tr>
               <td>
-                <div class="ticket-name-cell">
-                  <div class="ticket-name-row">
-                    <input class="cell-input name-input" value="${(t.nome||'').replace(/"/g,'&quot;')}" placeholder="Ex: Flamengo..." onchange="updateField('${be}',${i},'nome',this.value)"/>
+                <div class="ticket-main-wrapper">
+                  <div class="ticket-title-row">
+                    <input class="cell-input name-input" value="${(t.nome||'').replace(/"/g,'&quot;')}" placeholder="Título (Ex: Múltipla do Fim de Semana)" onchange="updateField('${be}',${i},'nome',this.value)"/>
                     <button class="more-details-btn" id="note-btn-${tUniqueId}" onclick="event.stopPropagation(); toggleNote('${tUniqueId}')">
-                      <i class="ti ${isNxtOpen?'ti-chevron-up':'ti-chevron-down'}"></i> ${isNxtOpen?'Ocultar':'Detalhes'}
+                      <i class="ti ${isNxtOpen?'ti-chevron-up':'ti-chevron-down'}"></i> ${isNxtOpen?'Menos':'Mais/Tópicos'}
                     </button>
                   </div>
-                  <div class="ticket-expanded-box ${isNxtOpen?'open':''}" id="note-box-${tUniqueId}" onclick="event.stopPropagation()">
-                    <textarea placeholder="Adicione tópicos, palpites ou observações da sua aposta detalhada..." onchange="updateField('${be}',${i},'notas',this.value)">${t.notas||''}</textarea>
+                  <div class="timeline-container ${isNxtOpen?'open':''}" id="note-container-${tUniqueId}" onclick="event.stopPropagation()">
+                    <div class="timeline-view" id="timeline-view-${tUniqueId}">${timelineHTML}</div>
+                    <div class="timeline-editor">
+                      <label>Editar palpites (pule linha para novos tópicos):</label>
+                      <textarea class="timeline-textarea" placeholder="Ex: Flamengo para vencer&#10;Mais de 2.5 gols no jogo&#10;Real Madrid empata" oninput="window.updateTimelinePreview('${tUniqueId}', this.value, '${be}', ${i})">${t.notas||''}</textarea>
+                    </div>
                   </div>
                 </div>
               </td>
