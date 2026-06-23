@@ -9,8 +9,9 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
 :root.light{--bg0:#f0f4ff;--bg1:#ffffff;--bg2:#e8eeff;--bg3:#d8e2ff;--acc:#5b63e8;--bdr:#c5ccf0;--txt:#1e2a4a;--txt2:#5a6a8a;--grn:#16a34a;--grn-bg:#dcfce7;--red:#dc2626;--red-bg:#fee2e2;--yel:#b45309;--yel-bg:#fef3c7}
-.theme-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:5px}
-.theme-btn:hover{border-color:var(--acc);color:var(--acc)}
+.theme-btn, .order-toggle-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.theme-btn:hover, .order-toggle-btn:hover{border-color:var(--acc);color:var(--acc)}
+.order-toggle-btn.active{background:var(--acc);color:#fff;border-color:var(--acc)}
 body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min-height:100vh}
 #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;padding:2rem}
 #login-screen h1{color:var(--acc);font-size:24px;font-weight:600;margin-bottom:4px}
@@ -35,42 +36,38 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
 .saving-indicator.ok{color:var(--grn)}
 .saving-indicator.err{color:var(--red)}
-.bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:transform 0.2s, box-shadow 0.2s}
+.bet-section.dragging{opacity:0.5;transform:scale(0.98);box-shadow:0 5px 15px rgba(0,0,0,0.3)}
 .bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none}
 .bet-header:hover{background:var(--bg3)}
-.bet-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.bet-title-text{font-weight:600;font-size:14px;color:var(--txt)}
+.bet-name{font-weight:600;font-size:14px;color:var(--txt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.drag-handle{cursor:move;color:var(--txt2);padding:2px 4px;display:none;align-items:center;justify-content:center}
+.drag-handle:hover{color:var(--acc)}
 .bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
 .bet-actions{display:flex;align-items:center;gap:8px}
-.order-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:4px;padding:3px 6px;color:var(--txt2);cursor:pointer;font-size:11px}
-.order-btn:hover{border-color:var(--acc);color:var(--acc)}
 .add-ticket-btn{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
 .add-ticket-btn:hover{opacity:.85}
 .del-bet-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--txt2);cursor:pointer}
 .del-bet-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
 .chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
 .chevron.open{transform:rotate(180deg)}
-
-.tickets-list {display: flex; flex-direction: column;}
-.ticket-row {border-bottom: 0.5px solid var(--bdr); background: transparent; transition: background 0.2s;}
-.ticket-row:hover {background: rgba(124,131,253,.02)}
-.ticket-summary {display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; gap: 10px;}
-.ticket-info-main {flex: 1; display: flex; align-items: center;}
-.ticket-details {display: none; padding: 12px 14px; background: rgba(0,0,0,0.15); border-top: 0.5px dashed var(--bdr); border-bottom: 0.5px dashed var(--bdr);}
-.ticket-details.open {display: block;}
-.details-grid {display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 10px;}
-.details-field {display: flex; flex-direction: column; gap: 4px;}
-.details-field label {font-size: 10px; color: var(--txt2); text-transform: uppercase; letter-spacing: 0.5px;}
-
-.cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;outline:none;font-family:inherit}
+.tickets-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.tickets-table th{background:var(--bg0);color:var(--acc);font-size:10px;font-weight:600;padding:7px 8px;text-align:center;border-bottom:0.5px solid var(--bdr);letter-spacing:.4px;text-transform:uppercase}
+.tickets-table th:first-child{text-align:left;width:35%}
+.tickets-table th:last-child{width:36px}
+.tickets-table td{padding:6px 8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
+.tickets-table td:first-child{text-align:left}
+.tickets-table tr:hover td{background:rgba(124,131,253,.02)}
+.cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:5px 7px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
-.result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
+.cell-input.name-input{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
 .result-select.ganhou{background:var(--grn-bg);color:var(--grn);border-color:#34d39955}
 .result-select.perdeu{background:var(--red-bg);color:var(--red);border-color:#f8717155}
 .result-select.pendente{background:var(--yel-bg);color:var(--yel);border-color:#fcd34d55}
-.del-btn{background:transparent;border:0.5px solid var(--bdr);color:var(--txt2);cursor:pointer;font-size:12px;padding:5px 10px;border-radius:5px; display: inline-flex; align-items: center; gap: 4px; align-self: flex-end;}
-.del-btn:hover{color:var(--red);background:var(--red-bg);border-color:var(--red)}
-.computed{color:var(--grn);font-size:13px; font-weight: 500;}
+.del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:2px 5px;border-radius:4px}
+.del-btn:hover{color:var(--red);background:var(--red-bg)}
+.computed{color:var(--grn);font-size:13px}
 .computed.loss{color:var(--red)}
 .computed.pending{color:var(--txt2)}
 .no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
@@ -88,8 +85,15 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .cancel-add-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:9px 14px;font-size:14px;color:var(--txt2);cursor:pointer}
 .cancel-add-btn:hover{border-color:var(--red);color:var(--red)}
 .loading-overlay{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--txt2);font-size:14px;gap:8px}
-.expand-ticket-btn {background: transparent; border: none; color: var(--acc); cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px;}
-.expand-ticket-btn:hover {background: rgba(124,131,253,.1);}
+
+/* Estilos específicos para o bloco expansível de detalhes do bilhete em tópicos */
+.ticket-name-cell {display:flex; flex-direction:column; gap:4px; width:100%}
+.ticket-name-row {display:flex; align-items:center; gap:6px}
+.more-details-btn {background:transparent; border:none; color:var(--acc); font-size:11px; cursor:pointer; padding:2px 4px; border-radius:3px; display:inline-flex; align-items:center;}
+.more-details-btn:hover {background:rgba(124,131,253,.15)}
+.ticket-expanded-box {display:none; margin-top:6px; background:var(--bg0); border:0.5px dashed var(--bdr); border-radius:6px; padding:8px; text-align:left;}
+.ticket-expanded-box.open {display:block}
+.ticket-expanded-box textarea {width:100%; min-height:60px; background:transparent; border:none; color:var(--txt); font-size:12px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
 </style>
 </head>
 <body>
@@ -108,6 +112,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
     <h1><i class="ti ti-chart-bar" style="margin-right:6px"></i>Controle de Apostas</h1>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="user-badge"><i class="ti ti-cloud" style="font-size:14px"></i><span id="username-display"></span></div>
+      <button class="order-toggle-btn" id="order-toggle-btn" onclick="toggleOrderMode()"><i class="ti ti-arrows-sort"></i><span id="order-btn-label">Reordenar Casas</span></button>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i><span id="theme-label">Claro</span></button>
       <button class="logout-btn" onclick="sair()">Sair</button>
     </div>
@@ -156,8 +161,8 @@ const db = getFirestore(firebaseApp);
 const DEFAULT_BETS=["Betano","BetMGM","Superbet","Esportes da Sorte","Lottu","Betnacional","BetGorillas","Bet365","KTO","Vupi","Estrela Bet","Betesporte","Sportingbet","Novibet","Rei do Pitaco","BRX"];
 let currentUser='';
 let openSections={};
-let openTickets={}; 
-let addFormOpen=false;
+let expandedNotes={}; 
+let isOrderMode=false; 
 let saveTimer=null;
 let appData={bets:[...DEFAULT_BETS],tickets:{}};
 
@@ -207,7 +212,7 @@ window.entrar=async function(){
 };
 
 window.sair=function(){
-  currentUser='';appData={bets:[...DEFAULT_BETS],tickets:{}};openSections={};openTickets={};addFormOpen=false;
+  currentUser='';appData={bets:[...DEFAULT_BETS],tickets:{}};openSections={};expandedNotes={};isOrderMode=false;
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('username-input').value='';
@@ -251,52 +256,108 @@ function updateGlobals(){
   document.getElementById('total-gasto').textContent=fmt(tG);
   document.getElementById('total-retorno').textContent=fmt(tR);
   const lEl=document.getElementById('total-lucro');
-  lEl.textContent=fmt(tL);lEl.className='stat-val '+(tL>0?'green':tL<0?'red':'white');
+  if(lEl){lEl.textContent=fmt(tL);lEl.className='stat-val '+(tL>0?'green':tL<0?'red':'white');}
   document.getElementById('total-pendentes').textContent=tP;
 }
 
 function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
 
-window.moveBet=function(bet, direction){
-  const index = appData.bets.indexOf(bet);
-  if(index === -1) return;
-  const newIndex = index + direction;
-  if(newIndex < 0 || newIndex >= appData.bets.length) return;
-  
-  const temp = appData.bets[index];
-  appData.bets[index] = appData.bets[newIndex];
-  appData.bets[newIndex] = temp;
-  
-  renderAll();
-  scheduleSave();
+window.toggleOrderMode=function(){
+  isOrderMode = !isOrderMode;
+  const btn = document.getElementById('order-toggle-btn');
+  const label = document.getElementById('order-btn-label');
+  if(isOrderMode){
+    btn.classList.add('active');
+    label.textContent = "Salvar Ordem";
+    document.querySelectorAll('.drag-handle').forEach(el => el.style.display = 'inline-flex');
+    document.querySelectorAll('.bet-section').forEach(el => el.setAttribute('draggable', 'true'));
+  } else {
+    btn.classList.remove('active');
+    label.textContent = "Reordenar Casas";
+    document.querySelectorAll('.drag-handle').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.bet-section').forEach(el => el.removeAttribute('draggable'));
+    scheduleSave();
+  }
 };
 
-window.toggleTicketDetails=function(ticketId){
-  openTickets[ticketId] = !openTickets[ticketId];
-  const detailsEl = document.getElementById('details-'+ticketId);
-  const iconEl = document.getElementById('ticket-icon-'+ticketId);
-  const btnTextEl = document.getElementById('ticket-btn-text-'+ticketId);
-  
-  if(detailsEl){
-    if(openTickets[ticketId]){
-      detailsEl.classList.add('open');
-      if(iconEl) iconEl.className = 'ti ti-chevron-up';
-      if(btnTextEl) btnTextEl.textContent = 'Ocultar detalhes';
-    }else{
-      detailsEl.classList.remove('open');
-      if(iconEl) iconEl.className = 'ti ti-chevron-down';
-      if(btnTextEl) btnTextEl.textContent = 'Ver em detalhes';
+window.toggleNote=function(ticketUniqueId){
+  expandedNotes[ticketUniqueId] = !expandedNotes[ticketUniqueId];
+  const box = document.getElementById('note-box-'+ticketUniqueId);
+  const btn = document.getElementById('note-btn-'+ticketUniqueId);
+  if(box && btn){
+    if(expandedNotes[ticketUniqueId]){
+      box.classList.add('open');
+      btn.innerHTML = `<i class="ti ti-chevron-up"></i> Ocultar`;
+    } else {
+      box.classList.remove('open');
+      btn.innerHTML = `<i class="ti ti-chevron-down"></i> Detalhes`;
     }
   }
 };
 
-function renderBet(bet, betIdx){
+function initDragAndDrop() {
+  const container = document.getElementById('bets-container');
+  let draggedItem = null;
+
+  container.addEventListener('dragstart', (e) => {
+    if(!isOrderMode) { e.preventDefault(); return; }
+    draggedItem = e.target.closest('.bet-section');
+    if(draggedItem) {
+      draggedItem.classList.add('dragging');
+    }
+  });
+
+  container.addEventListener('dragend', (e) => {
+    if(draggedItem) {
+      draggedItem.classList.remove('dragging');
+      draggedItem = null;
+      
+      const updatedBets = [];
+      document.querySelectorAll('.bet-section').forEach(section => {
+        const titleText = section.querySelector('.bet-title-text').textContent.trim();
+        updatedBets.push(titleText);
+      });
+      appData.bets = updatedBets;
+    }
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if(!isOrderMode) return;
+    const afterElement = getDragAfterElement(container, e.clientY);
+    const draggable = document.querySelector('.dragging');
+    if (draggable) {
+      if (afterElement == null) {
+        container.appendChild(draggable);
+      } else {
+        container.insertBefore(draggable, afterElement);
+      }
+    }
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.bet-section:not(.dragging)')];
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+function renderBet(bet){
   const tickets=appData.tickets[bet]||[];
   const isOpen=openSections[bet]!==false;
   const sid=safeId(bet);
   const isCustom=!DEFAULT_BETS.includes(bet);
   const section=document.createElement('div');
-  section.className='bet-section';section.id='section-'+sid;
+  section.className='bet-section'; section.id='section-'+sid;
+  if(isOrderMode) section.setAttribute('draggable', 'true');
+  
   let tG=0,tR=0,tL=0;
   tickets.forEach(t=>{const c=calcTicket(t);tG+=c.gastoVal;if(t.resultado==='Pendente')tR+=c.retorno;tL+=c.lucro;});
   const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
@@ -304,10 +365,7 @@ function renderBet(bet, betIdx){
   section.innerHTML=`
     <div class="bet-header" onclick="toggleSection('${be}')">
       <div class="bet-name">
-        <div class="bet-order-actions" onclick="event.stopPropagation()" style="display:inline-flex; gap:2px; margin-right:4px">
-          <button class="order-btn" onclick="moveBet('${be}', -1)" ${betIdx===0?'disabled style="opacity:0.3; cursor:not-allowed"':''} title="Mover para cima"><i class="ti ti-arrow-narrow-up"></i></button>
-          <button class="order-btn" onclick="moveBet('${be}', 1)" ${betIdx===appData.bets.length-1?'disabled style="opacity:0.3; cursor:not-allowed"':''} title="Mover para baixo"><i class="ti ti-arrow-narrow-down"></i></button>
-        </div>
+        <span class="drag-handle" onclick="event.stopPropagation()" style="display:${isOrderMode?'inline-flex':'none'}"><i class="ti ti-selector"></i></span>
         <i class="ti ti-device-gamepad-2" style="color:var(--acc);font-size:15px"></i>
         <span class="bet-title-text">${bet}</span>
         ${isCustom?'<span class="bet-badge" style="color:var(--acc);border-color:var(--acc)44">personalizada</span>':''}
@@ -322,55 +380,40 @@ function renderBet(bet, betIdx){
     <div id="body-${sid}" style="display:${isOpen?'block':'none'}">
       ${tickets.length===0
         ?`<div class="no-tickets"><i class="ti ti-receipt-off"></i> Nenhum bilhete. Clique em "+ Bilhete" para adicionar.</div>`
-        :`<div class="tickets-list">
-          ${tickets.map((t,i)=>{
+        :`<table class="tickets-table">
+          <thead><tr><th>Nome da aposta / Tópicos</th><th>Odd</th><th>Gasto (R$)</th><th>Retorno</th><th>Lucro/Prej.</th><th>Resultado</th><th></th></tr></thead>
+          <tbody>${tickets.map((t,i)=>{
             const c=calcTicket(t);
             if(!t.id) t.id = Date.now() + i;
-            const tOpen = !!openTickets[t.id];
+            const tUniqueId = sid + '_' + t.id;
+            const isNxtOpen = !!expandedNotes[tUniqueId];
             
-            return`<div class="ticket-row">
-              <div class="ticket-summary">
-                <div class="ticket-info-main">
-                  <input class="cell-input" style="background:transparent; border:none; text-align:left; font-weight:500; font-size:14px; padding:0;" value="${(t.nome||'').replace(/"/g,'&quot;')}" placeholder="Digitar nome da aposta..." onchange="updateField('${be}',${i},'nome',this.value)"/>
-                </div>
-                <div style="display:flex; align-items:center; gap:12px;">
-                  <span class="computed ${c.lucroClass}" style="font-size:12px;">${t.resultado === 'Pendente' ? 'Aberto' : c.lucroTxt}</span>
-                  <button class="expand-ticket-btn" onclick="toggleTicketDetails('${t.id}')">
-                    <span id="ticket-btn-text-${t.id}">${tOpen?'Ocultar detalhes':'Ver em detalhes'}</span>
-                    <i id="ticket-icon-${t.id}" class="${tOpen?'ti ti-chevron-up':'ti ti-chevron-down'}"></i>
-                  </button>
-                </div>
-              </div>
-              
-              <div class="ticket-details ${tOpen?'open':''}" id="details-${t.id}">
-                <div class="details-grid">
-                  <div class="details-field">
-                    <label>Odd</label>
-                    <input class="cell-input" type="number" step="0.01" min="1" value="${t.odd||''}" placeholder="2.50" onchange="updateField('${be}',${i},'odd',this.value)"/>
+            return`<tr>
+              <td>
+                <div class="ticket-name-cell">
+                  <div class="ticket-name-row">
+                    <input class="cell-input name-input" value="${(t.nome||'').replace(/"/g,'&quot;')}" placeholder="Ex: Flamengo..." onchange="updateField('${be}',${i},'nome',this.value)"/>
+                    <button class="more-details-btn" id="note-btn-${tUniqueId}" onclick="event.stopPropagation(); toggleNote('${tUniqueId}')">
+                      <i class="ti ${isNxtOpen?'ti-chevron-up':'ti-chevron-down'}"></i> ${isNxtOpen?'Ocultar':'Detalhes'}
+                    </button>
                   </div>
-                  <div class="details-field">
-                    <label>Gasto (R$)</label>
-                    <input class="cell-input" type="number" step="0.01" min="0" value="${t.gasto||''}" placeholder="10.00" onchange="updateField('${be}',${i},'gasto',this.value)"/>
-                  </div>
-                  <div class="details-field">
-                    <label>Retorno estimado</label>
-                    <div class="cell-input" style="background:rgba(0,0,0,0.1); display:flex; align-items:center; min-height:33px;">${c.retornoTxt}</div>
-                  </div>
-                  <div class="details-field">
-                    <label>Resultado</label>
-                    <select class="result-select ${t.resultado.toLowerCase()}" onchange="updateField('${be}',${i},'resultado',this.value)">
-                      <option ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
-                      <option ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
-                      <option ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
-                    </select>
+                  <div class="ticket-expanded-box ${isNxtOpen?'open':''}" id="note-box-${tUniqueId}" onclick="event.stopPropagation()">
+                    <textarea placeholder="Adicione tópicos, palpites ou observações da sua aposta detalhada..." onchange="updateField('${be}',${i},'notas',this.value)">${t.notas||''}</textarea>
                   </div>
                 </div>
-                <div style="display:flex; justify-content:flex-end;">
-                  <button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti ti-trash"></i> Excluir Bilhete</button>
-                </div>
-              </div>
-            </div>`;}).join('')}
-        </div>
+              </td>
+              <td><input class="cell-input" type="number" step="0.01" min="1" value="${t.odd||''}" placeholder="2.50" onchange="updateField('${be}',${i},'odd',this.value)"/></td>
+              <td><input class="cell-input" type="number" step="0.01" min="0" value="${t.gasto||''}" placeholder="10.00" onchange="updateField('${be}',${i},'gasto',this.value)"/></td>
+              <td class="computed">${c.retornoTxt}</td>
+              <td class="computed ${c.lucroClass}">${c.lucroTxt}</td>
+              <td><select class="result-select ${t.resultado.toLowerCase()}" onchange="updateField('${be}',${i},'resultado',this.value)">
+                <option ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
+                <option ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
+                <option ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
+              </select></td>
+              <td><button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti ti-trash"></i></button></td>
+            </tr>`;}).join('')}</tbody>
+        </table>
         <div class="bet-totals">
           <div class="bet-total-item">Gasto:<span style="color:var(--txt)">${fmt(tG)}</span></div>
           <div class="bet-total-item">Possível retorno:<span style="color:var(--grn)">${fmt(tR)}</span></div>
@@ -385,13 +428,15 @@ function renderAll(){
   const container=document.getElementById('bets-container');
   if(!container) return;
   container.innerHTML='';
-  appData.bets.forEach((bet, idx)=>container.appendChild(renderBet(bet, idx)));
+  appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
   updateGlobals();
+  initDragAndDrop();
   const form=document.getElementById('add-bet-form');
   if(form)form.className='add-bet-form'+(addFormOpen?' open':'');
 }
 
 window.toggleSection=function(bet){
+  if(isOrderMode) return; 
   openSections[bet]=openSections[bet]===false?true:false;
   const sid=safeId(bet);
   const body=document.getElementById('body-'+sid);
@@ -403,16 +448,14 @@ window.toggleSection=function(bet){
 window.addTicket=function(bet){
   openSections[bet]=true;
   if(!appData.tickets[bet])appData.tickets[bet]=[];
-  const newId = Date.now();
-  appData.tickets[bet].push({id:newId,nome:'',odd:'',gasto:'',resultado:'Pendente'});
-  openTickets[newId] = true; 
+  appData.tickets[bet].push({id:Date.now(),nome:'',odd:'',gasto:'',resultado:'Pendente',notas:''});
   refreshBet(bet);updateGlobals();scheduleSave();
 };
 
 window.updateField=function(bet,idx,field,value){
   if(!appData.tickets[bet])return;
   appData.tickets[bet][idx][field]=value;
-  refreshBet(bet);updateGlobals();scheduleSave();
+  updateGlobals();scheduleSave();
 };
 
 window.deleteTicket=function(bet,idx){
@@ -428,9 +471,8 @@ window.deleteBet=function(bet){
 };
 
 function refreshBet(bet){
-  const index = appData.bets.indexOf(bet);
   const section=document.getElementById('section-'+safeId(bet));
-  if(section)section.replaceWith(renderBet(bet, index));
+  if(section) section.replaceWith(renderBet(bet));
 }
 
 window.toggleAddForm=function(){
