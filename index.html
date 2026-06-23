@@ -9,8 +9,8 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
 :root.light{--bg0:#f0f4ff;--bg1:#ffffff;--bg2:#e8eeff;--bg3:#d8e2ff;--acc:#5b63e8;--bdr:#c5ccf0;--txt:#1e2a4a;--txt2:#5a6a8a;--grn:#16a34a;--grn-bg:#dcfce7;--red:#dc2626;--red-bg:#fee2e2;--yel:#b45309;--yel-bg:#fef3c7}
-.theme-btn, .order-toggle-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:5px}
-.theme-btn:hover, .order-toggle-btn:hover{border-color:var(--acc);color:var(--acc)}
+.theme-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.theme-btn:hover{border-color:var(--acc);color:var(--acc)}
 body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min-height:100vh}
 #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;padding:2rem}
 #login-screen h1{color:var(--acc);font-size:24px;font-weight:600;margin-bottom:4px}
@@ -64,7 +64,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .add-bet-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:7px;padding:9px 12px;color:var(--txt);font-size:14px;flex:1;min-width:180px;outline:none}
 .confirm-add-btn{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer}
 .cancel-add-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:9px 14px;font-size:14px;color:var(--txt2);cursor:pointer}
-.loading-overlay{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--txt2);font-size:14px;gap:8px}
 
 .ticket-main-wrapper {display:flex; flex-direction:column; gap:4px; width:100%}
 .more-details-btn {background:var(--bg3); border:0.5px solid var(--bdr); color:var(--txt); font-size:12px; cursor:pointer; padding:6px 10px; border-radius:5px; display:inline-flex; align-items:center; gap:4px; font-weight:500}
@@ -177,7 +176,7 @@ function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')
 async function cloudSave(){
   try{
     await setDoc(doc(db,'usuarios',userDocId()),{data:JSON.stringify(appData),updatedAt:Date.now()});
-    showSaving('✓ Salvo na Nuvem','ok');
+    showSaving('✓ Sincronizado','ok');
   }catch(e){}
 }
 
@@ -188,17 +187,15 @@ async function cloudLoad(){
   }catch(e){}
 }
 
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSave(),800);}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSave(),1200);}
 function showSaving(msg,cls){
   const el=document.getElementById('saving-indicator');
   if(!el) return; el.textContent=msg; el.className='saving-indicator '+cls;
   setTimeout(()=>{el.textContent='';},2000);
 }
 
-// Analisador inteligente de Tópicos e Subtópicos estruturados por Time
 async function autoCheckLiveMatch(ticket, bet, idx, ticketUniqueId) {
   if(ticket.resultado !== 'Pendente' || !ticket.notas) return;
-
   const lines = ticket.notas.split('\n');
   let currentTeamContext = '';
   let activeMatches = {};
@@ -207,16 +204,13 @@ async function autoCheckLiveMatch(ticket, bet, idx, ticketUniqueId) {
   if(!ticket.checkedItems) ticket.checkedItems = {};
   if(!ticket.userInterventions) ticket.userInterventions = {};
 
-  // Passo 1: Descobrir os contextos de times e coletar dados ao vivo
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
     if(!trimmed) continue;
-
     const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
     
     if(!isSub) {
-      // É uma linha principal (Nome do Time)
       currentTeamContext = trimmed.toLowerCase();
       if(currentTeamContext.length >= 3 && !activeMatches[currentTeamContext]) {
         try {
@@ -237,9 +231,7 @@ async function autoCheckLiveMatch(ticket, bet, idx, ticketUniqueId) {
         } catch(e){}
       }
     } else {
-      // É um subtópico, vamos analisar sob o contexto do time atual
       if(!currentTeamContext || !activeMatches[currentTeamContext] || ticket.userInterventions[i]) continue;
-
       const rawText = trimmed.toLowerCase();
       const matchInfo = activeMatches[currentTeamContext];
 
@@ -364,6 +356,26 @@ window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
   scheduleSave();
 };
 
+// Atualização em tempo real das contas e exibição na linha
+window.liveUpdateMath=function(bet, idx, field, val, rowId){
+  appData.tickets[bet][idx][field] = val;
+  
+  // Recalcula na hora para atualizar os cards e a linha sem travar a digitação
+  const ticket = appData.tickets[bet][idx];
+  const c = calcTicket(ticket);
+  
+  const retEl = document.getElementById('ret-'+rowId);
+  const lucEl = document.getElementById('luc-'+rowId);
+  if(retEl) retEl.textContent = c.retornoTxt;
+  if(lucEl) {
+    lucEl.textContent = c.lucroTxt;
+    lucEl.className = 'computed ' + c.lucroClass;
+  }
+  
+  updateGlobals();
+  scheduleSave();
+};
+
 function renderBet(bet){
   const tickets=appData.tickets[bet]||[];
   const isOpen=openSections[bet]!==false;
@@ -397,7 +409,6 @@ function renderBet(bet){
             
             autoCheckLiveMatch(t, bet, i, tUniqueId);
 
-            // Resumo do primeiro time encontrado para mostrar no botão do topo
             const lines = (t.notas || '').split('\n');
             const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
 
@@ -416,11 +427,11 @@ function renderBet(bet){
                   </div>
                 </div>
               </td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.00" onchange="updateField('${be}',${i},'odd',this.value)"/></td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" onchange="updateField('${be}',${i},'gasto',this.value)"/></td>
-              <td class="computed">${c.retornoTxt}</td>
-              <td class="computed ${c.lucroClass}">${c.lucroTxt}</td>
-              <td><select class="result-select ${t.resultado.toLowerCase()}" onchange="updateField('${be}',${i},'resultado',this.value)">
+              <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.00" oninput="window.liveUpdateMath('${be}',${i},'odd',this.value,'${tUniqueId}')"/></td>
+              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
+              <td class="computed" id="ret-${tUniqueId}">${c.retornoTxt}</td>
+              <td class="computed ${c.lucroClass}" id="luc-${tUniqueId}">${c.lucroTxt}</td>
+              <td><select class="result-select ${t.resultado.toLowerCase()}" onchange="window.liveUpdateMath('${be}',${i},'resultado',this.value,'${tUniqueId}')">
                 <option ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
                 <option ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
                 <option ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
@@ -460,11 +471,6 @@ window.addTicket=function(bet){
   expandedNotes[safeId(bet) + '_' + newId] = true; 
   openEditors[safeId(bet) + '_' + newId] = true; 
   renderAll(); scheduleSave();
-};
-
-window.updateField=function(bet,idx,field,value){
-  appData.tickets[bet][idx][field]=value;
-  updateGlobals(); scheduleSave();
 };
 
 window.deleteTicket=function(bet,idx){
