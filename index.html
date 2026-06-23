@@ -366,4 +366,91 @@ function renderBet(bet, betIdx){
                   </div>
                 </div>
                 <div style="display:flex; justify-content:flex-end;">
-                  <button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti
+                  <button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti ti-trash"></i> Excluir Bilhete</button>
+                </div>
+              </div>
+            </div>`;}).join('')}
+        </div>
+        <div class="bet-totals">
+          <div class="bet-total-item">Gasto:<span style="color:var(--txt)">${fmt(tG)}</span></div>
+          <div class="bet-total-item">Possível retorno:<span style="color:var(--grn)">${fmt(tR)}</span></div>
+          <div class="bet-total-item">Lucro/Prejuízo:<span style="color:${tL>=0?'var(--grn)':'var(--red)'}">${fmt(tL)}</span></div>
+        </div>`
+      }
+    </div>`;
+  return section;
+}
+
+function renderAll(){
+  const container=document.getElementById('bets-container');
+  if(!container) return;
+  container.innerHTML='';
+  appData.bets.forEach((bet, idx)=>container.appendChild(renderBet(bet, idx)));
+  updateGlobals();
+  const form=document.getElementById('add-bet-form');
+  if(form)form.className='add-bet-form'+(addFormOpen?' open':'');
+}
+
+window.toggleSection=function(bet){
+  openSections[bet]=openSections[bet]===false?true:false;
+  const sid=safeId(bet);
+  const body=document.getElementById('body-'+sid);
+  const chev=document.getElementById('chev-'+sid);
+  if(body)body.style.display=openSections[bet]===false?'none':'block';
+  if(chev)chev.classList.toggle('open',openSections[bet]!==false);
+};
+
+window.addTicket=function(bet){
+  openSections[bet]=true;
+  if(!appData.tickets[bet])appData.tickets[bet]=[];
+  const newId = Date.now();
+  appData.tickets[bet].push({id:newId,nome:'',odd:'',gasto:'',resultado:'Pendente'});
+  openTickets[newId] = true; 
+  refreshBet(bet);updateGlobals();scheduleSave();
+};
+
+window.updateField=function(bet,idx,field,value){
+  if(!appData.tickets[bet])return;
+  appData.tickets[bet][idx][field]=value;
+  refreshBet(bet);updateGlobals();scheduleSave();
+};
+
+window.deleteTicket=function(bet,idx){
+  if(!appData.tickets[bet])return;
+  appData.tickets[bet].splice(idx,1);
+  refreshBet(bet);updateGlobals();scheduleSave();
+};
+
+window.deleteBet=function(bet){
+  appData.bets=appData.bets.filter(b=>b!==bet);
+  delete appData.tickets[bet];
+  renderAll();scheduleSave();
+};
+
+function refreshBet(bet){
+  const index = appData.bets.indexOf(bet);
+  const section=document.getElementById('section-'+safeId(bet));
+  if(section)section.replaceWith(renderBet(bet, index));
+}
+
+window.toggleAddForm=function(){
+  addFormOpen=!addFormOpen;
+  const form=document.getElementById('add-bet-form');
+  form.className='add-bet-form'+(addFormOpen?' open':'');
+  if(addFormOpen)setTimeout(()=>document.getElementById('new-bet-input').focus(),50);
+};
+
+window.confirmarNovaAposta=function(){
+  const input=document.getElementById('new-bet-input');
+  const nome=input.value.trim();
+  if(!nome)return;
+  if(appData.bets.map(b=>b.toLowerCase()).includes(nome.toLowerCase())){
+    input.style.borderColor='var(--red)';setTimeout(()=>input.style.borderColor='',1500);return;
+  }
+  appData.bets.push(nome);
+  input.value='';addFormOpen=false;openSections[nome]=true;
+  renderAll();scheduleSave();
+};
+</script>
+</body>
+</html>
