@@ -29,7 +29,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
 .stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .stat-val{font-size:19px;font-weight:600}
-.stat-val.green{color:var(--grn)}.stat-val.red{color:var(--red)}.stat-val.yellow{color:var(--yel)}.stat-val.white{color:var(--txt)}
+.stat-val.green{color:var(--grn) !important}.stat-val.red{color:var(--red) !important}.stat-val.yellow{color:var(--yel) !important}.stat-val.white{color:var(--txt) !important}
 .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
 .bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none}
@@ -49,7 +49,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
 
-/* Cores corrigidas e isoladas dos seletores */
 .result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
 .result-select.pendente{background:var(--yel-bg) !important;color:var(--yel) !important;border-color:#fcd34d55}
 .result-select.ganhou{background:var(--grn-bg) !important;color:var(--grn) !important;border-color:#34d39955}
@@ -57,9 +56,12 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 
 .del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px}
 .del-btn:hover{color:var(--red);background:var(--red-bg)}
-.computed{color:var(--grn);font-size:13px}
-.computed.loss{color:var(--red)}
-.computed.pending{color:var(--txt2)}
+
+.computed{font-size:13px;font-weight:500}
+.computed.win{color:var(--grn) !important}
+.computed.loss{color:var(--red) !important}
+.computed.pending{color:var(--txt2) !important}
+
 .no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
 .add-bet-section{background:var(--bg1);border:0.5px dashed var(--acc);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .add-bet-trigger{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;color:var(--acc);font-size:14px;font-weight:500}
@@ -230,7 +232,7 @@ function calcTicket(t){
   
   if(t.resultado==='Ganhou'){
     lucro=retorno-gasto;
-    lucroClass=lucro>=0?'':'loss';
+    lucroClass='win';
     lucroTxt=fmt(lucro);
   } else if(t.resultado==='Perdeu'){
     lucro=-gasto;
@@ -316,7 +318,6 @@ window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
   if(!ticket.checkedItems) ticket.checkedItems = {};
   window.buildTimelineDOM(ticketUniqueId, textValue, ticket.checkedItems, bet, idx);
   
-  // Atualiza o botão de título principal em tempo real ao digitar os tópicos
   const lines = textValue.split('\n');
   const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
   const btnEl = document.getElementById('btn-title-'+ticketUniqueId);
