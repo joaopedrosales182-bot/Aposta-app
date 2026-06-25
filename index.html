@@ -48,14 +48,18 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .tickets-table td:first-child{text-align:left}
 .cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
+
+/* Cores corrigidas e isoladas dos seletores */
 .result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
-.result-select.ganhou{background:var(--grn-bg);color:var(--grn);border-color:#34d39955}
-.result-select.perdeu{background:var(--red-bg);color:var(--red);border-color:#f8717155}
-.result-select.pendente{background:var(--yel-bg);color:var(--yel);border-color:#fcd34d55}
+.result-select.pendente{background:var(--yel-bg) !important;color:var(--yel) !important;border-color:#fcd34d55}
+.result-select.ganhou{background:var(--grn-bg) !important;color:var(--grn) !important;border-color:#34d39955}
+.result-select.perdeu{background:var(--red-bg) !important;color:var(--red) !important;border-color:#f8717155}
+
 .del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px}
 .del-btn:hover{color:var(--red);background:var(--red-bg)}
 .computed{color:var(--grn);font-size:13px}
 .computed.loss{color:var(--red)}
+.computed.pending{color:var(--txt2)}
 .no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
 .add-bet-section{background:var(--bg1);border:0.5px dashed var(--acc);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .add-bet-trigger{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;color:var(--acc);font-size:14px;font-weight:500}
@@ -116,7 +120,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 
 <div id="app">
   <div class="topbar">
-    <h1><i class="ti ti-chart-bar" style="margin-right:6px"></i>Controle Inteligente</h1>
+    <h1><i class="ti ti-chart-bar" style="margin-right:6px"></i>Controle de Bancas</h1>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="user-badge"><i class="ti ti-cloud" style="font-size:14px"></i><span id="username-display"></span></div>
       <button class="theme-btn" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i><span id="theme-label">Claro</span></button>
@@ -125,10 +129,10 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   </div>
 
   <div class="summary-grid">
-    <div class="stat-card"><div class="stat-label">Total gasto</div><div class="stat-val white" id="total-gasto">R$ 0,00</div></div>
-    <div class="stat-card"><div class="stat-label">Possível retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
-    <div class="stat-card"><div class="stat-label">Lucro / Prejuízo</div><div class="stat-val white" id="total-lucro">R$ 0,00</div></div>
-    <div class="stat-card"><div class="stat-label">Bilhetes abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
+    <div class="stat-card"><div class="stat-label">Total Gasto</div><div class="stat-val white" id="total-gasto">R$ 0,00</div></div>
+    <div class="stat-card"><div class="stat-label">Possível Retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
+    <div class="stat-card"><div class="stat-label">Lucro / Prejuízo Líquido</div><div class="stat-val white" id="total-lucro">R$ 0,00</div></div>
+    <div class="stat-card"><div class="stat-label">Bilhetes Abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
   </div>
 
   <div class="saving-indicator" id="saving-indicator"></div>
@@ -187,70 +191,11 @@ async function cloudLoad(){
   }catch(e){}
 }
 
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSave(),1200);}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSave(),1000);}
 function showSaving(msg,cls){
   const el=document.getElementById('saving-indicator');
   if(!el) return; el.textContent=msg; el.className='saving-indicator '+cls;
   setTimeout(()=>{el.textContent='';},2000);
-}
-
-async function autoCheckLiveMatch(ticket, bet, idx, ticketUniqueId) {
-  if(ticket.resultado !== 'Pendente' || !ticket.notas) return;
-  const lines = ticket.notas.split('\n');
-  let currentTeamContext = '';
-  let activeMatches = {};
-  let mudou = false;
-
-  if(!ticket.checkedItems) ticket.checkedItems = {};
-  if(!ticket.userInterventions) ticket.userInterventions = {};
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
-    if(!trimmed) continue;
-    const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
-    
-    if(!isSub) {
-      currentTeamContext = trimmed.toLowerCase();
-      if(currentTeamContext.length >= 3 && !activeMatches[currentTeamContext]) {
-        try {
-          const res = await fetch(`https://v3.football.api-sports.io/fixtures?search=${encodeURIComponent(trimmed)}&live=all`, {
-            method: "GET",
-            headers: {
-              "x-rapidapi-key": "713e2f49557b448a6bd079234b07fbdf",
-              "x-rapidapi-host": "v3.football.api-sports.io"
-            }
-          });
-          const data = await res.json();
-          if(data.response && data.response.length > 0) {
-            const match = data.response[0];
-            const h = match.goals.home || 0;
-            const a = match.goals.away || 0;
-            activeMatches[currentTeamContext] = { home: h, away: a, total: h + a };
-          }
-        } catch(e){}
-      }
-    } else {
-      if(!currentTeamContext || !activeMatches[currentTeamContext] || ticket.userInterventions[i]) continue;
-      const rawText = trimmed.toLowerCase();
-      const matchInfo = activeMatches[currentTeamContext];
-
-      if(rawText.includes('mais de 1.5') || rawText.includes('+1.5') || rawText.includes('mais 1.5')){
-        if(matchInfo.total > 1 && !ticket.checkedItems[i]) { ticket.checkedItems[i] = true; mudou = true; }
-      }
-      if(rawText.includes('mais de 2.5') || rawText.includes('+2.5') || rawText.includes('mais 2.5')){
-        if(matchInfo.total > 2 && !ticket.checkedItems[i]) { ticket.checkedItems[i] = true; mudou = true; }
-      }
-      if(rawText.includes('ambos marcam') || rawText.includes('ambas marcam')){
-        if(matchInfo.home > 0 && matchInfo.away > 0 && !ticket.checkedItems[i]) { ticket.checkedItems[i] = true; mudou = true; }
-      }
-    }
-  }
-
-  if(mudou) {
-    window.buildTimelineDOM(ticketUniqueId, ticket.notas, ticket.checkedItems, bet, idx);
-    scheduleSave();
-  }
 }
 
 window.entrar=async function(){
@@ -280,9 +225,19 @@ function calcTicket(t){
   const odd=parseFloat(String(t.odd||'').replace(',','.'));
   const gasto=parseFloat(String(t.gasto||'').replace(',','.'));
   const retorno=odd>0&&gasto>0?odd*gasto:0;
-  let lucro=0,lucroClass='pending',lucroTxt='Aguardando';
-  if(t.resultado==='Ganhou'){lucro=retorno-gasto;lucroClass=lucro>=0?'':'loss';lucroTxt=fmt(lucro);}
-  else if(t.resultado==='Perdeu'){lucro=-gasto;lucroClass='loss';lucroTxt=fmt(lucro);}
+  
+  let lucro=0, lucroClass='pending', lucroTxt='Aguardando';
+  
+  if(t.resultado==='Ganhou'){
+    lucro=retorno-gasto;
+    lucroClass=lucro>=0?'':'loss';
+    lucroTxt=fmt(lucro);
+  } else if(t.resultado==='Perdeu'){
+    lucro=-gasto;
+    lucroClass='loss';
+    lucroTxt=fmt(lucro);
+  }
+  
   return{retorno,lucro,lucroClass,lucroTxt,retornoTxt:retorno>0?fmt(retorno):'—',gastoVal:gasto>0?gasto:0};
 }
 
@@ -290,14 +245,25 @@ function updateGlobals(){
   let tG=0,tR=0,tL=0,tP=0;
   appData.bets.forEach(bet=>{
     (appData.tickets[bet]||[]).forEach(t=>{
-      const c=calcTicket(t); tG+=c.gastoVal;
-      if(t.resultado==='Pendente'){tR+=c.retorno;tP++;}
-      else tL+=c.lucro;
+      const c=calcTicket(t); 
+      tG+=c.gastoVal;
+      if(t.resultado==='Pendente'){
+        tR+=c.retorno;
+        tP++;
+      } else {
+        tL+=c.lucro;
+      }
     });
   });
+  
+  const lucroTotalEl = document.getElementById('total-lucro');
+  lucroTotalEl.textContent=fmt(tL);
+  if(tL>0){lucroTotalEl.className='stat-val green'}
+  else if(tL<0){lucroTotalEl.className='stat-val red'}
+  else {lucroTotalEl.className='stat-val white'}
+
   document.getElementById('total-gasto').textContent=fmt(tG);
   document.getElementById('total-retorno').textContent=fmt(tR);
-  document.getElementById('total-lucro').textContent=fmt(tL);
   document.getElementById('total-pendentes').textContent=tP;
 }
 
@@ -339,11 +305,7 @@ window.buildTimelineDOM=function(ticketUniqueId, textValue, checkedMap, bet, idx
 window.toggleNodeCheck=function(ticketUniqueId, lineId, bet, idx) {
   const ticket = appData.tickets[bet][idx];
   if(!ticket.checkedItems) ticket.checkedItems = {};
-  if(!ticket.userInterventions) ticket.userInterventions = {};
-  
   ticket.checkedItems[lineId] = !ticket.checkedItems[lineId];
-  ticket.userInterventions[lineId] = true; 
-  
   window.buildTimelineDOM(ticketUniqueId, ticket.notas || '', ticket.checkedItems, bet, idx);
   scheduleSave();
 };
@@ -353,23 +315,32 @@ window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
   ticket.notas = textValue;
   if(!ticket.checkedItems) ticket.checkedItems = {};
   window.buildTimelineDOM(ticketUniqueId, textValue, ticket.checkedItems, bet, idx);
+  
+  // Atualiza o botão de título principal em tempo real ao digitar os tópicos
+  const lines = textValue.split('\n');
+  const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
+  const btnEl = document.getElementById('btn-title-'+ticketUniqueId);
+  if(btnEl) btnEl.innerHTML = `<i class="ti ti-ticket" style="color:var(--acc)"></i> <strong>${firstTeam}</strong>`;
+  
   scheduleSave();
 };
 
-// Atualização em tempo real das contas e exibição na linha
 window.liveUpdateMath=function(bet, idx, field, val, rowId){
   appData.tickets[bet][idx][field] = val;
-  
-  // Recalcula na hora para atualizar os cards e a linha sem travar a digitação
   const ticket = appData.tickets[bet][idx];
   const c = calcTicket(ticket);
   
   const retEl = document.getElementById('ret-'+rowId);
   const lucEl = document.getElementById('luc-'+rowId);
+  const selEl = document.getElementById('sel-'+rowId);
+  
   if(retEl) retEl.textContent = c.retornoTxt;
   if(lucEl) {
     lucEl.textContent = c.lucroTxt;
     lucEl.className = 'computed ' + c.lucroClass;
+  }
+  if(selEl && field === 'resultado') {
+    selEl.className = 'result-select ' + val.toLowerCase();
   }
   
   updateGlobals();
@@ -406,8 +377,6 @@ function renderBet(bet){
             const tUniqueId = sid + '_' + (t.id || i);
             const isNxtOpen = expandedNotes[tUniqueId] !== false; 
             const isEdOpen = !!openEditors[tUniqueId];
-            
-            autoCheckLiveMatch(t, bet, i, tUniqueId);
 
             const lines = (t.notas || '').split('\n');
             const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
@@ -416,7 +385,7 @@ function renderBet(bet){
               <td>
                 <div class="ticket-main-wrapper">
                   <div style="text-align:left;">
-                    <button class="more-details-btn" onclick="event.stopPropagation(); toggleNote('${tUniqueId}')"><i class="ti ti-ticket" style="color:var(--acc)"></i> <strong>${firstTeam}</strong></button>
+                    <button class="more-details-btn" id="btn-title-${tUniqueId}" onclick="event.stopPropagation(); toggleNote('${tUniqueId}')"><i class="ti ti-ticket" style="color:var(--acc)"></i> <strong>${firstTeam}</strong></button>
                   </div>
                   <div class="timeline-container ${isNxtOpen?'open':''}" id="note-container-${tUniqueId}" onclick="event.stopPropagation()">
                     <div class="timeline-view" id="timeline-view-${tUniqueId}"></div>
@@ -431,10 +400,10 @@ function renderBet(bet){
               <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
               <td class="computed" id="ret-${tUniqueId}">${c.retornoTxt}</td>
               <td class="computed ${c.lucroClass}" id="luc-${tUniqueId}">${c.lucroTxt}</td>
-              <td><select class="result-select ${t.resultado.toLowerCase()}" onchange="window.liveUpdateMath('${be}',${i},'resultado',this.value,'${tUniqueId}')">
-                <option ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
-                <option ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
-                <option ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
+              <td><select class="result-select ${t.resultado.toLowerCase()}" id="sel-${tUniqueId}" onchange="window.liveUpdateMath('${be}',${i},'resultado',this.value,'${tUniqueId}')">
+                <option value="Pendente" ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
+                <option value="Ganhou" ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
+                <option value="Perdeu" ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
               </select></td>
               <td><button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti ti-trash"></i></button></td>
             </tr>`;}).join('')}</tbody>
@@ -467,7 +436,7 @@ window.addTicket=function(bet){
   openSections[bet]=true;
   if(!appData.tickets[bet])appData.tickets[bet]=[];
   const newId = Date.now();
-  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},userInterventions:{}});
+  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{}});
   expandedNotes[safeId(bet) + '_' + newId] = true; 
   openEditors[safeId(bet) + '_' + newId] = true; 
   renderAll(); scheduleSave();
