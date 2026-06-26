@@ -40,9 +40,12 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
 .bet-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 
-.deposit-wrapper{display:flex;align-items:center;gap:4px;background:var(--bg0);padding:3px 8px;border-radius:6px;border:0.5px solid var(--bdr)}
+.deposit-wrapper{display:flex;align-items:center;gap:6px;background:var(--bg0);padding:4px 10px;border-radius:6px;border:0.5px solid var(--bdr)}
 .deposit-label{font-size:11px;color:var(--txt2);font-weight:500}
-.deposit-input{background:transparent;border:none;color:var(--grn);font-size:12px;font-weight:600;width:75px;outline:none;font-family:inherit}
+.deposit-input{background:transparent;border:none;color:var(--grn);font-size:12px;font-weight:600;width:70px;outline:none;font-family:inherit}
+
+.sacado-btn{background:var(--bg3);border:0.5px solid var(--bdr);color:var(--txt2);padding:3px 6px;border-radius:4px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;font-weight:600}
+.sacado-btn.checked{background:var(--red-bg);color:var(--red);border-color:var(--red)}
 
 .add-ticket-btn{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
 .chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
@@ -187,7 +190,7 @@ let expandedNotes={};
 let openEditors={}; 
 let saveTimer=null;
 let addFormOpen=false;
-let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{}};
+let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{},withdrawals:{},savedBalances:{}};
 
 function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')}
 
@@ -204,6 +207,8 @@ async function cloudLoad(){
     if(snap.exists()) {
       appData=JSON.parse(snap.data().data);
       if(!appData.deposits) appData.deposits = {};
+      if(!appData.withdrawals) appData.withdrawals = {};
+      if(!appData.savedBalances) appData.savedBalances = {};
     }
   }catch(e){}
 }
@@ -275,7 +280,7 @@ function updateGlobals(){
   let tG=0,tR=0,tL=0,tP=0, tDep=0;
 
   appData.bets.forEach(bet=>{
-    let impactoBanca = 0; // Controla quanto dinheiro real entra ou sai do saldo inicial
+    let impactoBanca = 0; 
     
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
@@ -284,19 +289,48 @@ function updateGlobals(){
       if(t.resultado==='Pendente'){
         tR+=c.retorno;
         tP++;
-        impactoBanca -= c.gastoLiquido; // Pendente: reserva/saca o dinheiro real da banca
+        impactoBanca -= c.gastoLiquido; 
       } else if(t.resultado==='Ganhou') {
         tL+=c.lucro;
-        impactoBanca += c.lucro; // Ganhou: Adiciona o lucro líquido real conquistado
+        impactoBanca += c.retorno; // Regra Nova: Ganhou adiciona o RETORNO total na banca
       } else if(t.resultado==='Perdeu') {
         tL+=c.lucro;
-        impactoBanca -= c.gastoLiquido; // Perdeu: O dinheiro real gasto some permanentemente
+        impactoBanca -= c.gastoLiquido; 
       }
     });
 
     const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    const bancaRestante = Math.max(0, baseDeposit + impactoBanca);
-    tDep += bancaRestante;
+    let bancaRestante = Math.max(0, baseDeposit + impactoBanca);
+
+    // Se não há bilhetes ativos, verifica se guardamos um histórico da banca anterior
+    if ((appData.tickets[bet] || []).length === 0) {
+      if (appData.savedBalances && appData.savedBalances[bet] !== undefined && !appData.withdrawals[bet]) {
+        bancaRestante = appData.savedBalances[bet];
+        // Sincroniza visualmente o input para virar a nova banca inicial
+        const sid = safeId(bet);
+        const inp = document.querySelector(`#section-${sid} .deposit-input`);
+        if (inp && parseFloat(inp.value) !== bancaRestante) {
+          inp.value = bancaRestante.toFixed(2);
+          appData.deposits[bet] = bancaRestante.toFixed(2);
+        }
+      } else if (appData.withdrawals[bet]) {
+        // Se já sacou e limpou bilhetes, zera tudo
+        bancaRestante = 0;
+        const sid = safeId(bet);
+        const inp = document.querySelector(`#section-${sid} .deposit-input`);
+        if(inp) inp.value = '';
+        appData.deposits[bet] = 0;
+      }
+    } else {
+      // Se há bilhetes, mantemos salvo o estado atual caso o usuário limpe depois
+      if(!appData.savedBalances) appData.savedBalances = {};
+      appData.savedBalances[bet] = bancaRestante;
+    }
+
+    const isSacado = !!appData.withdrawals[bet];
+    if(!isSacado) {
+      tDep += bancaRestante; // Se NÃO foi sacado, entra na soma do topo
+    }
 
     const sid = safeId(bet);
     const liveDisplay = document.getElementById('banca-realtime-'+sid);
@@ -324,7 +358,28 @@ function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
 window.updateDepositValue=function(bet, val){
   if(!appData.deposits) appData.deposits = {};
   appData.deposits[bet] = val;
+  if(appData.savedBalances) delete appData.savedBalances[bet]; // Reseta cache manual
   updateGlobals();
+  scheduleSave();
+};
+
+window.toggleSacado=function(bet) {
+  if(!appData.withdrawals) appData.withdrawals = {};
+  appData.withdrawals[bet] = !appData.withdrawals[bet];
+  
+  const sid = safeId(bet);
+  const btn = document.getElementById('btn-saque-'+sid);
+  if(btn) {
+    if(appData.withdrawals[bet]) {
+      btn.className = 'sacado-btn checked';
+      btn.innerHTML = '<i class="ti ti-wallet"></i> Sacado';
+    } else {
+      btn.className = 'sacado-btn';
+      btn.innerHTML = '<i class="ti ti-cash"></i> Já Saquei';
+    }
+  }
+  updateGlobals();
+  renderAll();
   scheduleSave();
 };
 
@@ -439,6 +494,7 @@ function renderBet(bet){
   const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   
   const depVal = (appData.deposits && appData.deposits[bet]) ? appData.deposits[bet] : '';
+  const isSacado = appData.withdrawals ? !!appData.withdrawals[bet] : false;
   
   section.innerHTML=`
     <div class="bet-header" onclick="toggleSection('${be}')">
@@ -448,10 +504,13 @@ function renderBet(bet){
         <span class="bet-badge">${tickets.length} bilhete${tickets.length!==1?'s':''}</span>
       </div>
       <div class="bet-actions" onclick="event.stopPropagation()">
-        <div class="deposit-wrapper" title="Digite seu depósito inicial para ver o cálculo do saldo restante ao lado">
+        <div class="deposit-wrapper">
           <span class="deposit-label">Banca Inicial R$:</span>
           <input class="deposit-input" type="number" step="0.01" value="${depVal}" placeholder="0,00" oninput="window.updateDepositValue('${be}', this.value)"/>
           <span class="deposit-label" style="margin-left:6px;border-left:0.5px solid var(--bdr);padding-left:6px;color:var(--grn)">Atual: <strong id="banca-realtime-${sid}">R$ 0,00</strong></span>
+          <button id="btn-saque-${sid}" class="sacado-btn ${isSacado?'checked':''}" onclick="window.toggleSacado('${be}')">
+            ${isSacado ? '<i class="ti ti-wallet"></i> Sacado' : '<i class="ti ti-cash"></i> Já Saquei'}
+          </button>
         </div>
         <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Novo Bilhete</button>
         <i class="ti ti-chevron-down chevron ${isOpen?'open':''}" id="chev-${sid}"></i>
