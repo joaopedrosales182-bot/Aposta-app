@@ -35,11 +35,16 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .stat-val.white{color:var(--txt) !important}
 .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
 .bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
-.bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none}
-.bet-header:hover{background:var(--bg3)}
+.bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none;flex-wrap:wrap;gap:8px}
 .bet-name{font-weight:600;font-size:14px;color:var(--txt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
-.bet-actions{display:flex;align-items:center;gap:8px}
+.bet-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+/* Input do Saldo Depositado */
+.deposit-wrapper{display:flex;align-items:center;gap:4px;background:var(--bg0);padding:3px 8px;border-radius:6px;border:0.5px solid var(--bdr)}
+.deposit-label{font-size:11px;color:var(--txt2);font-weight:500}
+.deposit-input{background:transparent;border:none;color:var(--grn);font-size:12px;font-weight:600;width:75px;outline:none;font-family:inherit}
+
 .add-ticket-btn{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
 .chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
 .chevron.open{transform:rotate(180deg)}
@@ -182,7 +187,7 @@ let expandedNotes={};
 let openEditors={}; 
 let saveTimer=null;
 let addFormOpen=false;
-let appData={bets:[...DEFAULT_BETS],tickets:{}};
+let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{}}; // Adicionado estrutura deposits
 
 function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')}
 
@@ -196,7 +201,10 @@ async function cloudSave(){
 async function cloudLoad(){
   try{
     const snap=await getDoc(doc(db,'usuarios',userDocId()));
-    if(snap.exists()) appData=JSON.parse(snap.data().data);
+    if(snap.exists()) {
+      appData=JSON.parse(snap.data().data);
+      if(!appData.deposits) appData.deposits = {}; // Fallback para contas antigas
+    }
   }catch(e){}
 }
 
@@ -281,6 +289,12 @@ function updateGlobals(){
 }
 
 function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
+
+window.updateDepositValue=function(bet, val){
+  if(!appData.deposits) appData.deposits = {};
+  appData.deposits[bet] = val;
+  scheduleSave();
+};
 
 window.toggleNote=function(ticketUniqueId){
   expandedNotes[ticketUniqueId] = !expandedNotes[ticketUniqueId];
@@ -384,6 +398,9 @@ function renderBet(bet){
   section.className='bet-section'; section.id='section-'+sid;
   const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   
+  // Resgata o depósito salvo para a banca corrente
+  const depVal = (appData.deposits && appData.deposits[bet]) ? appData.deposits[bet] : '';
+  
   section.innerHTML=`
     <div class="bet-header" onclick="toggleSection('${be}')">
       <div class="bet-name">
@@ -392,6 +409,11 @@ function renderBet(bet){
         <span class="bet-badge">${tickets.length} bilhete${tickets.length!==1?'s':''}</span>
       </div>
       <div class="bet-actions" onclick="event.stopPropagation()">
+        <!-- Espaço para Saldo Depositado -->
+        <div class="deposit-wrapper">
+          <span class="deposit-label">Depósito: R$</span>
+          <input class="deposit-input" type="number" step="0.01" value="${depVal}" placeholder="0,00" oninput="window.updateDepositValue('${be}', this.value)"/>
+        </div>
         <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Novo Bilhete</button>
         <i class="ti ti-chevron-down chevron ${isOpen?'open':''}" id="chev-${sid}"></i>
       </div>
