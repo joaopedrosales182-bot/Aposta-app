@@ -29,7 +29,10 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
 .stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .stat-val{font-size:19px;font-weight:600}
-.stat-val.green{color:var(--grn) !important}.stat-val.red{color:var(--red) !important}.stat-val.yellow{color:var(--yel) !important}.stat-val.white{color:var(--txt) !important}
+.stat-val.green{color:var(--grn) !important}
+.stat-val.red{color:var(--red) !important}
+.stat-val.yellow{color:var(--yel) !important}
+.stat-val.white{color:var(--txt) !important}
 .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
 .bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none}
@@ -42,12 +45,17 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .chevron.open{transform:rotate(180deg)}
 .tickets-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .tickets-table th{background:var(--bg0);color:var(--acc);font-size:10px;font-weight:600;padding:7px 8px;text-align:center;border-bottom:0.5px solid var(--bdr);letter-spacing:.4px;text-transform:uppercase}
-.tickets-table th:first-child{text-align:left;width:45%}
+.tickets-table th:first-child{text-align:left;width:40%}
 .tickets-table th:last-child{width:36px}
 .tickets-table td{padding:8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
 .tickets-table td:first-child{text-align:left}
 .cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
+
+/* Estilo para a opção de Freebet */
+.freebet-toggle {display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--txt2); cursor:pointer; user-select:none; margin-top:4px; background:var(--bg0); padding:2px 6px; border-radius:4px; border:0.5px solid var(--bdr);}
+.freebet-toggle.active {color:var(--yel); border-color:var(--yel); background:rgba(252,211,77,0.05)}
+.freebet-checkbox {cursor:pointer; width:12px; height:12px;}
 
 .result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
 .result-select.pendente{background:var(--yel-bg) !important;color:var(--yel) !important;border-color:#fcd34d55}
@@ -57,7 +65,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px}
 .del-btn:hover{color:var(--red);background:var(--red-bg)}
 
-.computed{font-size:13px;font-weight:500}
+.computed{font-size:13px;font-weight:600}
 .computed.win{color:var(--grn) !important}
 .computed.loss{color:var(--red) !important}
 .computed.pending{color:var(--txt2) !important}
@@ -226,21 +234,26 @@ function fmt(n){return'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+
 function calcTicket(t){
   const odd=parseFloat(String(t.odd||'').replace(',','.'));
   const gasto=parseFloat(String(t.gasto||'').replace(',','.'));
+  const isFreebet = !!t.freebet;
+  
   const retorno=odd>0&&gasto>0?odd*gasto:0;
   
   let lucro=0, lucroClass='pending', lucroTxt='Aguardando';
   
   if(t.resultado==='Ganhou'){
+    // Numa freebet ganha, você recebe o retorno menos o valor do bônus investido
     lucro=retorno-gasto;
     lucroClass='win';
     lucroTxt=fmt(lucro);
   } else if(t.resultado==='Perdeu'){
-    lucro=-gasto;
+    // Se perder uma freebet, seu bolso perde R$ 0,00
+    lucro = isFreebet ? 0 : -gasto;
     lucroClass='loss';
     lucroTxt=fmt(lucro);
   }
   
-  return{retorno,lucro,lucroClass,lucroTxt,retornoTxt:retorno>0?fmt(retorno):'—',gastoVal:gasto>0?gasto:0};
+  // O gasto líquido real do seu bolso é 0 se for aposta grátis
+  return{retorno,lucro,lucroClass,lucroTxt,retornoTxt:retorno>0?fmt(retorno):'—',gastoVal:gasto>0?gasto:0, gastoLiquido: isFreebet ? 0 : (gasto>0?gasto:0)};
 }
 
 function updateGlobals(){
@@ -248,7 +261,7 @@ function updateGlobals(){
   appData.bets.forEach(bet=>{
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
-      tG+=c.gastoVal;
+      tG+=c.gastoLiquido; // Soma apenas o gasto real do bolso
       if(t.resultado==='Pendente'){
         tR+=c.retorno;
         tP++;
@@ -259,10 +272,12 @@ function updateGlobals(){
   });
   
   const lucroTotalEl = document.getElementById('total-lucro');
-  lucroTotalEl.textContent=fmt(tL);
-  if(tL>0){lucroTotalEl.className='stat-val green'}
-  else if(tL<0){lucroTotalEl.className='stat-val red'}
-  else {lucroTotalEl.className='stat-val white'}
+  if(lucroTotalEl) {
+    lucroTotalEl.textContent=fmt(tL);
+    if(tL>0){lucroTotalEl.className='stat-val green'}
+    else if(tL<0){lucroTotalEl.className='stat-val red'}
+    else {lucroTotalEl.className='stat-val white'}
+  }
 
   document.getElementById('total-gasto').textContent=fmt(tG);
   document.getElementById('total-retorno').textContent=fmt(tR);
@@ -326,6 +341,24 @@ window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
   scheduleSave();
 };
 
+window.toggleFreebet=function(bet, idx, rowId, checked) {
+  appData.tickets[bet][idx].freebet = checked;
+  const lbl = document.getElementById('lbl-fb-'+rowId);
+  if(lbl) lbl.classList.toggle('active', checked);
+  
+  // Força atualização dos cálculos visuais da linha
+  const ticket = appData.tickets[bet][idx];
+  const c = calcTicket(ticket);
+  const lucEl = document.getElementById('luc-'+rowId);
+  if(lucEl) {
+    lucEl.textContent = c.lucroTxt;
+    lucEl.className = 'computed ' + c.lucroClass;
+  }
+  
+  updateGlobals();
+  scheduleSave();
+};
+
 window.liveUpdateMath=function(bet, idx, field, val, rowId){
   appData.tickets[bet][idx][field] = val;
   const ticket = appData.tickets[bet][idx];
@@ -378,6 +411,7 @@ function renderBet(bet){
             const tUniqueId = sid + '_' + (t.id || i);
             const isNxtOpen = expandedNotes[tUniqueId] !== false; 
             const isEdOpen = !!openEditors[tUniqueId];
+            const isFb = !!t.freebet;
 
             const lines = (t.notas || '').split('\n');
             const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
@@ -398,7 +432,12 @@ function renderBet(bet){
                 </div>
               </td>
               <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.00" oninput="window.liveUpdateMath('${be}',${i},'odd',this.value,'${tUniqueId}')"/></td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
+              <td>
+                <input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/>
+                <label class="freebet-toggle ${isFb?'active':''}" id="lbl-fb-${tUniqueId}">
+                  <input type="checkbox" class="freebet-checkbox" ${isFb?'checked':''} onchange="window.toggleFreebet('${be}', ${i}, '${tUniqueId}', this.checked)"/> Aposta Grátis
+                </label>
+              </td>
               <td class="computed" id="ret-${tUniqueId}">${c.retornoTxt}</td>
               <td class="computed ${c.lucroClass}" id="luc-${tUniqueId}">${c.lucroTxt}</td>
               <td><select class="result-select ${t.resultado.toLowerCase()}" id="sel-${tUniqueId}" onchange="window.liveUpdateMath('${be}',${i},'resultado',this.value,'${tUniqueId}')">
@@ -424,47 +463,4 @@ function renderBet(bet){
 function renderAll(){
   const container=document.getElementById('bets-container');
   if(!container) return; container.innerHTML='';
-  appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
-  updateGlobals();
-}
-
-window.toggleSection=function(bet){
-  openSections[bet]=openSections[bet]===false;
-  refreshBet(bet);
-};
-
-window.addTicket=function(bet){
-  openSections[bet]=true;
-  if(!appData.tickets[bet])appData.tickets[bet]=[];
-  const newId = Date.now();
-  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{}});
-  expandedNotes[safeId(bet) + '_' + newId] = true; 
-  openEditors[safeId(bet) + '_' + newId] = true; 
-  renderAll(); scheduleSave();
-};
-
-window.deleteTicket=function(bet,idx){
-  appData.tickets[bet].splice(idx,1);
-  renderAll(); scheduleSave();
-};
-
-function refreshBet(bet){
-  const section=document.getElementById('section-'+safeId(bet));
-  if(section) section.replaceWith(renderBet(bet));
-}
-
-window.toggleAddForm=function(){
-  addFormOpen=!addFormOpen;
-  document.getElementById('add-bet-form').classList.toggle('open', addFormOpen);
-};
-
-window.confirmarNovaAposta=function(){
-  const input=document.getElementById('new-bet-input');
-  const nome=input.value.trim();
-  if(!nome)return; appData.bets.push(nome);
-  input.value=''; addFormOpen=false;
-  renderAll(); scheduleSave();
-};
-</script>
-</body>
-</html>
+  appData.
