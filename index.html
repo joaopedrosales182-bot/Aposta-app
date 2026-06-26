@@ -52,7 +52,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
 
-/* Estilo para a opção de Freebet */
 .freebet-toggle {display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--txt2); cursor:pointer; user-select:none; margin-top:4px; background:var(--bg0); padding:2px 6px; border-radius:4px; border:0.5px solid var(--bdr);}
 .freebet-toggle.active {color:var(--yel); border-color:var(--yel); background:rgba(252,211,77,0.05)}
 .freebet-checkbox {cursor:pointer; width:12px; height:12px;}
@@ -241,18 +240,15 @@ function calcTicket(t){
   let lucro=0, lucroClass='pending', lucroTxt='Aguardando';
   
   if(t.resultado==='Ganhou'){
-    // Numa freebet ganha, você recebe o retorno menos o valor do bônus investido
     lucro=retorno-gasto;
     lucroClass='win';
     lucroTxt=fmt(lucro);
   } else if(t.resultado==='Perdeu'){
-    // Se perder uma freebet, seu bolso perde R$ 0,00
     lucro = isFreebet ? 0 : -gasto;
     lucroClass='loss';
     lucroTxt=fmt(lucro);
   }
   
-  // O gasto líquido real do seu bolso é 0 se for aposta grátis
   return{retorno,lucro,lucroClass,lucroTxt,retornoTxt:retorno>0?fmt(retorno):'—',gastoVal:gasto>0?gasto:0, gastoLiquido: isFreebet ? 0 : (gasto>0?gasto:0)};
 }
 
@@ -261,7 +257,7 @@ function updateGlobals(){
   appData.bets.forEach(bet=>{
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
-      tG+=c.gastoLiquido; // Soma apenas o gasto real do bolso
+      tG+=c.gastoLiquido; 
       if(t.resultado==='Pendente'){
         tR+=c.retorno;
         tP++;
@@ -346,7 +342,6 @@ window.toggleFreebet=function(bet, idx, rowId, checked) {
   const lbl = document.getElementById('lbl-fb-'+rowId);
   if(lbl) lbl.classList.toggle('active', checked);
   
-  // Força atualização dos cálculos visuais da linha
   const ticket = appData.tickets[bet][idx];
   const c = calcTicket(ticket);
   const lucEl = document.getElementById('luc-'+rowId);
@@ -463,4 +458,47 @@ function renderBet(bet){
 function renderAll(){
   const container=document.getElementById('bets-container');
   if(!container) return; container.innerHTML='';
-  appData.
+  appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
+  updateGlobals();
+}
+
+window.toggleSection=function(bet){
+  openSections[bet]=openSections[bet]===false;
+  refreshBet(bet);
+};
+
+window.addTicket=function(bet){
+  openSections[bet]=true;
+  if(!appData.tickets[bet])appData.tickets[bet]=[];
+  const newId = Date.now();
+  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},freebet:false});
+  expandedNotes[safeId(bet) + '_' + newId] = true; 
+  openEditors[safeId(bet) + '_' + newId] = true; 
+  renderAll(); scheduleSave();
+};
+
+window.deleteTicket=function(bet,idx){
+  appData.tickets[bet].splice(idx,1);
+  renderAll(); scheduleSave();
+};
+
+function refreshBet(bet){
+  const section=document.getElementById('section-'+safeId(bet));
+  if(section) section.replaceWith(renderBet(bet));
+}
+
+window.toggleAddForm=function(){
+  addFormOpen=!addFormOpen;
+  document.getElementById('add-bet-form').classList.toggle('open', addFormOpen);
+};
+
+window.confirmarNovaAposta=function(){
+  const input=document.getElementById('new-bet-input');
+  const nome=input.value.trim();
+  if(!nome)return; appData.bets.push(nome);
+  input.value=''; addFormOpen=false;
+  renderAll(); scheduleSave();
+};
+</script>
+</body>
+</html>
