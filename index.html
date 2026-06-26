@@ -242,11 +242,9 @@ function calcTicket(t){
   const odd=parseFloat(String(t.odd||'').replace(',','.'));
   const gasto=parseFloat(String(t.gasto||'').replace(',','.'));
   
-  // fbType pode ser: 'none' (dinheiro real), 'total' (100% grátis), ou 'partial' (misto)
   const fbType = t.fbType || 'none';
   const valFreebet = fbType === 'total' ? gasto : (fbType === 'partial' ? parseFloat(String(t.fbPartialVal || '0').replace(',','.')) : 0);
   
-  // O gasto real que sai do bolso/depósito do usuário
   let gastoReal = gasto - valFreebet;
   if(gastoReal < 0 || fbType === 'total') gastoReal = 0;
 
@@ -254,11 +252,11 @@ function calcTicket(t){
   let lucro = 0, lucroClass = 'pending', lucroTxt = 'Aguardando';
   
   if(t.resultado==='Ganhou'){
-    lucro = retorno - gastoReal; // se ganhou, o retorno paga o que gastou do bolso
+    lucro = retorno - gastoReal;
     lucroClass = 'win';
     lucroTxt = fmt(lucro);
   } else if(t.resultado==='Perdeu'){
-    lucro = -gastoReal; // só perde o dinheiro real, a aposta grátis não machuca o bolso
+    lucro = -gastoReal;
     lucroClass = 'loss';
     lucroTxt = fmt(lucro);
   }
@@ -293,7 +291,15 @@ function updateGlobals(){
     });
 
     const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    tDep += Math.max(0, baseDeposit - totalGastoNestaBanca);
+    const bancaRestante = Math.max(0, baseDeposit - totalGastoNestaBanca);
+    tDep += bancaRestante;
+
+    // Atualiza o display visual do input de depósito da banca sem resetar o foco do usuário
+    const sid = safeId(bet);
+    const liveDisplay = document.getElementById('banca-realtime-'+sid);
+    if(liveDisplay) {
+      liveDisplay.textContent = fmt(bancaRestante);
+    }
   });
   
   const lucroTotalEl = document.getElementById('total-lucro');
@@ -387,7 +393,6 @@ window.changeFbType=function(bet, idx, rowId, typeVal) {
     pInput.style.display = (typeVal === 'partial') ? 'block' : 'none';
   }
 
-  // Recalcula na hora
   const ticket = appData.tickets[bet][idx];
   const c = calcTicket(ticket);
   const lucEl = document.getElementById('luc-'+rowId);
@@ -440,9 +445,10 @@ function renderBet(bet){
         <span class="bet-badge">${tickets.length} bilhete${tickets.length!==1?'s':''}</span>
       </div>
       <div class="bet-actions" onclick="event.stopPropagation()">
-        <div class="deposit-wrapper">
-          <span class="deposit-label">Banca R$:</span>
+        <div class="deposit-wrapper" title="Digite seu depósito inicial para ver o cálculo do saldo restante ao lado">
+          <span class="deposit-label">Banca Inicial R$:</span>
           <input class="deposit-input" type="number" step="0.01" value="${depVal}" placeholder="0,00" oninput="window.updateDepositValue('${be}', this.value)"/>
+          <span class="deposit-label" style="margin-left:6px;border-left:0.5px solid var(--bdr);padding-left:6px;color:var(--grn)">Atual: <strong id="banca-realtime-${sid}">R$ 0,00</strong></span>
         </div>
         <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Novo Bilhete</button>
         <i class="ti ti-chevron-down chevron ${isOpen?'open':''}" id="chev-${sid}"></i>
@@ -479,7 +485,7 @@ function renderBet(bet){
                 </div>
               </td>
               <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.00" oninput="window.liveUpdateMath('${be}',${i},'odd',this.value,'${tUniqueId}')"/></td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
+              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="5" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
               <td>
                 <select class="fb-select ${currentFbType !== 'none' ? 'active-fb' : ''}" id="sel-fb-${tUniqueId}" onchange="window.changeFbType('${be}', ${i}, '${tUniqueId}', this.value)">
                   <option value="none" ${currentFbType==='none'?'selected':''}>💰 Dinheiro Real</option>
@@ -505,6 +511,12 @@ function renderBet(bet){
       const tUniqueId = sid + '_' + (t.id || i);
       window.buildTimelineDOM(tUniqueId, t.notas || '', t.checkedItems || {}, bet, i);
     });
+    // Atualiza o sub-saldo assim que renderizar
+    let totalGastoNestaBanca = 0;
+    tickets.forEach(t => { totalGastoNestaBanca += calcTicket(t).gastoLiquido; });
+    const baseDeposit = parseFloat(appData.deposits[bet] || 0);
+    const liveDisplay = document.getElementById('banca-realtime-'+sid);
+    if(liveDisplay) liveDisplay.textContent = fmt(Math.max(0, baseDeposit - totalGastoNestaBanca));
   }, 10);
 
   return section;
