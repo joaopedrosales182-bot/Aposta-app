@@ -25,7 +25,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:4px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:6px}
 .logout-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--txt2);cursor:pointer}
 .logout-btn:hover{border-color:var(--red);color:var(--red)}
-.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.2rem}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.2rem}
 .stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
 .stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
 .stat-val{font-size:19px;font-weight:600}
@@ -40,7 +40,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
 .bet-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 
-/* Input do Saldo Depositado */
 .deposit-wrapper{display:flex;align-items:center;gap:4px;background:var(--bg0);padding:3px 8px;border-radius:6px;border:0.5px solid var(--bdr)}
 .deposit-label{font-size:11px;color:var(--txt2);font-weight:500}
 .deposit-input{background:transparent;border:none;color:var(--grn);font-size:12px;font-weight:600;width:75px;outline:none;font-family:inherit}
@@ -50,16 +49,16 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .chevron.open{transform:rotate(180deg)}
 .tickets-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .tickets-table th{background:var(--bg0);color:var(--acc);font-size:10px;font-weight:600;padding:7px 8px;text-align:center;border-bottom:0.5px solid var(--bdr);letter-spacing:.4px;text-transform:uppercase}
-.tickets-table th:first-child{text-align:left;width:40%}
+.tickets-table th:first-child{text-align:left;width:38%}
 .tickets-table th:last-child{width:36px}
 .tickets-table td{padding:8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
 .tickets-table td:first-child{text-align:left}
 .cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
 
-.freebet-toggle {display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--txt2); cursor:pointer; user-select:none; margin-top:4px; background:var(--bg0); padding:2px 6px; border-radius:4px; border:0.5px solid var(--bdr);}
-.freebet-toggle.active {color:var(--yel); border-color:var(--yel); background:rgba(252,211,77,0.05)}
-.freebet-checkbox {cursor:pointer; width:12px; height:12px;}
+.fb-select{background:var(--bg0); border:0.5px solid var(--bdr); color:var(--txt2); font-size:11px; padding:3px; border-radius:4px; width:100%; outline:none; cursor:pointer; margin-top:4px;}
+.fb-select.active-fb{color:var(--yel); border-color:var(--yel); background:rgba(252,211,77,0.05)}
+.fb-partial-input{background:var(--bg0); border:0.5px solid var(--yel); border-radius:4px; color:var(--yel); font-size:11px; padding:3px 4px; width:100%; text-align:center; margin-top:4px; outline:none;}
 
 .result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
 .result-select.pendente{background:var(--yel-bg) !important;color:var(--yel) !important;border-color:#fcd34d55}
@@ -143,7 +142,8 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   </div>
 
   <div class="summary-grid">
-    <div class="stat-card"><div class="stat-label">Total Gasto</div><div class="stat-val white" id="total-gasto">R$ 0,00</div></div>
+    <div class="stat-card" style="border-color: var(--grn); background: rgba(52, 211, 153, 0.03);"><div class="stat-label" style="color: var(--grn)">Saldo Total Disponível</div><div class="stat-val green" id="total-depositos">R$ 0,00</div></div>
+    <div class="stat-card"><div class="stat-label">Total Gasto (Real)</div><div class="stat-val white" id="total-gasto">R$ 0,00</div></div>
     <div class="stat-card"><div class="stat-label">Possível Retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
     <div class="stat-card"><div class="stat-label">Lucro / Prejuízo Líquido</div><div class="stat-val white" id="total-lucro">R$ 0,00</div></div>
     <div class="stat-card"><div class="stat-label">Bilhetes Abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
@@ -187,7 +187,7 @@ let expandedNotes={};
 let openEditors={}; 
 let saveTimer=null;
 let addFormOpen=false;
-let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{}}; // Adicionado estrutura deposits
+let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{}};
 
 function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')}
 
@@ -203,7 +203,7 @@ async function cloudLoad(){
     const snap=await getDoc(doc(db,'usuarios',userDocId()));
     if(snap.exists()) {
       appData=JSON.parse(snap.data().data);
-      if(!appData.deposits) appData.deposits = {}; // Fallback para contas antigas
+      if(!appData.deposits) appData.deposits = {};
     }
   }catch(e){}
 }
@@ -241,31 +241,49 @@ function fmt(n){return'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+
 function calcTicket(t){
   const odd=parseFloat(String(t.odd||'').replace(',','.'));
   const gasto=parseFloat(String(t.gasto||'').replace(',','.'));
-  const isFreebet = !!t.freebet;
   
-  const retorno=odd>0&&gasto>0?odd*gasto:0;
+  // fbType pode ser: 'none' (dinheiro real), 'total' (100% grátis), ou 'partial' (misto)
+  const fbType = t.fbType || 'none';
+  const valFreebet = fbType === 'total' ? gasto : (fbType === 'partial' ? parseFloat(String(t.fbPartialVal || '0').replace(',','.')) : 0);
   
-  let lucro=0, lucroClass='pending', lucroTxt='Aguardando';
+  // O gasto real que sai do bolso/depósito do usuário
+  let gastoReal = gasto - valFreebet;
+  if(gastoReal < 0 || fbType === 'total') gastoReal = 0;
+
+  const retorno = odd > 0 && gasto > 0 ? odd * gasto : 0;
+  let lucro = 0, lucroClass = 'pending', lucroTxt = 'Aguardando';
   
   if(t.resultado==='Ganhou'){
-    lucro=retorno-gasto;
-    lucroClass='win';
-    lucroTxt=fmt(lucro);
+    lucro = retorno - gastoReal; // se ganhou, o retorno paga o que gastou do bolso
+    lucroClass = 'win';
+    lucroTxt = fmt(lucro);
   } else if(t.resultado==='Perdeu'){
-    lucro = isFreebet ? 0 : -gasto;
-    lucroClass='loss';
-    lucroTxt=fmt(lucro);
+    lucro = -gastoReal; // só perde o dinheiro real, a aposta grátis não machuca o bolso
+    lucroClass = 'loss';
+    lucroTxt = fmt(lucro);
   }
   
-  return{retorno,lucro,lucroClass,lucroTxt,retornoTxt:retorno>0?fmt(retorno):'—',gastoVal:gasto>0?gasto:0, gastoLiquido: isFreebet ? 0 : (gasto>0?gasto:0)};
+  return {
+    retorno,
+    lucro,
+    lucroClass,
+    lucroTxt,
+    retornoTxt: retorno > 0 ? fmt(retorno) : '—',
+    gastoLiquido: gastoReal
+  };
 }
 
 function updateGlobals(){
-  let tG=0,tR=0,tL=0,tP=0;
+  let tG=0,tR=0,tL=0,tP=0, tDep=0;
+
   appData.bets.forEach(bet=>{
+    let totalGastoNestaBanca = 0;
+    
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
       tG+=c.gastoLiquido; 
+      totalGastoNestaBanca+=c.gastoLiquido;
+
       if(t.resultado==='Pendente'){
         tR+=c.retorno;
         tP++;
@@ -273,6 +291,9 @@ function updateGlobals(){
         tL+=c.lucro;
       }
     });
+
+    const baseDeposit = parseFloat(appData.deposits[bet] || 0);
+    tDep += Math.max(0, baseDeposit - totalGastoNestaBanca);
   });
   
   const lucroTotalEl = document.getElementById('total-lucro');
@@ -286,6 +307,7 @@ function updateGlobals(){
   document.getElementById('total-gasto').textContent=fmt(tG);
   document.getElementById('total-retorno').textContent=fmt(tR);
   document.getElementById('total-pendentes').textContent=tP;
+  document.getElementById('total-depositos').textContent=fmt(tDep);
 }
 
 function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
@@ -293,6 +315,7 @@ function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
 window.updateDepositValue=function(bet, val){
   if(!appData.deposits) appData.deposits = {};
   appData.deposits[bet] = val;
+  updateGlobals();
   scheduleSave();
 };
 
@@ -351,11 +374,20 @@ window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
   scheduleSave();
 };
 
-window.toggleFreebet=function(bet, idx, rowId, checked) {
-  appData.tickets[bet][idx].freebet = checked;
-  const lbl = document.getElementById('lbl-fb-'+rowId);
-  if(lbl) lbl.classList.toggle('active', checked);
+window.changeFbType=function(bet, idx, rowId, typeVal) {
+  appData.tickets[bet][idx].fbType = typeVal;
   
+  const selectEl = document.getElementById('sel-fb-'+rowId);
+  if(selectEl) {
+    selectEl.className = 'fb-select ' + (typeVal !== 'none' ? 'active-fb' : '');
+  }
+
+  const pInput = document.getElementById('part-input-'+rowId);
+  if(pInput) {
+    pInput.style.display = (typeVal === 'partial') ? 'block' : 'none';
+  }
+
+  // Recalcula na hora
   const ticket = appData.tickets[bet][idx];
   const c = calcTicket(ticket);
   const lucEl = document.getElementById('luc-'+rowId);
@@ -398,7 +430,6 @@ function renderBet(bet){
   section.className='bet-section'; section.id='section-'+sid;
   const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
   
-  // Resgata o depósito salvo para a banca corrente
   const depVal = (appData.deposits && appData.deposits[bet]) ? appData.deposits[bet] : '';
   
   section.innerHTML=`
@@ -409,9 +440,8 @@ function renderBet(bet){
         <span class="bet-badge">${tickets.length} bilhete${tickets.length!==1?'s':''}</span>
       </div>
       <div class="bet-actions" onclick="event.stopPropagation()">
-        <!-- Espaço para Saldo Depositado -->
         <div class="deposit-wrapper">
-          <span class="deposit-label">Depósito: R$</span>
+          <span class="deposit-label">Banca R$:</span>
           <input class="deposit-input" type="number" step="0.01" value="${depVal}" placeholder="0,00" oninput="window.updateDepositValue('${be}', this.value)"/>
         </div>
         <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Novo Bilhete</button>
@@ -422,13 +452,13 @@ function renderBet(bet){
       ${tickets.length===0
         ?`<div class="no-tickets">Nenhum bilhete nesta banca.</div>`
         :`<table class="tickets-table">
-          <thead><tr><th>Tópicos e Palpites por Time</th><th>Odd</th><th>Gasto</th><th>Retorno</th><th>Lucro</th><th>Resultado</th><th></th></tr></thead>
+          <thead><tr><th>Tópicos e Palpites por Time</th><th>Odd</th><th>Gasto</th><th>Tipo de Aposta</th><th>Retorno</th><th>Lucro</th><th>Resultado</th><th></th></tr></thead>
           <tbody>${tickets.map((t,i)=>{
             const c=calcTicket(t);
             const tUniqueId = sid + '_' + (t.id || i);
             const isNxtOpen = expandedNotes[tUniqueId] !== false; 
             const isEdOpen = !!openEditors[tUniqueId];
-            const isFb = !!t.freebet;
+            const currentFbType = t.fbType || 'none';
 
             const lines = (t.notas || '').split('\n');
             const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
@@ -449,11 +479,14 @@ function renderBet(bet){
                 </div>
               </td>
               <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.00" oninput="window.liveUpdateMath('${be}',${i},'odd',this.value,'${tUniqueId}')"/></td>
+              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
               <td>
-                <input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="10" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/>
-                <label class="freebet-toggle ${isFb?'active':''}" id="lbl-fb-${tUniqueId}">
-                  <input type="checkbox" class="freebet-checkbox" ${isFb?'checked':''} onchange="window.toggleFreebet('${be}', ${i}, '${tUniqueId}', this.checked)"/> Aposta Grátis
-                </label>
+                <select class="fb-select ${currentFbType !== 'none' ? 'active-fb' : ''}" id="sel-fb-${tUniqueId}" onchange="window.changeFbType('${be}', ${i}, '${tUniqueId}', this.value)">
+                  <option value="none" ${currentFbType==='none'?'selected':''}>💰 Dinheiro Real</option>
+                  <option value="total" ${currentFbType==='total'?'selected':''}>🎁 Total Grátis</option>
+                  <option value="partial" ${currentFbType==='partial'?'selected':''}>🎛️ Mista (Grátis + Real)</option>
+                </select>
+                <input class="fb-partial-input" type="number" step="0.01" id="part-input-${tUniqueId}" style="display:${currentFbType==='partial'?'block':'none'}" value="${t.fbPartialVal||''}" placeholder="Valor Grátis R$" oninput="window.liveUpdateMath('${be}',${i},'fbPartialVal',this.value,'${tUniqueId}')"/>
               </td>
               <td class="computed" id="ret-${tUniqueId}">${c.retornoTxt}</td>
               <td class="computed ${c.lucroClass}" id="luc-${tUniqueId}">${c.lucroTxt}</td>
@@ -493,7 +526,7 @@ window.addTicket=function(bet){
   openSections[bet]=true;
   if(!appData.tickets[bet])appData.tickets[bet]=[];
   const newId = Date.now();
-  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},freebet:false});
+  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},fbType:'none',fbPartialVal:''});
   expandedNotes[safeId(bet) + '_' + newId] = true; 
   openEditors[safeId(bet) + '_' + newId] = true; 
   renderAll(); scheduleSave();
