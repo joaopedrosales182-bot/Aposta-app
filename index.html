@@ -275,26 +275,29 @@ function updateGlobals(){
   let tG=0,tR=0,tL=0,tP=0, tDep=0;
 
   appData.bets.forEach(bet=>{
-    let totalGastoNestaBanca = 0;
+    let impactoBanca = 0; // Controla quanto dinheiro real entra ou sai do saldo inicial
     
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
       tG+=c.gastoLiquido; 
-      totalGastoNestaBanca+=c.gastoLiquido;
 
       if(t.resultado==='Pendente'){
         tR+=c.retorno;
         tP++;
-      } else {
+        impactoBanca -= c.gastoLiquido; // Pendente: reserva/saca o dinheiro real da banca
+      } else if(t.resultado==='Ganhou') {
         tL+=c.lucro;
+        impactoBanca += c.lucro; // Ganhou: Adiciona o lucro líquido real conquistado
+      } else if(t.resultado==='Perdeu') {
+        tL+=c.lucro;
+        impactoBanca -= c.gastoLiquido; // Perdeu: O dinheiro real gasto some permanentemente
       }
     });
 
     const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    const bancaRestante = Math.max(0, baseDeposit - totalGastoNestaBanca);
+    const bancaRestante = Math.max(0, baseDeposit + impactoBanca);
     tDep += bancaRestante;
 
-    // Atualiza o display visual do input de depósito da banca sem resetar o foco do usuário
     const sid = safeId(bet);
     const liveDisplay = document.getElementById('banca-realtime-'+sid);
     if(liveDisplay) {
@@ -511,12 +514,6 @@ function renderBet(bet){
       const tUniqueId = sid + '_' + (t.id || i);
       window.buildTimelineDOM(tUniqueId, t.notas || '', t.checkedItems || {}, bet, i);
     });
-    // Atualiza o sub-saldo assim que renderizar
-    let totalGastoNestaBanca = 0;
-    tickets.forEach(t => { totalGastoNestaBanca += calcTicket(t).gastoLiquido; });
-    const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    const liveDisplay = document.getElementById('banca-realtime-'+sid);
-    if(liveDisplay) liveDisplay.textContent = fmt(Math.max(0, baseDeposit - totalGastoNestaBanca));
   }, 10);
 
   return section;
