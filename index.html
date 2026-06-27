@@ -145,6 +145,87 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .hist-btn:hover{color:var(--acc)!important;border-color:var(--acc)!important}
 .dias-link{font-size:10px;color:var(--txt2);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:3px;margin-top:6px;opacity:.7;letter-spacing:.3px;transition:all .15s}
 .dias-link:hover{opacity:1;color:var(--acc)}
+
+/* FOCO MODE */
+body.foco-mode .stat-val, body.foco-mode .mini-stat-val, body.foco-mode .computed,
+body.foco-mode .deposit-input, body.foco-mode #banca-realtime-b_Betano,
+body.foco-mode [id^="banca-realtime"] { filter:blur(6px); user-select:none; }
+body.foco-mode .stat-val:hover, body.foco-mode .mini-stat-val:hover,
+body.foco-mode .computed:hover { filter:none; }
+.foco-btn.active { color:var(--acc)!important; border-color:var(--acc)!important; }
+
+/* SENHA */
+#pin-screen { display:none; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100vh; gap:14px; padding:2rem; }
+#pin-screen h2 { color:var(--acc); font-size:20px; font-weight:700; }
+#pin-screen p { color:var(--txt2); font-size:13px; text-align:center; }
+.pin-input { background:var(--bg2); border:0.5px solid var(--bdr); border-radius:8px;
+  padding:12px 16px; color:var(--txt); font-size:22px; width:180px; outline:none;
+  text-align:center; letter-spacing:8px; }
+.pin-input:focus { border-color:var(--acc); }
+.pin-btn { background:var(--acc); color:#fff; border:none; border-radius:8px;
+  padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; width:180px; }
+.pin-error { color:var(--red); font-size:13px; min-height:18px; }
+
+/* ATALHO RÁPIDO */
+.fab { position:fixed; bottom:24px; right:24px; background:var(--acc); color:#fff;
+  border:none; border-radius:50%; width:52px; height:52px; font-size:24px; cursor:pointer;
+  box-shadow:0 4px 16px rgba(124,131,253,.4); z-index:200; display:none;
+  align-items:center; justify-content:center; transition:transform .2s; }
+.fab:hover { transform:scale(1.1); }
+.fab-menu { position:fixed; bottom:88px; right:24px; background:var(--bg1);
+  border:0.5px solid var(--bdr); border-radius:10px; padding:8px; z-index:200;
+  display:none; flex-direction:column; gap:4px; min-width:200px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3); }
+.fab-menu.open { display:flex; }
+.fab-menu-item { background:transparent; border:none; color:var(--txt); font-size:13px;
+  padding:8px 12px; border-radius:6px; cursor:pointer; text-align:left;
+  display:flex; align-items:center; gap:8px; transition:background .15s; }
+.fab-menu-item:hover { background:var(--bg2); color:var(--acc); }
+
+/* ANÁLISE DE ODDS */
+.odds-panel { margin-top:16px; }
+.odds-faixa { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; }
+.odds-card { background:var(--bg2); border:0.5px solid var(--bdr); border-radius:8px;
+  padding:10px 12px; }
+.odds-card-title { font-size:11px; color:var(--txt2); font-weight:600; margin-bottom:6px;
+  text-transform:uppercase; letter-spacing:.4px; }
+.odds-bar-wrap { height:6px; background:var(--bg3); border-radius:3px; margin:6px 0; overflow:hidden; }
+.odds-bar { height:100%; border-radius:3px; transition:width .5s; }
+.odds-stat { font-size:12px; color:var(--txt); display:flex; justify-content:space-between; }
+.odds-stat span:last-child { font-weight:700; }
+
+/* RESUMO SEMANAL/MENSAL */
+.resumo-tabs { display:flex; gap:6px; margin-bottom:12px; }
+.resumo-tab { background:var(--bg2); border:0.5px solid var(--bdr); border-radius:6px;
+  padding:5px 14px; font-size:12px; color:var(--txt2); cursor:pointer; transition:all .15s; }
+.resumo-tab.active { background:var(--acc); color:#fff; border-color:var(--acc); }
+.resumo-period-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
+.resumo-period-card { background:var(--bg2); border:0.5px solid var(--bdr); border-radius:8px; padding:10px 12px; }
+.resumo-period-label { font-size:10px; color:var(--txt2); font-weight:600; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px; }
+.resumo-period-val { font-size:16px; font-weight:700; }
+
+/* HIST GRÁFICO */
+.hist-chart-wrap { margin-top:16px; }
+
+/* EXPORT */
+.export-btn { background:transparent; border:0.5px solid var(--bdr); border-radius:6px;
+  padding:5px 12px; font-size:11px; color:var(--txt2); cursor:pointer;
+  display:inline-flex; align-items:center; gap:4px; transition:all .15s; }
+.export-btn:hover { border-color:var(--acc); color:var(--acc); }
+
+/* HIST */
+.hist-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:1rem}
+.hist-panel.open{display:block}
+.hist-title{font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;border-bottom:0.5px solid var(--bdr);padding-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.hist-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.hist-card{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
+.hist-date{font-size:11px;color:var(--txt2);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.hist-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:0.5px solid var(--bdr)}
+.hist-row:last-child{border-bottom:none}
+.hist-label{color:var(--txt2)}.hist-val{font-weight:700}
+.hist-empty{color:var(--txt2);font-size:13px;text-align:center;padding:20px;font-style:italic}
+
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){
   .tickets-table thead{display:none}
@@ -159,6 +240,16 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 </style>
 </head>
 <body>
+
+<div id="pin-screen">
+  <div style="font-size:48px">🔐</div>
+  <h2>Verificação de acesso</h2>
+  <p id="pin-msg">Digite seu PIN para entrar</p>
+  <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="••••••" onkeydown="if(event.key==='Enter')verificarPin()"/>
+  <button class="pin-btn" onclick="verificarPin()">Entrar</button>
+  <div class="pin-error" id="pin-error"></div>
+  <button style="margin-top:8px;background:transparent;border:none;color:var(--txt2);font-size:12px;cursor:pointer" onclick="voltarLogin()">← Voltar ao login</button>
+</div>
 
 <div id="login-screen">
   <div style="font-size:56px;margin-bottom:4px">🎯</div>
@@ -178,6 +269,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
       </div>
       <span class="last-update"><i class="ti ti-clock"></i><span id="last-update-txt">—</span></span>
       <button class="icon-btn" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i><span id="theme-label">Claro</span></button>
+      <button class="icon-btn foco-btn" id="foco-btn" onclick="toggleFoco()"><i class="ti ti-eye-off"></i> Foco</button>
       <button class="icon-btn danger" onclick="sair()"><i class="ti ti-logout"></i> Sair</button>
     </div>
   </div>
@@ -207,7 +299,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
       <div class="stat-label">💸 Gasto Real</div>
       <div class="stat-val white" id="total-gasto">R$ 0,00</div>
       <div class="stat-sub"><span class="stat-badge neu" id="badge-oddmedia">Odd média: —</span></div>
-      <span class="dias-link" onclick="event.stopPropagation();toggleHistorico()"><i class="ti ti-history"></i> Dias anteriores</span>
+      <span class="dias-link" onclick="event.stopPropagation();toggleResumo()"><i class="ti ti-history"></i> Dias anteriores</span>
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-gasto"></i>
     </div>
     <div class="stat-card">
@@ -276,8 +368,28 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
     <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Cada ponto é uma aposta finalizada, ordenada cronologicamente.</div>
     <div id="chart-timeline" style="min-height:280px"></div>
     <div class="breakdown-list" id="list-ranking" style="margin-top:16px"></div>
+    <div class="odds-panel" id="odds-panel"></div>
   </div>
 
+
+
+  <!-- RESUMO SEMANAL/MENSAL -->
+  <div class="hist-panel" id="panel-resumo">
+    <div class="hist-title">
+      <span><i class="ti ti-calendar-month"></i> Resumo por Período</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="export-btn" onclick="exportarHistorico()"><i class="ti ti-download"></i> Exportar</button>
+        <button class="icon-btn" onclick="limparHistorico()" style="font-size:11px;padding:3px 8px"><i class="ti ti-trash"></i> Limpar</button>
+      </div>
+    </div>
+    <div class="resumo-tabs">
+      <button class="resumo-tab active" id="tab-semana" onclick="mudarPeriodo('semana')">Esta Semana</button>
+      <button class="resumo-tab" id="tab-mes" onclick="mudarPeriodo('mes')">Este Mês</button>
+      <button class="resumo-tab" id="tab-total" onclick="mudarPeriodo('total')">Total</button>
+    </div>
+    <div class="resumo-period-grid" id="resumo-grid"></div>
+    <div class="hist-chart-wrap" id="chart-hist-bar" style="min-height:200px;margin-top:16px"></div>
+  </div>
 
   <!-- HISTÓRICO DIÁRIO -->
   <div class="hist-panel" id="panel-historico">
@@ -302,6 +414,11 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
     </div>
   </div>
 
+
+  <!-- FAB -->
+  <button class="fab" id="fab-btn" onclick="toggleFab()"><i class="ti ti-plus"></i></button>
+  <div class="fab-menu" id="fab-menu">
+  </div>
   <div class="app-footer">Controle de Apostas Pro · Dados na nuvem · <span id="footer-user"></span></div>
 </div>
 
@@ -412,7 +529,17 @@ window.entrar=async function(){
   const av=document.getElementById('user-avatar');
   av.textContent=v.charAt(0).toUpperCase(); av.style.background=avatarColor(v);
   btn.disabled=false; btn.textContent='Entrar';
+  // Verifica se tem PIN
+  const hasPwd = localStorage.getItem(getPinKey(v));
+  if(hasPwd !== null){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='none';
+    document.getElementById('pin-screen').style.display='flex';
+    document.getElementById('pin-msg').textContent='Bem-vindo de volta, '+v+'! Digite seu PIN.';
+  }
   renderAll();
+  buildFabMenu();
+  document.getElementById('fab-btn').style.display='flex';
 };
 
 window.sair=function(){
@@ -690,7 +817,7 @@ function updateGlobals(){
   if(activePanel==='apostado') renderApex('apostado','bar',lApo,dApo,prem);
   if(activePanel==='gasto') renderApex('gasto','donut',lGas,dGas,prem);
   if(activePanel==='lucro') renderApex('lucro','bar',lLuc,dLuc,profitColors);
-  if(activePanel==='timeline') renderTimeline(timelineEvents);
+  if(activePanel==='timeline'){ renderTimeline(timelineEvents); renderOddsAnalysis(); }
 }
 
 // ── AUTO BANCA ────────────────────────────────────────────
@@ -894,6 +1021,7 @@ function renderAll(){
   container.innerHTML='';
   appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
   updateGlobals();
+  buildFabMenu();
 }
 
 window.toggleSection=function(bet){
@@ -921,52 +1049,305 @@ window.toggleAddForm=function(){
 };
 
 
-// ─── HISTÓRICO DIÁRIO ───
-function getHistKey(){ return 'apostas_hist_'+userDocId(); }
+// Histórico gerenciado pelo novo sistema acima
 
-function loadHistorico(){
-  try{ return JSON.parse(localStorage.getItem(getHistKey())||'[]'); }catch(e){ return []; }
+
+// ═══════════════════════════════════════════════════════
+// MODO FOCO
+// ═══════════════════════════════════════════════════════
+window.toggleFoco = function(){
+  const isOn = document.body.classList.toggle('foco-mode');
+  const btn = document.getElementById('foco-btn');
+  if(btn){ btn.classList.toggle('active', isOn); btn.innerHTML = isOn ? '<i class="ti ti-eye"></i> Foco' : '<i class="ti ti-eye-off"></i> Foco'; }
+};
+
+// ═══════════════════════════════════════════════════════
+// PIN / SENHA
+// ═══════════════════════════════════════════════════════
+function getPinKey(user){ return 'ap_pin_'+user.toLowerCase().trim().replace(/\s+/g,'_'); }
+
+window.verificarPin = function(){
+  const pin = document.getElementById('pin-input').value.trim();
+  const errEl = document.getElementById('pin-error');
+  if(!pin){ errEl.textContent = 'Digite o PIN.'; return; }
+  const savedPin = localStorage.getItem(getPinKey(currentUser));
+  if(!savedPin){
+    // Primeiro acesso: definir PIN
+    if(pin.length < 4){ errEl.textContent = 'PIN deve ter pelo menos 4 dígitos.'; return; }
+    localStorage.setItem(getPinKey(currentUser), pin);
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    showSaving('✓ PIN definido com sucesso!','ok');
+  } else {
+    if(pin === savedPin){
+      document.getElementById('pin-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } else {
+      errEl.textContent = 'PIN incorreto. Tente novamente.';
+      document.getElementById('pin-input').value = '';
+    }
+  }
+};
+
+window.voltarLogin = function(){
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  currentUser = '';
+};
+
+document.getElementById('pin-input').addEventListener('keydown', e=>{ if(e.key==='Enter') window.verificarPin(); });
+
+// ═══════════════════════════════════════════════════════
+// FAB - ATALHO RÁPIDO
+// ═══════════════════════════════════════════════════════
+let fabOpen = false;
+window.toggleFab = function(){
+  fabOpen = !fabOpen;
+  const menu = document.getElementById('fab-menu');
+  const btn = document.getElementById('fab-btn');
+  if(menu) menu.classList.toggle('open', fabOpen);
+  if(btn) btn.innerHTML = fabOpen ? '<i class="ti ti-x"></i>' : '<i class="ti ti-plus"></i>';
+};
+
+function buildFabMenu(){
+  const menu = document.getElementById('fab-menu');
+  if(!menu) return;
+  const items = appData.bets.map(bet =>
+    `<button class="fab-menu-item" onclick="addTicketFab('${bet.replace(/'/g,"\'")}')">
+      <i class="ti ti-ticket" style="color:var(--acc)"></i> ${bet}
+    </button>`
+  ).join('');
+  menu.innerHTML = `<div style="font-size:10px;color:var(--txt2);padding:4px 8px;font-weight:600;text-transform:uppercase;letter-spacing:.4px">Novo bilhete em:</div>` + items;
 }
 
+window.addTicketFab = function(bet){
+  window.toggleFab();
+  openSections[bet] = true;
+  if(!appData.tickets[bet]) appData.tickets[bet] = [];
+  const newId = Date.now();
+  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},fbType:'none',fbPartialVal:''});
+  expandedNotes[safeId(bet)+'_'+newId] = true;
+  openEditors[safeId(bet)+'_'+newId] = true;
+  renderAll();
+  setTimeout(()=>{
+    const el = document.getElementById('section-'+safeId(bet));
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  }, 100);
+  scheduleSave();
+};
+
+document.addEventListener('click', e=>{
+  if(fabOpen && !e.target.closest('#fab-btn') && !e.target.closest('#fab-menu')) window.toggleFab();
+});
+
+// ═══════════════════════════════════════════════════════
+// ANÁLISE DE ODDS
+// ═══════════════════════════════════════════════════════
+function calcOddsAnalysis(){
+  const faixas = [
+    {label:'1.01–1.49', min:1.01, max:1.49},
+    {label:'1.50–1.99', min:1.50, max:1.99},
+    {label:'2.00–2.49', min:2.00, max:2.49},
+    {label:'2.50–2.99', min:2.50, max:2.99},
+    {label:'3.00–4.99', min:3.00, max:4.99},
+    {label:'5.00+',     min:5.00, max:Infinity},
+  ];
+  faixas.forEach(f=>{ f.total=0; f.ganhou=0; f.lucro=0; f.gasto=0; });
+  appData.bets.forEach(bet=>{
+    (appData.tickets[bet]||[]).forEach(t=>{
+      if(t.resultado==='Pendente') return;
+      const odd = parseFloat(String(t.odd||'0').replace(',','.'));
+      if(!odd) return;
+      const c = calcTicket(t);
+      const f = faixas.find(f=>odd>=f.min&&odd<=f.max);
+      if(!f) return;
+      f.total++;
+      if(t.resultado==='Ganhou'){ f.ganhou++; f.lucro+=c.lucro; }
+      else { f.lucro+=c.lucro; }
+      f.gasto+=c.gastoLiquido;
+    });
+  });
+  return faixas.filter(f=>f.total>0);
+}
+
+function renderOddsAnalysis(){
+  const panel = document.getElementById('odds-panel');
+  if(!panel) return;
+  const faixas = calcOddsAnalysis();
+  if(!faixas.length){
+    panel.innerHTML='<div style="color:var(--txt2);font-size:13px;padding:12px;font-style:italic">Sem dados de odds para analisar ainda.</div>';
+    return;
+  }
+  const maxTaxa = Math.max(...faixas.map(f=>f.total>0?f.ganhou/f.total*100:0));
+  panel.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 10px">📊 Desempenho por Faixa de Odds</div>
+  <div class="odds-faixa">${faixas.map(f=>{
+    const taxa = f.total>0?(f.ganhou/f.total*100):0;
+    const roi = f.gasto>0?(f.lucro/f.gasto*100):0;
+    const barColor = taxa>=60?'var(--grn)':taxa>=40?'var(--yel)':'var(--red)';
+    return `<div class="odds-card">
+      <div class="odds-card-title">Odd ${f.label}</div>
+      <div class="odds-bar-wrap"><div class="odds-bar" style="width:${taxa}%;background:${barColor}"></div></div>
+      <div class="odds-stat"><span>Acerto</span><span style="color:${barColor}">${taxa.toFixed(0)}%</span></div>
+      <div class="odds-stat"><span>Apostas</span><span>${f.ganhou}/${f.total}</span></div>
+      <div class="odds-stat"><span>ROI</span><span style="color:${roi>=0?'var(--grn)':'var(--red)'}">${roi>0?'+':''}${roi.toFixed(1)}%</span></div>
+      <div class="odds-stat"><span>Lucro</span><span style="color:${f.lucro>=0?'var(--grn)':'var(--red)'}">${f.lucro>=0?'+':''}R$ ${Math.abs(f.lucro).toFixed(2).replace('.',',')}</span></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// RESUMO SEMANAL/MENSAL + GRÁFICO DE BARRAS DO HIST
+// ═══════════════════════════════════════════════════════
+let periodoAtivo = 'semana';
+let histBarChart = null;
+
+window.mudarPeriodo = function(p){
+  periodoAtivo = p;
+  ['semana','mes','total'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    if(el) el.classList.toggle('active', t===p);
+  });
+  renderResumo();
+};
+
+function getInicioSemana(){
+  const d = new Date(); d.setHours(0,0,0,0);
+  const dia = d.getDay(); d.setDate(d.getDate()-(dia===0?6:dia-1));
+  return d;
+}
+
+function parseDateBR(str){
+  // dd/mm/yyyy
+  const [d,m,y] = str.split('/');
+  return new Date(parseInt(y), parseInt(m)-1, parseInt(d));
+}
+
+function calcResumo(hist, periodo){
+  const hoje = new Date(); hoje.setHours(23,59,59,999);
+  const inicioSemana = getInicioSemana();
+  const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+  return hist.filter(d=>{
+    const dt = parseDateBR(d.data);
+    if(periodo==='semana') return dt>=inicioSemana && dt<=hoje;
+    if(periodo==='mes') return dt>=inicioMes && dt<=hoje;
+    return true;
+  }).reduce((acc, d)=>{
+    acc.lucro += (d.lucro||0);
+    acc.gasto += (d.gasto||0);
+    acc.ganhou += (d.ganhou||0);
+    acc.perdeu += (d.perdeu||0);
+    acc.dias++;
+    return acc;
+  }, {lucro:0, gasto:0, ganhou:0, perdeu:0, dias:0});
+}
+
+window.toggleResumo = function(){
+  const panel = document.getElementById('panel-resumo');
+  const isOpen = panel.classList.toggle('open');
+  if(isOpen){ renderResumo(); loadHistoricoRemoto().then(()=>renderResumo()); }
+};
+
+function renderResumo(){
+  const hist = loadHistorico();
+  const res = calcResumo(hist, periodoAtivo);
+  const grid = document.getElementById('resumo-grid');
+  const roi = res.gasto>0?(res.lucro/res.gasto*100):0;
+  const taxa = (res.ganhou+res.perdeu)>0?(res.ganhou/(res.ganhou+res.perdeu)*100):0;
+  const lucroColor = res.lucro>0?'var(--grn)':res.lucro<0?'var(--red)':'var(--txt)';
+  
+  if(grid) grid.innerHTML = `
+    <div class="resumo-period-card"><div class="resumo-period-label">Lucro/Prejuízo</div><div class="resumo-period-val" style="color:${lucroColor}">${res.lucro>=0?'+':''}R$ ${Math.abs(res.lucro).toFixed(2).replace('.',',')}</div></div>
+    <div class="resumo-period-card"><div class="resumo-period-label">Gasto Real</div><div class="resumo-period-val">R$ ${res.gasto.toFixed(2).replace('.',',')}</div></div>
+    <div class="resumo-period-card"><div class="resumo-period-label">ROI</div><div class="resumo-period-val" style="color:${roi>=0?'var(--grn)':'var(--red)'}">${roi>=0?'+':''}${roi.toFixed(1)}%</div></div>
+    <div class="resumo-period-card"><div class="resumo-period-label">Taxa de Acerto</div><div class="resumo-period-val" style="color:var(--acc)">${taxa.toFixed(1)}%</div></div>
+    <div class="resumo-period-card"><div class="resumo-period-label">✓ Ganhou</div><div class="resumo-period-val" style="color:var(--grn)">${res.ganhou}</div></div>
+    <div class="resumo-period-card"><div class="resumo-period-label">✗ Perdeu</div><div class="resumo-period-val" style="color:var(--red)">${res.perdeu}</div></div>
+    <div class="resumo-period-card"><div class="resumo-period-label">Dias salvos</div><div class="resumo-period-val" style="color:var(--acc)">${res.dias}</div></div>
+  `;
+
+  // Gráfico de barras dos dias
+  renderHistBarChart(hist);
+}
+
+function renderHistBarChart(hist){
+  const container = document.getElementById('chart-hist-bar');
+  if(!container || !hist.length) return;
+  container.innerHTML = '';
+  const isL = document.documentElement.classList.contains('light');
+  const tc = isL?'#1e2a4a':'#cbd5e1';
+  const sorted = [...hist].sort((a,b)=>parseDateBR(a.data)-parseDateBR(b.data)).slice(-14);
+  const colors = sorted.map(d=>d.lucro>=0?'#10b981':'#ef4444');
+  const opts = {
+    series:[{name:'Lucro/Prejuízo',data:sorted.map(d=>parseFloat(d.lucro.toFixed(2)))}],
+    chart:{type:'bar',height:200,fontFamily:'system-ui,sans-serif',toolbar:{show:false},background:'transparent'},
+    colors,
+    plotOptions:{bar:{borderRadius:5,columnWidth:'60%',distributed:true}},
+    dataLabels:{enabled:false},
+    legend:{show:false},
+    grid:{borderColor:isL?'#e8eeff':'#1e3a5f',strokeDashArray:3},
+    xaxis:{categories:sorted.map(d=>d.data.slice(0,5)),labels:{style:{colors:tc,fontSize:'10px'}},axisBorder:{show:false}},
+    yaxis:{labels:{style:{colors:tc},formatter:v=>'R$ '+v.toFixed(0)}},
+    theme:{mode:isL?'light':'dark'},
+    annotations:{yaxis:[{y:0,borderColor:'#94a3b8',borderWidth:1,strokeDashArray:3}]},
+    tooltip:{theme:isL?'light':'dark',y:{formatter:v=>'R$ '+v.toFixed(2).replace('.',',')}}
+  };
+  if(histBarChart){ histBarChart.destroy(); histBarChart=null; }
+  histBarChart = new ApexCharts(container, opts);
+  histBarChart.render();
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORTAR HISTÓRICO
+// ═══════════════════════════════════════════════════════
+window.exportarHistorico = function(){
+  const hist = loadHistorico();
+  if(!hist.length){ alert('Nenhum histórico para exportar.'); return; }
+  
+  const linhas = [
+    'Data,Hora,Lucro,Gasto,ROI%,Taxa Acerto%,Ganhou,Perdeu,Odd Media',
+    ...hist.map(d=>{
+      const roi = d.gasto>0?((d.lucro/d.gasto)*100).toFixed(1):0;
+      return `${d.data},${d.hora||''},${d.lucro},${d.gasto},${roi},${d.taxaAcerto||0},${d.ganhou},${d.perdeu},${d.oddMedia||0}`;
+    })
+  ].join('\n');
+
+  const blob = new Blob([linhas], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'historico_apostas_'+currentUser+'_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+};
+
+// ═══════════════════════════════════════════════════════
+// HISTÓRICO DIÁRIO (mantido + ajustado)
+// ═══════════════════════════════════════════════════════
+function getHistKey(){ return 'apostas_hist_'+userDocId(); }
+function loadHistorico(){ try{ return JSON.parse(localStorage.getItem(getHistKey())||'[]'); }catch(e){ return []; } }
 function saveHistorico(hist){
   try{ localStorage.setItem(getHistKey(), JSON.stringify(hist)); }catch(e){}
-  // Também salva no Firebase
   if(db){ try{ setDoc(doc(db,'historico',userDocId()),{data:JSON.stringify(hist),updatedAt:Date.now()}); }catch(e){} }
 }
-
 async function loadHistoricoRemoto(){
-  if(!db) return;
+  if(!db) return loadHistorico();
   try{
-    const { getDoc: gd, doc: dc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const snap = await gd(dc(db,'historico',userDocId()));
+    const snap = await getDoc(doc(db,'historico',userDocId()));
     if(snap&&snap.exists()){
       const remote = JSON.parse(snap.data().data);
       const local = loadHistorico();
-      // Merge por data
       const merged = {};
-      [...local,...remote].forEach(d=>{ if(!merged[d.data]||remote.find(r=>r.data===d.data)) merged[d.data]=d; });
+      [...local,...remote].forEach(d=>{ merged[d.data]=d; });
       const arr = Object.values(merged).sort((a,b)=>b.data.localeCompare(a.data));
-      saveHistorico(arr);
-      return arr;
+      saveHistorico(arr); return arr;
     }
   }catch(e){}
   return loadHistorico();
 }
 
 window.salvarDia = function(){
-  // Pega os valores atuais
-  const lucroEl = document.getElementById('total-lucro');
-  const gastoEl = document.getElementById('total-gasto');
-  const acertoEl = document.getElementById('total-acerto');
-  const ganhouEl = document.getElementById('total-ganhou');
-  const perdeuEl = document.getElementById('total-perdeu');
-  const retornoEl = document.getElementById('total-retorno');
-  
   const hoje = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const horaAtual = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  
-  // Calcula valores direto do appData para garantir precisão
-  let lucroTotal=0, gastoTotal=0, ganhou=0, perdeu=0, pendentes=0, retornoTotal=0;
+  const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let lucroTotal=0,gastoTotal=0,ganhou=0,perdeu=0,pendentes=0,retornoTotal=0;
   let allOdds=[];
   appData.bets.forEach(bet=>{
     (appData.tickets[bet]||[]).forEach(t=>{
@@ -976,72 +1357,25 @@ window.salvarDia = function(){
       else{ pendentes++; retornoTotal+=c.retorno; }
     });
   });
-  const taxaAcerto = (ganhou+perdeu)>0?(ganhou/(ganhou+perdeu)*100):0;
-  const oddMedia = allOdds.length?(allOdds.reduce((a,b)=>a+b,0)/allOdds.length):0;
-  
-  const entrada = {
-    data: hoje,
-    hora: horaAtual,
-    lucro: parseFloat(lucroTotal.toFixed(2)),
-    gasto: parseFloat(gastoTotal.toFixed(2)),
-    taxaAcerto: parseFloat(taxaAcerto.toFixed(1)),
-    ganhou,
-    perdeu,
-    pendentes,
-    retorno: parseFloat(retornoTotal.toFixed(2)),
-    oddMedia: parseFloat(oddMedia.toFixed(2))
-  };
-  
-  const hist = loadHistorico();
-  // Substitui se já existe entrada do dia
-  const idx = hist.findIndex(h=>h.data===hoje);
+  const taxaAcerto=(ganhou+perdeu)>0?(ganhou/(ganhou+perdeu)*100):0;
+  const oddMedia=allOdds.length?(allOdds.reduce((a,b)=>a+b,0)/allOdds.length):0;
+  const entrada={data:hoje,hora,lucro:parseFloat(lucroTotal.toFixed(2)),gasto:parseFloat(gastoTotal.toFixed(2)),
+    taxaAcerto:parseFloat(taxaAcerto.toFixed(1)),ganhou,perdeu,pendentes,
+    retorno:parseFloat(retornoTotal.toFixed(2)),oddMedia:parseFloat(oddMedia.toFixed(2))};
+  const hist=loadHistorico();
+  const idx=hist.findIndex(h=>h.data===hoje);
   if(idx>=0){ hist[idx]=entrada; } else { hist.unshift(entrada); }
   saveHistorico(hist);
-  renderHistorico();
-  
-  // Feedback
   showSaving('✓ Dia salvo: '+hoje,'ok');
-  // Abre o painel
-  document.getElementById('panel-historico').classList.add('open');
+  document.getElementById('panel-resumo').classList.add('open');
+  renderResumo();
 };
 
-window.toggleHistorico = function(){
-  const panel = document.getElementById('panel-historico');
-  const isOpen = panel.classList.toggle('open');
-  if(isOpen) renderHistorico();
+window.toggleHistorico=function(){ window.toggleResumo(); };
+window.limparHistorico=function(){
+  if(!confirm('Apagar todo o histórico?')) return;
+  saveHistorico([]); renderResumo();
 };
-
-window.limparHistorico = function(){
-  if(!confirm('Tem certeza que quer apagar todo o histórico?')) return;
-  saveHistorico([]);
-  renderHistorico();
-};
-
-function renderHistorico(){
-  const hist = loadHistorico();
-  const grid = document.getElementById('hist-grid');
-  if(!grid) return;
-  if(!hist.length){
-    grid.innerHTML='<div class="hist-empty">Nenhum dia salvo ainda. Clique em "Salvar Dia" no card de Lucro/Prejuízo ao final do dia.</div>';
-    return;
-  }
-  grid.innerHTML = hist.map(d=>{
-    const lucroColor = d.lucro>0?'var(--grn)':d.lucro<0?'var(--red)':'var(--txt)';
-    const emoji = d.lucro>0?'📈':d.lucro<0?'📉':'➡️';
-    const roi = d.gasto>0?((d.lucro/d.gasto)*100).toFixed(1):0;
-    return `<div class="hist-card">
-      <div class="hist-date">${emoji} ${d.data} <span style="color:var(--txt2);font-weight:400">${d.hora||''}</span></div>
-      <div class="hist-row"><span class="hist-label">Lucro/Prejuízo</span><span class="hist-val" style="color:${lucroColor}">${d.lucro>=0?'+':''}R$ ${Math.abs(d.lucro).toFixed(2).replace('.',',')}</span></div>
-      <div class="hist-row"><span class="hist-label">Gasto Real</span><span class="hist-val">R$ ${(d.gasto||0).toFixed(2).replace('.',',')}</span></div>
-      <div class="hist-row"><span class="hist-label">ROI do dia</span><span class="hist-val" style="color:${roi>0?'var(--grn)':roi<0?'var(--red)':'var(--txt)'}">${roi>0?'+':''}${roi}%</span></div>
-      <div class="hist-row"><span class="hist-label">Taxa de acerto</span><span class="hist-val" style="color:var(--acc)">${d.taxaAcerto||0}%</span></div>
-      <div class="hist-row"><span class="hist-label">Odd média</span><span class="hist-val" style="color:var(--acc)">${d.oddMedia||'—'}</span></div>
-      <div class="hist-row"><span class="hist-label" style="color:var(--grn)">✓ Ganhou</span><span class="hist-val" style="color:var(--grn)">${d.ganhou}</span></div>
-      <div class="hist-row"><span class="hist-label" style="color:var(--red)">✗ Perdeu</span><span class="hist-val" style="color:var(--red)">${d.perdeu}</span></div>
-      ${d.pendentes>0?`<div class="hist-row"><span class="hist-label" style="color:var(--yel)">⏳ Pendentes</span><span class="hist-val" style="color:var(--yel)">${d.pendentes}</span></div>`:''}
-    </div>`;
-  }).join('');
-}
 
 window.confirmarNovaAposta=function(){
   const input=document.getElementById('new-bet-input');
