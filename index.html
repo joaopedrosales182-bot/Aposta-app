@@ -7,70 +7,156 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--red:#f87171}
-    body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);padding:20px}
-    .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px}
-    .stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px;cursor:pointer}
-    .breakdown-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:16px;margin-bottom:20px}
-    .breakdown-panel.open{display:block}
-    .breakdown-item{background:var(--bg2);border:0.5px solid var(--bdr);padding:8px 12px;border-radius:6px;display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
+body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min-height:100vh}
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;padding:2rem}
+.login-input{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 16px;color:var(--txt);width:280px;outline:none}
+.login-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:12px 24px;cursor:pointer;width:280px}
+#app{display:none;padding:1rem;max-width:1024px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:0.5rem}
+.stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px;cursor:pointer;position:relative}
+.stat-label{font-size:11px;color:var(--txt2);text-transform:uppercase;margin-bottom:4px}
+.stat-val{font-size:19px;font-weight:600}
+.breakdown-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:16px;margin-bottom:1.2rem}
+.breakdown-panel.open{display:block}
+.panel-content-layout{display:flex;gap:20px;flex-wrap:wrap;min-height:260px}
+.chart-container{flex:1;min-width:300px}
+.breakdown-list{flex:1;display:flex;flex-direction:column;gap:8px}
+.breakdown-item{background:var(--bg2);border:0.5px solid var(--bdr);padding:8px 12px;border-radius:6px;display:flex;justify-content:space-between;font-size:13px}
+.bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px}
+.bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border-bottom:0.5px solid var(--bdr);cursor:pointer}
+.tickets-table{width:100%;border-collapse:collapse;margin-top:10px}
+.tickets-table td{padding:8px;border-bottom:0.5px solid var(--bdr);text-align:center}
+.cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:4px;padding:4px;color:var(--txt);width:80px}
 </style>
 </head>
 <body>
 
-<div id="app">
-  <div class="summary-grid">
-    <div class="stat-card" onclick="toggleBreakdown('depositos')">Saldo Total<div id="total-depositos">R$ 0,00</div></div>
-    <div class="stat-card" onclick="toggleBreakdown('apostado')">Total Apostado<div id="total-apostado">R$ 0,00</div></div>
-  </div>
-
-  <div class="breakdown-panel" id="panel-depositos">
-    <div id="list-depositos"></div>
-  </div>
-  <div class="breakdown-panel" id="panel-apostado">
-    <div id="list-apostado"></div>
-  </div>
+<div id="login-screen">
+  <h1>Controle de Apostas</h1>
+  <input class="login-input" id="username-input" placeholder="Seu nome"/>
+  <button class="login-btn" onclick="entrar()">Entrar</button>
 </div>
 
-<script>
-// Mock de dados para exemplificar a estrutura que você usa
-let appData = {
-  bets: ["BetMGM", "Superbet", "Betano", "Esportes da Sorte", "Bet365", "Ginga Bet", "Pix bet"],
-  deposits: {"BetMGM": 9, "Bet365": 7.5, "Ginga Bet": 9, "Pix bet": -10},
-  tickets: {} 
+<div id="app">
+  <div class="topbar"><h1>Dashboard</h1><button onclick="sair()">Sair</button></div>
+  <div class="summary-grid">
+    <div class="stat-card" onclick="toggleBreakdown('depositos')"><div class="stat-label">Saldo</div><div class="stat-val" id="total-depositos">R$ 0,00</div></div>
+    <div class="stat-card" onclick="toggleBreakdown('apostado')"><div class="stat-label">Apostado</div><div class="stat-val" id="total-apostado">R$ 0,00</div></div>
+    <div class="stat-card" onclick="toggleBreakdown('gasto')"><div class="stat-label">Gasto Real</div><div class="stat-val" id="total-gasto">R$ 0,00</div></div>
+    <div class="stat-card" onclick="toggleBreakdown('lucro')"><div class="stat-label">Lucro</div><div class="stat-val" id="total-lucro">R$ 0,00</div></div>
+  </div>
+
+  <div class="breakdown-panel" id="panel-depositos"><div class="panel-content-layout"><div class="chart-container" id="chart-depositos"></div><div class="breakdown-list" id="list-depositos"></div></div></div>
+  <div class="breakdown-panel" id="panel-apostado"><div class="panel-content-layout"><div class="chart-container" id="chart-apostado"></div><div class="breakdown-list" id="list-apostado"></div></div></div>
+  <div class="breakdown-panel" id="panel-gasto"><div class="panel-content-layout"><div class="chart-container" id="chart-gasto"></div><div class="breakdown-list" id="list-gasto"></div></div></div>
+  <div class="breakdown-panel" id="panel-lucro"><div class="panel-content-layout"><div class="chart-container" id="chart-lucro"></div><div class="breakdown-list" id="list-lucro"></div></div></div>
+
+  <div id="bets-container"></div>
+  <button onclick="adicionarBanca()">+ Nova Banca</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCeDME3AoZQ81HKwGzvhzFXPcfs5krr3vc",
+  projectId: "apostas-app-6b448"
+};
+const db = getFirestore(initializeApp(firebaseConfig));
+
+let currentUser='', appData={bets:["Betano","Superbet","Bet365"],tickets:{},deposits:{},withdrawals:{}}, activePanel=null;
+
+window.entrar = async() => {
+  currentUser = document.getElementById('username-input').value.trim();
+  if(!currentUser) return;
+  const snap = await getDoc(doc(db, 'usuarios', currentUser.toLowerCase()));
+  if(snap.exists()) appData = JSON.parse(snap.data().data);
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  render();
 };
 
-let activePanel = null;
+window.sair = () => location.reload();
+
+window.toggleBreakdown = (type) => {
+  ['depositos','apostado','gasto','lucro'].forEach(t => document.getElementById('panel-'+t).classList.toggle('open', t === type && activePanel !== type));
+  activePanel = (activePanel === type) ? null : type;
+  updateGlobals();
+};
 
 function fmt(n) { return 'R$ ' + n.toFixed(2).replace('.', ','); }
 
-function toggleBreakdown(type) {
-  document.getElementById('panel-'+type).classList.toggle('open');
-  activePanel = activePanel === type ? null : type;
+function updateGlobals() {
+  let tG=0, tA=0, tL=0, tD=0;
+  let lists = { depositos: '', apostado: '', gasto: '', lucro: '' };
+  let charts = { depositos: [], apostado: [], gasto: [], lucro: [] };
+  let labels = { depositos: [], apostado: [], gasto: [], lucro: [] };
+
+  appData.bets.forEach(bet => {
+    let ret=0, gast=0, apost=0, luc=0;
+    (appData.tickets[bet]||[]).forEach(t => {
+      let g = parseFloat(t.gasto||0);
+      apost += g;
+      if(t.resultado === 'Ganhou') { ret += (g * parseFloat(t.odd||1)); luc += (g * parseFloat(t.odd||1)) - g; gast += g; }
+      else if(t.resultado === 'Perdeu') { luc -= g; gast += g; }
+    });
+
+    let dep = parseFloat(appData.deposits[bet]||0);
+    let saldo = dep + ret - gast;
+    
+    // LOGICA DE FILTRO: Se tudo for zero, não adiciona nas listas/gráficos
+    if(saldo > 0 || apost > 0 || gast > 0 || luc !== 0) {
+      if(saldo > 0) { lists.depositos += `<div class="breakdown-item"><span>${bet}</span><span>${fmt(saldo)}</span></div>`; labels.depositos.push(bet); charts.depositos.push(saldo); }
+      if(apost > 0) { lists.apostado += `<div class="breakdown-item"><span>${bet}</span><span>${fmt(apost)}</span></div>`; labels.apostado.push(bet); charts.apostado.push(apost); }
+      if(gast > 0) { lists.gasto += `<div class="breakdown-item"><span>${bet}</span><span>${fmt(gast)}</span></div>`; labels.gasto.push(bet); charts.gasto.push(gast); }
+      if(luc !== 0) { lists.lucro += `<div class="breakdown-item"><span>${bet}</span><span>${fmt(luc)}</span></div>`; labels.lucro.push(bet); charts.lucro.push(luc); }
+    }
+
+    tD += saldo; tA += apost; tG += gast; tL += luc;
+  });
+
+  document.getElementById('total-depositos').textContent = fmt(tD);
+  document.getElementById('total-apostado').textContent = fmt(tA);
+  document.getElementById('total-gasto').textContent = fmt(tG);
+  document.getElementById('total-lucro').textContent = fmt(tL);
+
+  for(let key in lists) document.getElementById('list-'+key).innerHTML = lists[key] || '<div class="breakdown-item">Sem dados</div>';
+  
+  if(activePanel) renderChart(activePanel, labels[activePanel], charts[activePanel]);
+}
+
+function renderChart(id, labels, data) {
+  const container = document.getElementById('chart-'+id);
+  container.innerHTML = '';
+  new ApexCharts(container, {
+    chart: { type: 'donut', height: 250 },
+    series: data, labels: labels,
+    colors: ['#7c83fd', '#34d399', '#fcd34d', '#f87171']
+  }).render();
+}
+
+function render() {
+  const cont = document.getElementById('bets-container');
+  cont.innerHTML = '';
+  appData.bets.forEach(bet => {
+    let div = document.createElement('div');
+    div.className = 'bet-section';
+    div.innerHTML = `<div class="bet-header"><span>${bet}</span><button onclick="addTicket('${bet}')">+</button></div>`;
+    cont.appendChild(div);
+  });
   updateGlobals();
 }
 
-function updateGlobals() {
-  let lists = { depositos: '', apostado: '' };
-  
-  appData.bets.forEach(bet => {
-    let valor = parseFloat(appData.deposits[bet] || 0);
-    
-    // --- ESTA É A MUDANÇA ---
-    // Só mostra na lista se o valor for diferente de 0
-    if (valor !== 0) {
-      lists.depositos += `<div class="breakdown-item"><span>${bet}</span><span>${fmt(valor)}</span></div>`;
-      lists.apostado += `<div class="breakdown-item"><span>${bet}</span><span>${fmt(valor)}</span></div>`;
-    }
-  });
-
-  document.getElementById('list-depositos').innerHTML = lists.depositos || '<div class="breakdown-item">Nenhuma banca com saldo ativo.</div>';
-  document.getElementById('list-apostado').innerHTML = lists.apostado || '<div class="breakdown-item">Nenhuma movimentação registrada.</div>';
-}
-
-// Inicializa
-updateGlobals();
+window.adicionarBanca = () => { appData.bets.push(prompt("Nome da banca:")); render(); };
+window.addTicket = (bet) => { 
+  if(!appData.tickets[bet]) appData.tickets[bet] = [];
+  appData.tickets[bet].push({odd:2, gasto:10, resultado:'Pendente'});
+  updateGlobals();
+};
 </script>
 </body>
 </html>
