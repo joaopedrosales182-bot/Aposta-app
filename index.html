@@ -289,24 +289,21 @@ function updateGlobals(){
       if(t.resultado==='Pendente'){
         tR+=c.retorno;
         tP++;
-        impactoBanca -= c.gastoLiquido; 
       } else if(t.resultado==='Ganhou') {
         tL+=c.lucro;
-        impactoBanca += c.retorno; // Regra Nova: Ganhou adiciona o RETORNO total na banca
+        impactoBanca += c.retorno; 
       } else if(t.resultado==='Perdeu') {
         tL+=c.lucro;
-        impactoBanca -= c.gastoLiquido; 
       }
     });
 
     const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    let bancaRestante = Math.max(0, baseDeposit + impactoBanca);
+    let bancaRestante = baseDeposit + impactoBanca;
+    if(bancaRestante < 0) bancaRestante = 0;
 
-    // Se não há bilhetes ativos, verifica se guardamos um histórico da banca anterior
     if ((appData.tickets[bet] || []).length === 0) {
       if (appData.savedBalances && appData.savedBalances[bet] !== undefined && !appData.withdrawals[bet]) {
         bancaRestante = appData.savedBalances[bet];
-        // Sincroniza visualmente o input para virar a nova banca inicial
         const sid = safeId(bet);
         const inp = document.querySelector(`#section-${sid} .deposit-input`);
         if (inp && parseFloat(inp.value) !== bancaRestante) {
@@ -314,7 +311,6 @@ function updateGlobals(){
           appData.deposits[bet] = bancaRestante.toFixed(2);
         }
       } else if (appData.withdrawals[bet]) {
-        // Se já sacou e limpou bilhetes, zera tudo
         bancaRestante = 0;
         const sid = safeId(bet);
         const inp = document.querySelector(`#section-${sid} .deposit-input`);
@@ -322,14 +318,13 @@ function updateGlobals(){
         appData.deposits[bet] = 0;
       }
     } else {
-      // Se há bilhetes, mantemos salvo o estado atual caso o usuário limpe depois
       if(!appData.savedBalances) appData.savedBalances = {};
       appData.savedBalances[bet] = bancaRestante;
     }
 
     const isSacado = !!appData.withdrawals[bet];
     if(!isSacado) {
-      tDep += bancaRestante; // Se NÃO foi sacado, entra na soma do topo
+      tDep += bancaRestante; 
     }
 
     const sid = safeId(bet);
@@ -358,7 +353,7 @@ function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
 window.updateDepositValue=function(bet, val){
   if(!appData.deposits) appData.deposits = {};
   appData.deposits[bet] = val;
-  if(appData.savedBalances) delete appData.savedBalances[bet]; // Reseta cache manual
+  if(appData.savedBalances) delete appData.savedBalances[bet]; 
   updateGlobals();
   scheduleSave();
 };
@@ -544,84 +539,3 @@ function renderBet(bet){
                       <textarea class="timeline-textarea" placeholder="Exemplo:&#10;Inglaterra&#10;  - Mais de 1.5 gols&#10;França&#10;  - Ambos marcam" oninput="window.updateTimelinePreview('${tUniqueId}', this.value, '${be}', ${i})">${t.notas||''}</textarea>
                     </div>
                   </div>
-                </div>
-              </td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.00" oninput="window.liveUpdateMath('${be}',${i},'odd',this.value,'${tUniqueId}')"/></td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="5" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
-              <td>
-                <select class="fb-select ${currentFbType !== 'none' ? 'active-fb' : ''}" id="sel-fb-${tUniqueId}" onchange="window.changeFbType('${be}', ${i}, '${tUniqueId}', this.value)">
-                  <option value="none" ${currentFbType==='none'?'selected':''}>💰 Dinheiro Real</option>
-                  <option value="total" ${currentFbType==='total'?'selected':''}>🎁 Total Grátis</option>
-                  <option value="partial" ${currentFbType==='partial'?'selected':''}>🎛️ Mista (Grátis + Real)</option>
-                </select>
-                <input class="fb-partial-input" type="number" step="0.01" id="part-input-${tUniqueId}" style="display:${currentFbType==='partial'?'block':'none'}" value="${t.fbPartialVal||''}" placeholder="Valor Grátis R$" oninput="window.liveUpdateMath('${be}',${i},'fbPartialVal',this.value,'${tUniqueId}')"/>
-              </td>
-              <td class="computed" id="ret-${tUniqueId}">${c.retornoTxt}</td>
-              <td class="computed ${c.lucroClass}" id="luc-${tUniqueId}">${c.lucroTxt}</td>
-              <td><select class="result-select ${t.resultado.toLowerCase()}" id="sel-${tUniqueId}" onchange="window.liveUpdateMath('${be}',${i},'resultado',this.value,'${tUniqueId}')">
-                <option value="Pendente" ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
-                <option value="Ganhou" ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
-                <option value="Perdeu" ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
-              </select></td>
-              <td><button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti ti-trash"></i></button></td>
-            </tr>`;}).join('')}</tbody>
-        </table>`}
-    </div>`;
-  
-  setTimeout(()=>{
-    tickets.forEach((t, i) => {
-      const tUniqueId = sid + '_' + (t.id || i);
-      window.buildTimelineDOM(tUniqueId, t.notas || '', t.checkedItems || {}, bet, i);
-    });
-  }, 10);
-
-  return section;
-}
-
-function renderAll(){
-  const container=document.getElementById('bets-container');
-  if(!container) return; container.innerHTML='';
-  appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
-  updateGlobals();
-}
-
-window.toggleSection=function(bet){
-  openSections[bet]=openSections[bet]===false;
-  refreshBet(bet);
-};
-
-window.addTicket=function(bet){
-  openSections[bet]=true;
-  if(!appData.tickets[bet])appData.tickets[bet]=[];
-  const newId = Date.now();
-  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},fbType:'none',fbPartialVal:''});
-  expandedNotes[safeId(bet) + '_' + newId] = true; 
-  openEditors[safeId(bet) + '_' + newId] = true; 
-  renderAll(); scheduleSave();
-};
-
-window.deleteTicket=function(bet,idx){
-  appData.tickets[bet].splice(idx,1);
-  renderAll(); scheduleSave();
-};
-
-function refreshBet(bet){
-  const section=document.getElementById('section-'+safeId(bet));
-  if(section) section.replaceWith(renderBet(bet));
-}
-
-window.toggleAddForm=function(){
-  addFormOpen=!addFormOpen;
-  document.getElementById('add-bet-form').classList.toggle('open', addFormOpen);
-};
-
-window.confirmarNovaAposta=function(){
-  const input=document.getElementById('new-bet-input');
-  const nome=input.value.trim();
-  if(!nome)return; appData.bets.push(nome);
-  input.value=''; addFormOpen=false;
-  renderAll(); scheduleSave();
-};
-</script>
-</body>
-</html>
