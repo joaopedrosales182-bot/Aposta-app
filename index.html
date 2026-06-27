@@ -133,7 +133,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   .tickets-table td:first-child {grid-column:span 2; padding:0 0 4px 0; border-bottom:0.5px solid var(--bdr);}
   .tickets-table td:not(:first-child):not(:last-child) {display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:2px 4px; border:none; background:transparent !important;}
   .tickets-table td:nth-child(2)::before {content:"Odd"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
-  .tickets-table td:nth-child(3)::before {content:"Gasto"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
+  .tickets-table td:nth-child(3)::before {content:"Valor da Aposta"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
   .tickets-table td:nth-child(4)::before {content:"Tipo de Aposta"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
   .tickets-table td:nth-child(5)::before {content:"Retorno"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
   .tickets-table td:nth-child(6)::before {content:"Lucro/Prej."; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
@@ -180,23 +180,32 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-gasto"></i>
     </div>
     <div class="stat-card"><div class="stat-label">Possível Retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
-    <div class="stat-card"><div class="stat-label">Lucro / Prejuízo Líquido</div><div class="stat-val white" id="total-lucro">R$ 0,00</div></div>
+    <div class="stat-card clickable" onclick="toggleBreakdown('lucro')" style="border-color: var(--acc); background: rgba(124, 131, 253, 0.03);">
+      <div class="stat-label" style="color: var(--acc)">Lucro / Prejuízo Líquido</div>
+      <div class="stat-val white" id="total-lucro">R$ 0,00</div>
+      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-lucro"></i>
+    </div>
     <div class="stat-card"><div class="stat-label">Bilhetes Abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
   </div>
 
   <div class="breakdown-panel" id="panel-depositos">
-    <div class="breakdown-title">Origem do Saldo por Banca</div>
+    <div class="breakdown-title">Origem do Saldo por Banca (Banca Inicial + Retornos - Gastos)</div>
     <div class="breakdown-list" id="list-breakdown-depositos"></div>
   </div>
 
   <div class="breakdown-panel" id="panel-apostado">
-    <div class="breakdown-title">Volume Total Apostado por Banca</div>
+    <div class="breakdown-title">Volume Total Apostado por Banca (Dinheiro + Freebets)</div>
     <div class="breakdown-list" id="list-breakdown-apostado"></div>
   </div>
 
   <div class="breakdown-panel" id="panel-gasto">
-    <div class="breakdown-title">Distribuição de Gastos por Banca</div>
+    <div class="breakdown-title">Distribuição de Gastos por Banca (Apenas Dinheiro Real)</div>
     <div class="breakdown-list" id="list-breakdown-gasto"></div>
+  </div>
+
+  <div class="breakdown-panel" id="panel-lucro">
+    <div class="breakdown-title">Rendimento Líquido por Banca</div>
+    <div class="breakdown-list" id="list-breakdown-lucro"></div>
   </div>
 
   <div class="saving-indicator" id="saving-indicator"></div>
@@ -282,27 +291,27 @@ window.toggleBreakdown = function(type) {
   const pDep = document.getElementById('panel-depositos');
   const pApo = document.getElementById('panel-apostado');
   const pGas = document.getElementById('panel-gasto');
+  const pLuc = document.getElementById('panel-lucro');
   
   const cDep = document.getElementById('chev-panel-depositos');
   const cApo = document.getElementById('chev-panel-apostado');
   const cGas = document.getElementById('chev-panel-gasto');
+  const cLuc = document.getElementById('chev-panel-lucro');
 
   if(activePanel === type) {
-    pDep.classList.remove('open');
-    pApo.classList.remove('open');
-    pGas.classList.remove('open');
-    cDep.classList.remove('open');
-    cApo.classList.remove('open');
-    cGas.classList.remove('open');
+    pDep.classList.remove('open'); pApo.classList.remove('open'); pGas.classList.remove('open'); pLuc.classList.remove('open');
+    cDep.classList.remove('open'); cApo.classList.remove('open'); cGas.classList.remove('open'); cLuc.classList.remove('open');
     activePanel = null;
   } else {
-    pDep.toggleAttribute('open', type === 'depositos'); pDep.classList.toggle('open', type === 'depositos');
-    pApo.toggleAttribute('open', type === 'apostado'); pApo.classList.toggle('open', type === 'apostado');
-    pGas.toggleAttribute('open', type === 'gasto'); pGas.classList.toggle('open', type === 'gasto');
+    pDep.classList.toggle('open', type === 'depositos');
+    pApo.classList.toggle('open', type === 'apostado');
+    pGas.classList.toggle('open', type === 'gasto');
+    pLuc.classList.toggle('open', type === 'lucro');
     
     cDep.classList.toggle('open', type === 'depositos');
     cApo.classList.toggle('open', type === 'apostado');
     cGas.classList.toggle('open', type === 'gasto');
+    cLuc.classList.toggle('open', type === 'lucro');
     activePanel = type;
   }
 };
@@ -358,30 +367,32 @@ function updateGlobals(){
   let htmlDepositos = '';
   let htmlApostado = '';
   let htmlGasto = '';
+  let htmlLucro = '';
 
   appData.bets.forEach(bet=>{
-    let impactoBanca = 0; 
-    let gastoBanca = 0;
+    let retornoBanca = 0; 
+    let gastoRealBanca = 0;
     let apostadoBanca = 0;
+    let lucroBanca = 0;
     
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
       tG+=c.gastoLiquido; 
       tA+=c.gastoBruto;
-      gastoBanca+=c.gastoLiquido;
+      gastoRealBanca+=c.gastoLiquido;
       apostadoBanca+=c.gastoBruto;
 
       if(t.resultado==='Pendente'){
         tR+=c.retorno; tP++;
       } else if(t.resultado==='Ganhou') {
-        tL+=c.lucro; impactoBanca += c.retorno; 
+        tL+=c.lucro; lucroBanca += c.lucro; retornoBanca += c.retorno; 
       } else if(t.resultado==='Perdeu') {
-        tL+=c.lucro;
+        tL+=c.lucro; lucroBanca += c.lucro;
       }
     });
 
     const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    let bancaRestante = baseDeposit + impactoBanca;
+    let bancaRestante = baseDeposit + retornoBanca - gastoRealBanca;
     if(bancaRestante < 0) bancaRestante = 0;
 
     if ((appData.tickets[bet] || []).length === 0) {
@@ -425,7 +436,17 @@ function updateGlobals(){
     htmlGasto += `
       <div class="breakdown-item">
         <span class="b-name">${bet}</span>
-        <span class="b-val">${fmt(gastoBanca)}</span>
+        <span class="b-val">${fmt(gastoRealBanca)}</span>
+      </div>`;
+
+    let colorLucro = 'var(--txt)';
+    if(lucroBanca > 0) colorLucro = 'var(--grn)';
+    else if(lucroBanca < 0) colorLucro = 'var(--red)';
+
+    htmlLucro += `
+      <div class="breakdown-item">
+        <span class="b-name">${bet}</span>
+        <span class="b-val" style="color:${colorLucro}">${fmt(lucroBanca)}</span>
       </div>`;
 
     const sid = safeId(bet);
@@ -436,6 +457,7 @@ function updateGlobals(){
   document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos;
   document.getElementById('list-breakdown-apostado').innerHTML = htmlApostado;
   document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto;
+  document.getElementById('list-breakdown-lucro').innerHTML = htmlLucro;
 
   const lucroTotalEl = document.getElementById('total-lucro');
   if(lucroTotalEl) {
