@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Controle de Apostas Pro com Gráficos</title>
+<title>Controle de Apostas Pro com Gráficos Premium</title>
 <link class="ui-theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
@@ -19,6 +19,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .login-input{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 16px;color:var(--txt);font-size:15px;width:280px;outline:none}
 .login-input:focus{border-color:var(--acc)}
 .login-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
+.login-btn:hover{opacity:.9}
 .login-error{color:var(--red);font-size:13px;text-align:center;min-height:18px}
 #app{display:none;padding:1rem;max-width:1024px;margin:0 auto}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px;padding-top:.5rem}
@@ -41,13 +42,12 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .stat-chevron{font-size:12px;color:var(--txt2);transition:transform 0.2s;position:absolute;top:12px;right:14px}
 .stat-chevron.open{transform:rotate(180deg);color:var(--acc)}
 
-.breakdown-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:14px;margin-bottom:1.2rem;animation:fadeIn 0.2s ease}
+.breakdown-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:16px;margin-bottom:1.2rem;animation:fadeIn 0.2s ease}
 .breakdown-panel.open{display:block}
 .breakdown-title{font-size:12px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;border-bottom:0.5px solid var(--bdr);padding-bottom:6px}
 
-/* Estrutura interna dos painéis para abrigar o gráfico lado a lado com a lista */
-.panel-content-layout{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
-.chart-container{flex:1;min-width:260px;max-width:340px;height:200px;display:flex;align-items:center;justify-content:center}
+.panel-content-layout{display:flex;gap:20px;flex-wrap:wrap;align-items:center; min-height:260px}
+.chart-container{flex:1;min-width:300px;max-width:400px;display:flex;align-items:center;justify-content:center}
 .breakdown-list{flex:2;min-width:240px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;height:fit-content}
 
 .breakdown-item{background:var(--bg2);border:0.5px solid var(--bdr);padding:6px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
@@ -60,6 +60,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
 .bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none;flex-wrap:wrap;gap:8px}
+.bet-header:hover{background:var(--bg3)}
 .bet-name{font-weight:600;font-size:14px;color:var(--txt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
 .bet-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -103,6 +104,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
 .add-bet-section{background:var(--bg1);border:0.5px dashed var(--acc);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .add-bet-trigger{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;color:var(--acc);font-size:14px;font-weight:500}
+.add-bet-trigger:hover{background:var(--bg2)}
 .add-bet-form{padding:14px 16px;border-top:0.5px solid var(--bdr);display:none;gap:10px;align-items:center;flex-wrap:wrap}
 .add-bet-form.open{display:flex}
 .add-bet-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:7px;padding:9px 12px;color:var(--txt);font-size:14px;flex:1;min-width:180px;outline:none}
@@ -188,9 +190,9 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   </div>
 
   <div class="breakdown-panel" id="panel-depositos">
-    <div class="breakdown-title">Origem do Saldo por Banca (Banca Inicial + Retornos)</div>
+    <div class="breakdown-title">Origem do Saldo por Banca (Somente bancas em uso)</div>
     <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-depositos"></canvas></div>
+      <div class="chart-container" id="chart-depositos"></div>
       <div class="breakdown-list" id="list-breakdown-depositos"></div>
     </div>
   </div>
@@ -198,7 +200,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   <div class="breakdown-panel" id="panel-apostado">
     <div class="breakdown-title">Volume Total Apostado por Banca (Dinheiro + Freebets)</div>
     <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-apostado"></canvas></div>
+      <div class="chart-container" id="chart-apostado"></div>
       <div class="breakdown-list" id="list-breakdown-apostado"></div>
     </div>
   </div>
@@ -206,7 +208,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   <div class="breakdown-panel" id="panel-gasto">
     <div class="breakdown-title">Distribuição de Gastos por Banca (Apenas Dinheiro Real)</div>
     <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-gasto"></canvas></div>
+      <div class="chart-container" id="chart-gasto"></div>
       <div class="breakdown-list" id="list-breakdown-gasto"></div>
     </div>
   </div>
@@ -214,7 +216,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   <div class="breakdown-panel" id="panel-lucro">
     <div class="breakdown-title">Rendimento Líquido por Banca</div>
     <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-lucro"></canvas></div>
+      <div class="chart-container" id="chart-lucro"></div>
       <div class="breakdown-list" id="list-breakdown-lucro"></div>
     </div>
   </div>
@@ -263,7 +265,7 @@ let saveTimer=null;
 let addFormOpen=false;
 let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{},withdrawals:{},savedBalances:{}};
 
-// Instâncias de gráficos globais para evitar duplicações de memória
+// Guardar instâncias dos gráficos
 let charts = { depositos: null, apostado: null, gasto: null, lucro: null };
 
 function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')}
@@ -324,7 +326,6 @@ window.toggleBreakdown = function(type) {
     cLuc.classList.toggle('open', type === 'lucro');
     activePanel = type;
     
-    // Forçar a renderização imediata do gráfico correspondente ao abrir a aba
     updateGlobals();
   }
 };
@@ -352,7 +353,7 @@ window.toggleTheme=function(){
   const isLight=document.documentElement.classList.toggle("light");
   document.getElementById("theme-icon").className=isLight?"ti ti-moon":"ti ti-sun";
   document.getElementById("theme-label").textContent=isLight?"Escuro":"Claro";
-  updateGlobals(); // Atualiza cores dos gráficos se mudar o tema
+  updateGlobals();
 };
 
 function fmt(n){return'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
@@ -375,47 +376,93 @@ function calcTicket(t){
   return { retorno, lucro, lucroClass, lucroTxt, retornoTxt: retorno > 0 ? fmt(retorno) : '—', gastoLiquido: gastoReal, gastoBruto: gasto > 0 ? gasto : 0 };
 }
 
-// Função para desenhar e atualizar os gráficos usando Chart.js
-function renderChartInstance(id, type, labels, data, colors) {
-  if (charts[id]) { charts[id].destroy(); }
-  const ctx = document.getElementById('chart-' + id);
-  if (!ctx) return;
-  
-  const isDark = !document.documentElement.classList.contains("light");
-  const textColors = isDark ? '#cbd5e1' : '#1e2a4a';
-  const borderColors = isDark ? '#1e3a5f' : '#c5ccf0';
+// Renderizador ApexCharts Premium (Sem valores zero, com sombras e design aprimorado)
+function renderApexChartInstance(id, chartType, labels, data, colors) {
+  const container = document.getElementById('chart-' + id);
+  if (!container) return;
 
-  charts[id] = new Chart(ctx, {
-    type: type,
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: colors,
-        borderColor: borderColors,
-        borderWidth: 1
-      }]
+  // Tratamento para quando não há dados maiores que zero
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div style="color:var(--txt2);font-size:13px;text-align:center;width:100%;padding:40px 0;border:0.5px dashed var(--bdr);border-radius:8px;background:var(--bg2);">Nenhum dado financeiro para exibir neste gráfico.</div>';
+    if(charts[id]) { charts[id].destroy(); charts[id] = null; }
+    return;
+  }
+
+  const isLight = document.documentElement.classList.contains("light");
+  const textThemeColor = isLight ? '#1e2a4a' : '#cbd5e1';
+
+  let options = {
+    series: chartType === 'donut' ? data : [{ name: 'Valor', data: data }],
+    chart: { 
+      type: chartType, 
+      height: 250, 
+      fontFamily: 'system-ui, sans-serif', 
+      toolbar: { show: false }, 
+      background: 'transparent',
+      dropShadow: { enabled: chartType === 'donut', top: 2, left: 0, blur: 4, opacity: 0.2 } // Sombra suave nos anéis
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: type === 'pie' || type === 'doughnut', labels: { color: textColors, font: { size: 10 } } }
+    colors: colors,
+    theme: { mode: isLight ? 'light' : 'dark' },
+    stroke: { width: chartType === 'donut' ? 2 : 0, colors: [isLight ? '#ffffff' : '#102444'] },
+    plotOptions: {
+      bar: { 
+        borderRadius: 6, 
+        columnWidth: '45%', 
+        distributed: true, // Cada barra com cor própria
+        dataLabels: { position: 'top' }
       },
-      scales: type === 'bar' ? {
-        x: { grid: { display: false }, ticks: { color: textColors } },
-        y: { grid: { color: borderColors }, ticks: { color: textColors } }
-      } : {}
-    }
-  });
+      pie: {
+        donut: { 
+          size: '72%',
+          labels: {
+            show: true,
+            name: { show: true, color: textThemeColor, fontSize: '12px' },
+            value: { show: true, color: textThemeColor, fontSize: '16px', fontWeight: 600, formatter: (val) => fmt(Number(val)) },
+            total: { show: true, showAlways: true, label: 'Total', color: textThemeColor, formatter: function (w) {
+              return fmt(w.globals.seriesTotals.reduce((a, b) => a + b, 0))
+            }}
+          }
+        }
+      }
+    },
+    dataLabels: { 
+      enabled: false // Esconde os rótulos poluentes, usando os tooltips e o centro do donut
+    },
+    legend: { show: chartType === 'donut', position: 'right', labels: { colors: textThemeColor } },
+    grid: { show: chartType === 'bar', borderColor: isLight ? '#e8eeff' : '#1e3a5f', strokeDashArray: 3 },
+    fill: { type: 'gradient', gradient: { shade: 'dark', type: "vertical", shadeIntensity: 0.5, opacityFrom: 0.9, opacityTo: 0.7 } },
+    tooltip: { theme: isLight ? 'light' : 'dark', y: { formatter: (val) => fmt(val) } }
+  };
+
+  if (chartType === 'bar') {
+    options.labels = labels;
+    options.xaxis = { labels: { style: { colors: textThemeColor } }, axisBorder: { show: false }, axisTicks: { show: false } };
+    options.yaxis = { labels: { style: { colors: textThemeColor }, formatter: (val) => val.toFixed(0) } };
+    options.legend.show = false; // Barra já tem legenda no eixo X
+  } else {
+    options.labels = labels;
+  }
+
+  // Verifica se o container tem HTML de vazio para limpar
+  if (container.innerHTML.includes('Nenhum dado')) container.innerHTML = '';
+
+  if (charts[id]) {
+    charts[id].updateOptions(options);
+  } else {
+    charts[id] = new ApexCharts(container, options);
+    charts[id].render();
+  }
 }
 
 function updateGlobals(){
   let tG=0, tA=0, tR=0, tL=0, tP=0, tDep=0;
   let htmlDepositos = '', htmlApostado = '', htmlGasto = '', htmlLucro = '';
 
-  // Arrays para alimentar os gráficos
-  let labelsBancas = [], dataDepositos = [], dataApostado = [], dataGasto = [], dataLucro = [];
+  // Arrays exclusivos e filtrados para os gráficos
+  let chartLabelsDepositos = [], chartDataDepositos = [];
+  let chartLabelsApostado = [], chartDataApostado = [];
+  let chartLabelsGasto = [], chartDataGasto = [];
+  let chartLabelsLucro = [], chartDataLucro = [];
 
   appData.bets.forEach(bet=>{
     let retornoBanca = 0; 
@@ -428,7 +475,6 @@ function updateGlobals(){
       tA+=c.gastoBruto;
       apostadoBanca+=c.gastoBruto;
 
-      // FÓRMULA CORRIGIDA: Só afeta o gasto total real se estiver Ganhou ou Perdeu (Pendentes não saem mais da banca)
       if(t.resultado==='Pendente'){
         tR+=c.retorno; tP++;
       } else if(t.resultado==='Ganhou') {
@@ -443,14 +489,13 @@ function updateGlobals(){
     });
 
     const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    // Nova Fórmula de banca: O dinheiro pendente NÃO é subtraído!
     let bancaRestante = baseDeposit + retornoBanca - gastoRealBanca;
     if(bancaRestante < 0) bancaRestante = 0;
 
     const isSacado = !!appData.withdrawals[bet];
     if(!isSacado) { tDep += bancaRestante; }
 
-    // Alimentando listas textuais
+    // Constrói os dados das listas laterais (mostra tudo)
     htmlDepositos += `<div class="breakdown-item ${isSacado ? 'muted' : ''}"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--grn)">${fmt(bancaRestante)}</span></div>`;
     htmlApostado += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--yel)">${fmt(apostadoBanca)}</span></div>`;
     htmlGasto += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val">${fmt(gastoRealBanca)}</span></div>`;
@@ -460,12 +505,23 @@ function updateGlobals(){
     else if(lucroBanca < 0) colorLucro = 'var(--red)';
     htmlLucro += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:${colorLucro}">${fmt(lucroBanca)}</span></div>`;
 
-    // Armazenando dados dos gráficos
-    labelsBancas.push(bet);
-    dataDepositos.push(isSacado ? 0 : bancaRestante);
-    dataApostado.push(apostadoBanca);
-    dataGasto.push(gastoRealBanca);
-    dataLucro.push(lucroBanca);
+    // Filtro rígido para os gráficos: Só adiciona se for MAIOR que zero (ou diferente de zero no caso de lucro/prejuízo)
+    if (!isSacado && bancaRestante > 0) {
+      chartLabelsDepositos.push(bet);
+      chartDataDepositos.push(bancaRestante);
+    }
+    if (apostadoBanca > 0) {
+      chartLabelsApostado.push(bet);
+      chartDataApostado.push(apostadoBanca);
+    }
+    if (gastoRealBanca > 0) {
+      chartLabelsGasto.push(bet);
+      chartDataGasto.push(gastoRealBanca);
+    }
+    if (lucroBanca !== 0) { 
+      chartLabelsLucro.push(bet);
+      chartDataLucro.push(lucroBanca);
+    }
 
     const sid = safeId(bet);
     const liveDisplay = document.getElementById('banca-realtime-'+sid);
@@ -477,7 +533,6 @@ function updateGlobals(){
   document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto;
   document.getElementById('list-breakdown-lucro').innerHTML = htmlLucro;
 
-  // Atualização dos cartões estáticos do topo (Inalterados)
   const lucroTotalEl = document.getElementById('total-lucro');
   if(lucroTotalEl) {
     lucroTotalEl.textContent=fmt(tL);
@@ -491,15 +546,14 @@ function updateGlobals(){
   document.getElementById('total-pendentes').textContent=tP;
   document.getElementById('total-depositos').textContent=fmt(tDep);
 
-  // Paleta de cores para os gráficos dinâmicos
-  const pizzaColors = ['#7c83fd', '#34d399', '#fcd34d', '#f87171', '#a78bfa', '#fb923c'];
-  const lucroBarColors = dataLucro.map(v => v >= 0 ? '#34d399' : '#f87171');
+  // Paleta de Cores Mais Viva e Premium
+  const premiumColors = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#f97316', '#8b5cf6'];
+  const profitColors = chartDataLucro.map(v => v > 0 ? '#10b981' : '#ef4444');
 
-  // Desenhar os gráficos se a respectiva aba estiver aberta na tela
-  if (activePanel === 'depositos') renderChartInstance('depositos', 'pie', labelsBancas, dataDepositos, pizzaColors);
-  if (activePanel === 'apostado') renderChartInstance('apostado', 'bar', labelsBancas, dataApostado, ['#fcd34d']);
-  if (activePanel === 'gasto') renderChartInstance('gasto', 'doughnut', labelsBancas, dataGasto, pizzaColors);
-  if (activePanel === 'lucro') renderChartInstance('lucro', 'bar', labelsBancas, dataLucro, lucroBarColors);
+  if (activePanel === 'depositos') renderApexChartInstance('depositos', 'donut', chartLabelsDepositos, chartDataDepositos, premiumColors);
+  if (activePanel === 'apostado') renderApexChartInstance('apostado', 'bar', chartLabelsApostado, chartDataApostado, premiumColors);
+  if (activePanel === 'gasto') renderApexChartInstance('gasto', 'donut', chartLabelsGasto, chartDataGasto, premiumColors);
+  if (activePanel === 'lucro') renderApexChartInstance('lucro', 'bar', chartLabelsLucro, chartDataLucro, profitColors);
 }
 
 function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
