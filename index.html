@@ -9,7 +9,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-/* SEUS ESTILOS ORIGINAIS MANTIDOS */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
 :root.light{--bg0:#f0f4ff;--bg1:#ffffff;--bg2:#e8eeff;--bg3:#d8e2ff;--acc:#5b63e8;--bdr:#c5ccf0;--txt:#1e2a4a;--txt2:#5a6a8a;--grn:#16a34a;--grn-bg:#dcfce7;--red:#dc2626;--red-bg:#fee2e2;--yel:#b45309;--yel-bg:#fef3c7}
@@ -30,8 +29,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:4px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:6px}
 .logout-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--txt2);cursor:pointer}
 .logout-btn:hover{border-color:var(--red);color:var(--red)}
-
-/* NOVOS ESTILOS - UI e Ferramentas */
 .avatar-icon { width: 20px; height: 20px; border-radius: 50%; background: var(--acc); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; }
 .search-wrapper { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
 .search-input { flex: 1; background: var(--bg1); border: 1px solid var(--bdr); border-radius: 8px; padding: 10px 16px; color: var(--txt); outline: none; }
@@ -39,23 +36,15 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .export-btn { background: var(--bg2); border: 1px solid var(--bdr); color: var(--txt); padding: 10px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
 .export-btn:hover { border-color: var(--acc); color: var(--acc); }
 .archived-banca { opacity: 0.6; filter: grayscale(0.8); }
-
-/* Progress Bar */
 .prog-container { height: 4px; background: var(--bg3); border-radius: 2px; display: flex; margin-top: 8px; overflow: hidden; width: 100%; }
 .prog-win { background: var(--grn); height: 100%; transition: width 0.3s; }
 .prog-loss { background: var(--red); height: 100%; transition: width 0.3s; }
 .roi-badge { font-size: 10px; margin-left: auto; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-
-/* Filtros por Banca */
 .banca-filters { display: flex; gap: 6px; padding: 8px 14px; background: var(--bg1); border-bottom: 0.5px solid var(--bdr); }
 .b-filter-btn { background: var(--bg2); border: none; color: var(--txt2); font-size: 11px; padding: 4px 10px; border-radius: 12px; cursor: pointer; }
 .b-filter-btn.active { background: var(--acc); color: white; }
-
-/* Undo Float */
 #undo-toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg1); border: 1px solid var(--acc); padding: 12px 20px; border-radius: 8px; display: none; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 1000; }
 .undo-btn { background: var(--acc); border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-
-/* Restante dos seus estilos originais */
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:0.5rem}
 .stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px;position:relative; transition: all 0.3s ease;}
 .stat-card.clickable{cursor:pointer;user-select:none;transition:background 0.2s}
@@ -68,20 +57,19 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .stat-val.white{color:var(--txt) !important}
 .stat-chevron{font-size:12px;color:var(--txt2);transition:transform 0.2s;position:absolute;top:12px;right:14px}
 .stat-chevron.open{transform:rotate(180deg);color:var(--acc)}
-
 .breakdown-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:16px;margin-bottom:1.2rem;animation:fadeIn 0.2s ease}
 .breakdown-panel.open{display:block}
 .breakdown-title{font-size:12px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;border-bottom:0.5px solid var(--bdr);padding-bottom:6px}
 .panel-content-layout{display:flex;gap:20px;flex-wrap:wrap;align-items:center; min-height:260px}
 .chart-container{flex:1;min-width:300px;max-width:400px;display:flex;align-items:center;justify-content:center}
+/* Ajuste para o gráfico de ondas ser mais largo */
+#panel-depositos .chart-container { min-width: 100%; max-width: 100%; height: 280px; }
 .breakdown-list{flex:2;min-width:240px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;height:fit-content}
 .breakdown-item{background:var(--bg2);border:0.5px solid var(--bdr);padding:6px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .breakdown-item .b-name{font-weight:500}
 .breakdown-item .b-val{font-weight:600}
 .breakdown-item.muted{opacity:0.5;text-decoration:line-through}
-
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-
 .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
 .bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:15px;overflow:hidden; transition: transform 0.2s;}
 .bet-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none;flex-wrap:wrap;gap:8px}
@@ -89,14 +77,11 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .bet-name{font-weight:600;font-size:15px;color:var(--txt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
 .bet-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-
 .deposit-wrapper{display:flex;align-items:center;gap:6px;background:var(--bg0);padding:4px 10px;border-radius:6px;border:0.5px solid var(--bdr)}
 .deposit-label{font-size:11px;color:var(--txt2);font-weight:500}
 .deposit-input{background:transparent;border:none;color:var(--grn);font-size:12px;font-weight:600;width:70px;outline:none;font-family:inherit}
-
 .sacado-btn{background:var(--bg3);border:0.5px solid var(--bdr);color:var(--txt2);padding:3px 6px;border-radius:4px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;font-weight:600}
 .sacado-btn.checked{background:var(--red-bg);color:var(--red);border-color:var(--red)}
-
 .add-ticket-btn{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
 .chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
 .chevron.open{transform:rotate(180deg)}
@@ -107,26 +92,21 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .tickets-table td:first-child{text-align:left}
 .cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
 .cell-input:focus{border-color:var(--acc)}
-
 .fb-select{background:var(--bg0); border:0.5px solid var(--bdr); color:var(--txt2); font-size:11px; padding:3px; border-radius:4px; width:100%; outline:none; cursor:pointer; margin-top:4px;}
 .fb-select.active-fb{color:var(--yel); border-color:var(--yel); background:rgba(252,211,77,0.05)}
 .fb-partial-input{background:var(--bg0); border:0.5px solid var(--yel); border-radius:4px; color:var(--yel); font-size:11px; padding:3px 4px; width:100%; text-align:center; margin-top:4px; outline:none;}
-
 .result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
 .result-select.pendente{background:var(--yel-bg) !important;color:var(--yel) !important;border-color:#fcd34d55}
 .result-select.ganhou{background:var(--grn-bg) !important;color:var(--grn) !important;border-color:#34d39955}
 .result-select.perdeu{background:var(--red-bg) !important;color:var(--red) !important;border-color:#f8717155}
-
 .del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px}
 .del-btn:hover{color:var(--red);background:var(--red-bg)}
 .arch-btn{background:transparent;border:none;color:var(--txt2);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px}
 .arch-btn:hover{color:var(--yel);background:var(--yel-bg)}
-
 .computed{font-size:13px;font-weight:600}
 .computed.win{color:var(--grn) !important}
 .computed.loss{color:var(--red) !important}
 .computed.pending{color:var(--txt2) !important}
-
 .no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
 .add-bet-section{background:var(--bg1);border:0.5px dashed var(--acc);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .add-bet-trigger{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;color:var(--acc);font-size:14px;font-weight:500}
@@ -136,7 +116,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .add-bet-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:7px;padding:9px 12px;color:var(--txt);font-size:14px;flex:1;min-width:180px;outline:none}
 .confirm-add-btn{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer}
 .cancel-add-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:9px 14px;font-size:14px;color:var(--txt2);cursor:pointer}
-
 .ticket-main-wrapper {display:flex; flex-direction:column; gap:4px; width:100%}
 .more-details-btn {background:var(--bg3); border:0.5px solid var(--bdr); color:var(--txt); font-size:12px; cursor:pointer; padding:6px 10px; border-radius:5px; display:inline-flex; align-items:center; gap:4px; font-weight:500}
 .more-details-btn:hover {border-color:var(--acc)}
@@ -159,7 +138,6 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .timeline-editor {display:none; margin-top:10px; border-top:0.5px dashed var(--bdr); padding-top:10px;}
 .timeline-editor.open {display:block}
 .timeline-textarea {width:100%; min-height:90px; background:var(--bg0); border:0.5px solid var(--bdr); border-radius:5px; color:var(--txt); font-size:12px; padding:6px 8px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
-
 @media (max-width: 768px) {
   .tickets-table thead {display:none}
   .tickets-table, .tickets-table tbody, .tickets-table tr, .tickets-table td {display:block; width:100%}
@@ -206,8 +184,9 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-lucro"></i>
     </div>
     
+    <!-- Este cartão agora abre o Gráfico de Evolução (Ondas) -->
     <div class="stat-card clickable" onclick="toggleBreakdown('depositos')">
-      <div class="stat-label" style="color: var(--grn)">Saldo Disponível</div>
+      <div class="stat-label" style="color: var(--grn)">Saldo Disponível (Banca)</div>
       <div class="stat-val green" id="total-depositos">R$ 0,00</div>
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-depositos"></i>
     </div>
@@ -234,7 +213,15 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
     <div class="stat-card"><div class="stat-label">Possível Retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
   </div>
 
-  <div class="breakdown-panel" id="panel-depositos"><div class="breakdown-title">Origem do Saldo por Banca</div><div class="panel-content-layout"><div class="chart-container" id="chart-depositos"></div><div class="breakdown-list" id="list-breakdown-depositos"></div></div></div>
+  <!-- Painel de Depósitos agora tem o Gráfico de Ondas e as Bancas filtradas sem zeros -->
+  <div class="breakdown-panel" id="panel-depositos">
+      <div class="breakdown-title">Evolução do Saldo & Bancas Ativas (Sem saldo zerado)</div>
+      <div class="panel-content-layout" style="flex-direction: column;">
+          <div class="chart-container" id="chart-depositos"></div>
+          <div class="breakdown-list" id="list-breakdown-depositos" style="width: 100%;"></div>
+      </div>
+  </div>
+  
   <div class="breakdown-panel" id="panel-apostado"><div class="breakdown-title">Volume Total Apostado por Banca</div><div class="panel-content-layout"><div class="chart-container" id="chart-apostado"></div><div class="breakdown-list" id="list-breakdown-apostado"></div></div></div>
   <div class="breakdown-panel" id="panel-gasto"><div class="breakdown-title">Distribuição de Gastos por Banca</div><div class="panel-content-layout"><div class="chart-container" id="chart-gasto"></div><div class="breakdown-list" id="list-breakdown-gasto"></div></div></div>
   <div class="breakdown-panel" id="panel-lucro"><div class="breakdown-title">Rendimento Líquido por Banca</div><div class="panel-content-layout"><div class="chart-container" id="chart-lucro"></div><div class="breakdown-list" id="list-breakdown-lucro"></div></div></div>
@@ -284,8 +271,8 @@ let openEditors={};
 let activePanel=null; 
 let saveTimer=null;
 let addFormOpen=false;
-let filterStates = {}; // Estado do filtro de cada banca
-let deletedHistory = []; // Para função desfazer
+let filterStates = {};
+let deletedHistory = [];
 let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{},withdrawals:{},savedBalances:{},archived:[]};
 let charts = { depositos: null, apostado: null, gasto: null, lucro: null };
 
@@ -321,8 +308,6 @@ function showSaving(msg,cls){
   setTimeout(()=>{el.textContent='';},2000);
 }
 
-// ================= NOVAS FUNÇÕES GLOBAIS ================= //
-
 window.filterGlobal = function(term) {
     const t = term.toLowerCase();
     document.querySelectorAll('.bet-section').forEach(el => {
@@ -335,9 +320,6 @@ window.exportarPDF = function() {
     const oldText = btn.innerHTML;
     btn.innerHTML = 'Gerando PDF...';
     btn.disabled = true;
-    const { jsPDF } = window.jspdf;
-    
-    // Esconde itens que não devem ir pro PDF (como a barra de busca e formulário)
     document.querySelector('.search-wrapper').style.display = 'none';
     document.querySelector('.add-bet-section').style.display = 'none';
 
@@ -350,7 +332,6 @@ window.exportarPDF = function() {
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(`relatorio_${currentUser}_${new Date().toLocaleDateString()}.pdf`);
         
-        // Restaura a UI
         document.querySelector('.search-wrapper').style.display = 'flex';
         document.querySelector('.add-bet-section').style.display = 'block';
         btn.innerHTML = oldText;
@@ -361,10 +342,10 @@ window.exportarPDF = function() {
 window.toggleArchive = function(bet, ev) {
     ev.stopPropagation();
     if(appData.archived.includes(bet)) {
-        appData.archived = appData.archived.filter(b => b !== bet); // Desarquiva
+        appData.archived = appData.archived.filter(b => b !== bet);
     } else {
-        appData.archived.push(bet); // Arquiva
-        openSections[bet] = false; // Fecha a seção ao arquivar
+        appData.archived.push(bet);
+        openSections[bet] = false;
     }
     renderAll();
     scheduleSave();
@@ -380,14 +361,12 @@ window.desfazerExclusao = function() {
     const item = deletedHistory.pop();
     if(item) {
         if(!appData.tickets[item.bet]) appData.tickets[item.bet] = [];
-        appData.tickets[item.bet].splice(item.index, 0, item.ticket); // Insere de volta na mesma posição
+        appData.tickets[item.bet].splice(item.index, 0, item.ticket);
         renderAll();
         scheduleSave();
     }
     if(deletedHistory.length === 0) document.getElementById('undo-toast').style.display = 'none';
 };
-
-// ================= LÓGICAS MANTIDAS ================= //
 
 window.toggleBreakdown = function(type) {
   const pDep = document.getElementById('panel-depositos'); const pApo = document.getElementById('panel-apostado');
@@ -417,7 +396,7 @@ window.entrar=async function(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('username-display').textContent=v;
-  document.getElementById('user-avatar').textContent=v.charAt(0).toUpperCase(); // Avatar Inicial
+  document.getElementById('user-avatar').textContent=v.charAt(0).toUpperCase();
   renderAll();
 };
 
@@ -454,21 +433,41 @@ function calcTicket(t){
   return { retorno, lucro, lucroClass, lucroTxt, retornoTxt: retorno > 0 ? fmt(retorno) : '—', gastoLiquido: gastoReal, gastoBruto: gasto > 0 ? gasto : 0, oddFinal: odd };
 }
 
+// Atualizado para suportar o gráfico Moderno de Área
 function renderApexChartInstance(id, chartType, labels, data, colors) {
-    // ... [MANTIDO SEU RENDERIZADOR EXATO PARA NÃO QUEBRAR O APEXCHARTS]
     const container = document.getElementById('chart-' + id);
     if (!container) return;
-    if (!data || data.length === 0) { container.innerHTML = '<div style="color:var(--txt2);font-size:13px;text-align:center;width:100%;padding:40px 0;">Sem dados.</div>'; if(charts[id]) { charts[id].destroy(); charts[id] = null; } return; }
+    if (!data || data.length === 0) { container.innerHTML = '<div style="color:var(--txt2);font-size:13px;text-align:center;width:100%;padding:40px 0;">Sem dados suficientes.</div>'; if(charts[id]) { charts[id].destroy(); charts[id] = null; } return; }
+    
     const isLight = document.documentElement.classList.contains("light");
     const textThemeColor = isLight ? '#1e2a4a' : '#cbd5e1';
+    
     let options = {
-        series: chartType === 'donut' ? data : [{ name: 'Valor', data: data }],
-        chart: { type: chartType, height: 250, fontFamily: 'system-ui', toolbar: { show: false }, background: 'transparent' },
-        colors: colors, theme: { mode: isLight ? 'light' : 'dark' }, stroke: { width: 0 },
-        dataLabels: { enabled: false }, legend: { show: chartType === 'donut', labels: { colors: textThemeColor } },
+        series: chartType === 'donut' ? data : [{ name: id === 'depositos' ? 'Banca' : 'Valor', data: data }],
+        chart: { type: chartType, height: chartType === 'area' ? 280 : 250, fontFamily: 'system-ui', toolbar: { show: false }, background: 'transparent' },
+        colors: colors, theme: { mode: isLight ? 'light' : 'dark' }, 
+        
+        // Configuração Premium para Area Chart
+        stroke: { curve: chartType === 'area' ? 'smooth' : 'flat', width: chartType === 'area' ? 3 : 0 },
+        fill: chartType === 'area' ? {
+            type: 'gradient',
+            gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.05, stops: [0, 90, 100] }
+        } : undefined,
+        markers: { size: chartType === 'area' ? 4 : 0, strokeWidth: 2, hover: { size: 6 } },
+
+        dataLabels: { enabled: false }, 
+        legend: { show: chartType === 'donut', labels: { colors: textThemeColor } },
         tooltip: { theme: isLight ? 'light' : 'dark', y: { formatter: (val) => fmt(val) } }
     };
-    if (chartType === 'bar') { options.labels = labels; options.xaxis = { labels: { style: { colors: textThemeColor } } }; options.legend.show = false; } else { options.labels = labels; }
+    
+    if (chartType === 'bar' || chartType === 'area') { 
+        options.labels = labels; 
+        options.xaxis = { labels: { style: { colors: textThemeColor } }, tickAmount: 6 }; 
+        options.legend.show = false; 
+    } else { 
+        options.labels = labels; 
+    }
+    
     if (container.innerHTML.includes('Sem dados')) container.innerHTML = '';
     if (charts[id]) { charts[id].updateOptions(options); } else { charts[id] = new ApexCharts(container, options); charts[id].render(); }
 }
@@ -480,10 +479,12 @@ function updateGlobals(){
   let allFinishedTickets = [];
   
   let htmlDepositos = '', htmlApostado = '', htmlGasto = '', htmlLucro = '';
-  let chartLabelsDepositos = [], chartDataDepositos = [];
   let chartLabelsApostado = [], chartDataApostado = [];
   let chartLabelsGasto = [], chartDataGasto = [];
   let chartLabelsLucro = [], chartDataLucro = [];
+
+  // Variável para somar todos os depósitos iniciais de bancas ativas
+  let totalDepositosIniciaisAtivos = 0;
 
   appData.bets.forEach(bet=>{
     let retornoBanca = 0, gastoRealBanca = 0, apostadoBanca = 0, lucroBanca = 0;
@@ -513,20 +514,31 @@ function updateGlobals(){
 
     const isArchived = appData.archived.includes(bet);
     const baseDeposit = parseFloat(appData.deposits[bet] || 0);
+    
+    if(!isArchived) totalDepositosIniciaisAtivos += baseDeposit;
+
     let bancaRestante = baseDeposit + retornoBanca - gastoRealBanca;
-    if(bancaRestante < 0) bancaRestante = 0;
+    // Removida a trava de bancaRestante < 0 para permitir prejuízo real nas ondas
 
     const isSacado = !!appData.withdrawals[bet];
-    if(!isSacado && !isArchived) { tDep += bancaRestante; } // Só soma bancas ativas
+    if(!isSacado && !isArchived) { tDep += bancaRestante; }
 
-    htmlDepositos += `<div class="breakdown-item ${isSacado ? 'muted' : ''}"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--grn)">${fmt(bancaRestante)}</span></div>`;
-    htmlApostado += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--yel)">${fmt(apostadoBanca)}</span></div>`;
-    htmlGasto += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val">${fmt(gastoRealBanca)}</span></div>`;
-    let colorLucro = lucroBanca > 0 ? 'var(--grn)' : (lucroBanca < 0 ? 'var(--red)' : 'var(--txt)');
-    htmlLucro += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:${colorLucro}">${fmt(lucroBanca)}</span></div>`;
+    // FILTRO DE ZEROS: Só exibe bancas cujo valor seja diferente de 0
+    if(bancaRestante !== 0) {
+        htmlDepositos += `<div class="breakdown-item ${isSacado ? 'muted' : ''}"><span class="b-name">${bet}</span><span class="b-val" style="color:${bancaRestante > 0 ? 'var(--grn)' : 'var(--red)'}">${fmt(bancaRestante)}</span></div>`;
+    }
+    if(apostadoBanca !== 0) {
+        htmlApostado += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--yel)">${fmt(apostadoBanca)}</span></div>`;
+    }
+    if(gastoRealBanca !== 0) {
+        htmlGasto += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val">${fmt(gastoRealBanca)}</span></div>`;
+    }
+    if(lucroBanca !== 0) {
+        let colorLucro = lucroBanca > 0 ? 'var(--grn)' : 'var(--red)';
+        htmlLucro += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:${colorLucro}">${fmt(lucroBanca)}</span></div>`;
+    }
 
     if (!isArchived) {
-        if (!isSacado && bancaRestante > 0) { chartLabelsDepositos.push(bet); chartDataDepositos.push(bancaRestante); }
         if (apostadoBanca > 0) { chartLabelsApostado.push(bet); chartDataApostado.push(apostadoBanca); }
         if (gastoRealBanca > 0) { chartLabelsGasto.push(bet); chartDataGasto.push(gastoRealBanca); }
         if (lucroBanca !== 0) { chartLabelsLucro.push(bet); chartDataLucro.push(lucroBanca); }
@@ -536,22 +548,38 @@ function updateGlobals(){
     if(liveDisplay) { liveDisplay.textContent = fmt(bancaRestante); }
   });
   
-  // Cálculo de Streak e Métricas Globais
+  // Cálculo de Streak e Métricas
   allFinishedTickets.reverse().forEach(t => {
       if(lastResult === null) lastResult = t.resultado;
       if(t.resultado === lastResult) currentStreak++;
       else return false;
   });
   
+  // Criação dos dados para o Gráfico de Área (Evolução da Banca ao longo do tempo)
+  let timelineLabels = ['Início'];
+  let timelineData = [totalDepositosIniciaisAtivos];
+  let runningBankroll = totalDepositosIniciaisAtivos;
+
+  // Ordenamos os bilhetes finalizados do mais antigo (menor ID) pro mais novo
+  let sortedTickets = [...allFinishedTickets].sort((a,b) => a.id - b.id);
+  sortedTickets.forEach((t, index) => {
+      const c = calcTicket(t);
+      runningBankroll += c.lucro;
+      let dateObj = new Date(t.id);
+      // Mostra a data ou dia/mes se disponível, senão o numero da aposta
+      timelineLabels.push(dateObj.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'}) + ' (#' + (index+1) + ')');
+      timelineData.push(runningBankroll);
+  });
+
   let roiGlobal = totalInvestidoGlobal > 0 ? (tL / totalInvestidoGlobal) * 100 : 0;
   let winRateGlobal = totalFinalizadasGlobal > 0 ? (winsGlobal / totalFinalizadasGlobal) * 100 : 0;
   let avgOddGlobal = totalFinalizadasGlobal > 0 ? (totalOddsGlobal / totalFinalizadasGlobal) : 0;
 
-  // Atualiza UI
-  document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos;
-  document.getElementById('list-breakdown-apostado').innerHTML = htmlApostado;
-  document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto;
-  document.getElementById('list-breakdown-lucro').innerHTML = htmlLucro;
+  // Atualiza as listas (já filtradas sem os 0s)
+  document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos || '<div class="no-tickets">Nenhuma banca com saldo para exibir.</div>';
+  document.getElementById('list-breakdown-apostado').innerHTML = htmlApostado || '<div class="no-tickets">Nenhum valor apostado ainda.</div>';
+  document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto || '<div class="no-tickets">Nenhum gasto registrado.</div>';
+  document.getElementById('list-breakdown-lucro').innerHTML = htmlLucro || '<div class="no-tickets">Nenhum lucro/prejuízo registrado.</div>';
 
   const cardLucro = document.getElementById('card-lucro');
   const lucroTotalEl = document.getElementById('total-lucro');
@@ -574,7 +602,6 @@ function updateGlobals(){
     }
   }
   
-  // Update Progresso Bar
   let percWin = totalFinalizadasGlobal > 0 ? (winsGlobal / totalFinalizadasGlobal) * 100 : 0;
   let percLoss = totalFinalizadasGlobal > 0 ? ((totalFinalizadasGlobal - winsGlobal) / totalFinalizadasGlobal) * 100 : 0;
   document.getElementById('p-win').style.width = `${percWin}%`;
@@ -592,7 +619,8 @@ function updateGlobals(){
   const premiumColors = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#f97316', '#8b5cf6'];
   const profitColors = chartDataLucro.map(v => v > 0 ? '#10b981' : '#ef4444');
 
-  if (activePanel === 'depositos') renderApexChartInstance('depositos', 'donut', chartLabelsDepositos, chartDataDepositos, premiumColors);
+  // Renderiza Gráfico de Ondas (Area) no painel de depósitos
+  if (activePanel === 'depositos') renderApexChartInstance('depositos', 'area', timelineLabels, timelineData, ['#10b981']);
   if (activePanel === 'apostado') renderApexChartInstance('apostado', 'bar', chartLabelsApostado, chartDataApostado, premiumColors);
   if (activePanel === 'gasto') renderApexChartInstance('gasto', 'donut', chartLabelsGasto, chartDataGasto, premiumColors);
   if (activePanel === 'lucro') renderApexChartInstance('lucro', 'bar', chartLabelsLucro, chartDataLucro, profitColors);
@@ -659,10 +687,7 @@ window.liveUpdateMath=function(bet, idx, field, val, rowId){
 function renderBet(bet){
   const allTickets = appData.tickets[bet] || [];
   const currentFilter = filterStates[bet] || 'Todos';
-  
-  // Aplica o filtro rápido
   const tickets = allTickets.filter(t => currentFilter === 'Todos' || t.resultado === currentFilter);
-  
   const isOpen = openSections[bet] !== false;
   const isArchived = appData.archived.includes(bet);
   const sid = safeId(bet);
@@ -673,7 +698,6 @@ function renderBet(bet){
   const depVal = (appData.deposits && appData.deposits[bet]) ? appData.deposits[bet] : '';
   const isSacado = appData.withdrawals ? !!appData.withdrawals[bet] : false;
   
-  // Define o ícone com base no nome (pode ser expandido)
   let iconClass = "ti-device-gamepad-2";
   if(bet.toLowerCase().includes('betano')) iconClass = "ti-brand-badoo";
   if(bet.toLowerCase().includes('365')) iconClass = "ti-brand-chrome";
@@ -713,7 +737,6 @@ function renderBet(bet){
         :`<table class="tickets-table">
           <thead><tr><th>Tópicos e Palpites por Time</th><th>Odd</th><th>Valor da Aposta</th><th>Tipo de Aposta</th><th>Retorno</th><th>Lucro</th><th>Resultado</th><th></th></tr></thead>
           <tbody>${tickets.map((t)=>{
-            // Encontra o index real no array original para salvar correto
             const originalIndex = allTickets.findIndex(ot => ot.id === t.id);
             if(originalIndex === -1) return '';
             
@@ -778,7 +801,6 @@ function renderAll(){
   const container=document.getElementById('bets-container');
   if(!container) return; container.innerHTML='';
   
-  // Renderiza ativas primeiro, arquivadas depois
   const ativas = appData.bets.filter(b => !appData.archived.includes(b));
   const arquivadas = appData.bets.filter(b => appData.archived.includes(b));
   
@@ -814,7 +836,7 @@ window.deleteTicket=function(bet,idx){
   deletedHistory.push({bet: bet, index: idx, ticket: removed});
   
   document.getElementById('undo-toast').style.display = 'flex';
-  setTimeout(() => { document.getElementById('undo-toast').style.display = 'none'; }, 6000); // Esconde após 6s
+  setTimeout(() => { document.getElementById('undo-toast').style.display = 'none'; }, 6000); 
   
   renderAll(); scheduleSave();
 };
