@@ -203,6 +203,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
       <div class="stat-label">💸 Gasto Real</div>
       <div class="stat-val white" id="total-gasto">R$ 0,00</div>
       <div class="stat-sub"><span class="stat-badge neu" id="badge-oddmedia">Odd média: —</span></div>
+      <span class="dias-link" onclick="event.stopPropagation();toggleHistorico()"><i class="ti ti-history"></i> Dias anteriores</span>
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-gasto"></i>
     </div>
     <div class="stat-card">
@@ -215,6 +216,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
       <div class="stat-val white" id="total-lucro">R$ 0,00</div>
       <div class="stat-sub"><span class="stat-badge neu" id="badge-roi">ROI: 0%</span></div>
       <div class="stat-progress"><div class="stat-progress-bar" id="lucro-progress" style="width:0%;background:var(--grn)"></div></div>
+      <button class="hist-btn" onclick="event.stopPropagation();salvarDia()" title="Salvar resultado do dia atual"><i class="ti ti-device-floppy"></i> Salvar Dia</button>
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-lucro"></i>
     </div>
     <div class="stat-card clickable" onclick="toggleBreakdown('timeline')" style="border-color:var(--acc);background:rgba(124,131,253,.03)">
@@ -270,6 +272,16 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
     <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Cada ponto é uma aposta finalizada, ordenada cronologicamente.</div>
     <div id="chart-timeline" style="min-height:280px"></div>
     <div class="breakdown-list" id="list-ranking" style="margin-top:16px"></div>
+  </div>
+
+
+  <!-- HISTÓRICO DIÁRIO -->
+  <div class="hist-panel" id="panel-historico">
+    <div class="hist-title">
+      <span><i class="ti ti-calendar-stats"></i> Histórico de Dias</span>
+      <button class="icon-btn" onclick="limparHistorico()" style="font-size:11px;padding:3px 8px"><i class="ti ti-trash"></i> Limpar</button>
+    </div>
+    <div class="hist-grid" id="hist-grid"></div>
   </div>
 
   <div class="saving-indicator" id="saving-indicator"></div>
@@ -784,7 +796,7 @@ window.liveUpdateMath=function(bet,idx,field,val,uid){
 // ── RENDER BET ────────────────────────────────────────────
 function renderBet(bet){
   const tickets=appData.tickets[bet]||[];
-  const isOpen=openSections[bet]!==false;
+  const isOpen=openSections[bet]===true;
   const sid=safeId(bet);
   const section=document.createElement('div');
   section.className='bet-section'; section.id='section-'+sid;
@@ -881,7 +893,7 @@ function renderAll(){
 }
 
 window.toggleSection=function(bet){
-  openSections[bet]=openSections[bet]===false?true:false;
+  openSections[bet]=openSections[bet]!==true;
   const section=document.getElementById('section-'+safeId(bet));
   if(section) section.replaceWith(renderBet(bet));
   updateGlobals();
@@ -903,6 +915,129 @@ window.toggleAddForm=function(){
   addFormOpen=!addFormOpen;
   document.getElementById('add-bet-form').classList.toggle('open',addFormOpen);
 };
+
+
+// ─── HISTÓRICO DIÁRIO ───
+function getHistKey(){ return 'apostas_hist_'+userDocId(); }
+
+function loadHistorico(){
+  try{ return JSON.parse(localStorage.getItem(getHistKey())||'[]'); }catch(e){ return []; }
+}
+
+function saveHistorico(hist){
+  try{ localStorage.setItem(getHistKey(), JSON.stringify(hist)); }catch(e){}
+  // Também salva no Firebase
+  if(db){ try{ setDoc(doc(db,'historico',userDocId()),{data:JSON.stringify(hist),updatedAt:Date.now()}); }catch(e){} }
+}
+
+async function loadHistoricoRemoto(){
+  if(!db) return;
+  try{
+    const { getDoc: gd, doc: dc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await gd(dc(db,'historico',userDocId()));
+    if(snap&&snap.exists()){
+      const remote = JSON.parse(snap.data().data);
+      const local = loadHistorico();
+      // Merge por data
+      const merged = {};
+      [...local,...remote].forEach(d=>{ if(!merged[d.data]||remote.find(r=>r.data===d.data)) merged[d.data]=d; });
+      const arr = Object.values(merged).sort((a,b)=>b.data.localeCompare(a.data));
+      saveHistorico(arr);
+      return arr;
+    }
+  }catch(e){}
+  return loadHistorico();
+}
+
+window.salvarDia = function(){
+  // Pega os valores atuais
+  const lucroEl = document.getElementById('total-lucro');
+  const gastoEl = document.getElementById('total-gasto');
+  const acertoEl = document.getElementById('total-acerto');
+  const ganhouEl = document.getElementById('total-ganhou');
+  const perdeuEl = document.getElementById('total-perdeu');
+  const retornoEl = document.getElementById('total-retorno');
+  
+  const hoje = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const horaAtual = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  
+  // Calcula valores direto do appData para garantir precisão
+  let lucroTotal=0, gastoTotal=0, ganhou=0, perdeu=0, pendentes=0, retornoTotal=0;
+  let allOdds=[];
+  appData.bets.forEach(bet=>{
+    (appData.tickets[bet]||[]).forEach(t=>{
+      const c=calcTicket(t);
+      if(t.resultado==='Ganhou'){ lucroTotal+=c.lucro; gastoTotal+=c.gastoLiquido; ganhou++; if(c.odd>0)allOdds.push(c.odd); }
+      else if(t.resultado==='Perdeu'){ lucroTotal+=c.lucro; gastoTotal+=c.gastoLiquido; perdeu++; if(c.odd>0)allOdds.push(c.odd); }
+      else{ pendentes++; retornoTotal+=c.retorno; }
+    });
+  });
+  const taxaAcerto = (ganhou+perdeu)>0?(ganhou/(ganhou+perdeu)*100):0;
+  const oddMedia = allOdds.length?(allOdds.reduce((a,b)=>a+b,0)/allOdds.length):0;
+  
+  const entrada = {
+    data: hoje,
+    hora: horaAtual,
+    lucro: parseFloat(lucroTotal.toFixed(2)),
+    gasto: parseFloat(gastoTotal.toFixed(2)),
+    taxaAcerto: parseFloat(taxaAcerto.toFixed(1)),
+    ganhou,
+    perdeu,
+    pendentes,
+    retorno: parseFloat(retornoTotal.toFixed(2)),
+    oddMedia: parseFloat(oddMedia.toFixed(2))
+  };
+  
+  const hist = loadHistorico();
+  // Substitui se já existe entrada do dia
+  const idx = hist.findIndex(h=>h.data===hoje);
+  if(idx>=0){ hist[idx]=entrada; } else { hist.unshift(entrada); }
+  saveHistorico(hist);
+  renderHistorico();
+  
+  // Feedback
+  showSaving('✓ Dia salvo: '+hoje,'ok');
+  // Abre o painel
+  document.getElementById('panel-historico').classList.add('open');
+};
+
+window.toggleHistorico = function(){
+  const panel = document.getElementById('panel-historico');
+  const isOpen = panel.classList.toggle('open');
+  if(isOpen) renderHistorico();
+};
+
+window.limparHistorico = function(){
+  if(!confirm('Tem certeza que quer apagar todo o histórico?')) return;
+  saveHistorico([]);
+  renderHistorico();
+};
+
+function renderHistorico(){
+  const hist = loadHistorico();
+  const grid = document.getElementById('hist-grid');
+  if(!grid) return;
+  if(!hist.length){
+    grid.innerHTML='<div class="hist-empty">Nenhum dia salvo ainda. Clique em "Salvar Dia" no card de Lucro/Prejuízo ao final do dia.</div>';
+    return;
+  }
+  grid.innerHTML = hist.map(d=>{
+    const lucroColor = d.lucro>0?'var(--grn)':d.lucro<0?'var(--red)':'var(--txt)';
+    const emoji = d.lucro>0?'📈':d.lucro<0?'📉':'➡️';
+    const roi = d.gasto>0?((d.lucro/d.gasto)*100).toFixed(1):0;
+    return `<div class="hist-card">
+      <div class="hist-date">${emoji} ${d.data} <span style="color:var(--txt2);font-weight:400">${d.hora||''}</span></div>
+      <div class="hist-row"><span class="hist-label">Lucro/Prejuízo</span><span class="hist-val" style="color:${lucroColor}">${d.lucro>=0?'+':''}R$ ${Math.abs(d.lucro).toFixed(2).replace('.',',')}</span></div>
+      <div class="hist-row"><span class="hist-label">Gasto Real</span><span class="hist-val">R$ ${(d.gasto||0).toFixed(2).replace('.',',')}</span></div>
+      <div class="hist-row"><span class="hist-label">ROI do dia</span><span class="hist-val" style="color:${roi>0?'var(--grn)':roi<0?'var(--red)':'var(--txt)'}">${roi>0?'+':''}${roi}%</span></div>
+      <div class="hist-row"><span class="hist-label">Taxa de acerto</span><span class="hist-val" style="color:var(--acc)">${d.taxaAcerto||0}%</span></div>
+      <div class="hist-row"><span class="hist-label">Odd média</span><span class="hist-val" style="color:var(--acc)">${d.oddMedia||'—'}</span></div>
+      <div class="hist-row"><span class="hist-label" style="color:var(--grn)">✓ Ganhou</span><span class="hist-val" style="color:var(--grn)">${d.ganhou}</span></div>
+      <div class="hist-row"><span class="hist-label" style="color:var(--red)">✗ Perdeu</span><span class="hist-val" style="color:var(--red)">${d.perdeu}</span></div>
+      ${d.pendentes>0?`<div class="hist-row"><span class="hist-label" style="color:var(--yel)">⏳ Pendentes</span><span class="hist-val" style="color:var(--yel)">${d.pendentes}</span></div>`:''}
+    </div>`;
+  }).join('');
+}
 
 window.confirmarNovaAposta=function(){
   const input=document.getElementById('new-bet-input');
