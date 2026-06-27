@@ -76,8 +76,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .b-name{font-weight:500}.b-val{font-weight:700}
 
 /* TIMELINE PANEL */
-#panel-timeline{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:1rem;animation:fadeIn .2s ease}
-#panel-timeline.open{display:block}
+/* panel-timeline uses .breakdown-panel class */
 #chart-timeline{width:100%;min-height:280px}
 
 /* STATS ROW */
@@ -299,7 +298,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   </div>
 
   <!-- TIMELINE PANEL -->
-  <div id="panel-timeline">
+  <div class="breakdown-panel" id="panel-timeline">
     <div class="breakdown-title"><i class="ti ti-chart-line"></i> Evolução do Lucro ao Longo do Tempo</div>
     <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Cada ponto representa uma aposta finalizada, ordenada pelo momento em que foi registrada.</div>
     <div id="chart-timeline"></div>
