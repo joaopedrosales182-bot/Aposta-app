@@ -19,7 +19,7 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .login-input:focus{border-color:var(--acc)}
 .login-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
 .login-error{color:var(--red);font-size:13px;text-align:center;min-height:18px}
-#app{display:none;padding:1rem;max-width:900px;margin:0 auto}
+#app{display:none;padding:1rem;max-width:1024px;margin:0 auto}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px;padding-top:.5rem}
 .topbar h1{color:var(--acc);font-size:18px;font-weight:600}
 .user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:4px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:6px}
@@ -134,9 +134,10 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   .tickets-table td:not(:first-child):not(:last-child) {display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:2px 4px; border:none; background:transparent !important;}
   .tickets-table td:nth-child(2)::before {content:"Odd"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
   .tickets-table td:nth-child(3)::before {content:"Gasto"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
-  .tickets-table td:nth-child(4)::before {content:"Retorno"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
-  .tickets-table td:nth-child(5)::before {content:"Lucro/Prej."; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
-  .tickets-table td:nth-child(6)::before {content:"Resultado"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
+  .tickets-table td:nth-child(4)::before {content:"Tipo de Aposta"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
+  .tickets-table td:nth-child(5)::before {content:"Retorno"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
+  .tickets-table td:nth-child(6)::before {content:"Lucro/Prej."; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
+  .tickets-table td:nth-child(7)::before {content:"Resultado"; font-size:10px; color:var(--txt2); text-transform:uppercase; margin-bottom:2px;}
   .tickets-table td:last-child {position:absolute; top:6px; right:6px; width:auto; padding:0;}
 }
 </style>
@@ -168,6 +169,11 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
       <div class="stat-val green" id="total-depositos">R$ 0,00</div>
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-depositos"></i>
     </div>
+    <div class="stat-card clickable" onclick="toggleBreakdown('apostado')" style="border-color: var(--yel); background: rgba(252, 211, 77, 0.02);">
+      <div class="stat-label" style="color: var(--yel)">Total Apostado (Bruto)</div>
+      <div class="stat-val yellow" id="total-apostado">R$ 0,00</div>
+      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-apostado"></i>
+    </div>
     <div class="stat-card clickable" onclick="toggleBreakdown('gasto')">
       <div class="stat-label">Total Gasto (Real)</div>
       <div class="stat-val white" id="total-gasto">R$ 0,00</div>
@@ -181,6 +187,11 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   <div class="breakdown-panel" id="panel-depositos">
     <div class="breakdown-title">Origem do Saldo por Banca</div>
     <div class="breakdown-list" id="list-breakdown-depositos"></div>
+  </div>
+
+  <div class="breakdown-panel" id="panel-apostado">
+    <div class="breakdown-title">Volume Total Apostado por Banca</div>
+    <div class="breakdown-list" id="list-breakdown-apostado"></div>
   </div>
 
   <div class="breakdown-panel" id="panel-gasto">
@@ -269,20 +280,28 @@ function showSaving(msg,cls){
 
 window.toggleBreakdown = function(type) {
   const pDep = document.getElementById('panel-depositos');
+  const pApo = document.getElementById('panel-apostado');
   const pGas = document.getElementById('panel-gasto');
+  
   const cDep = document.getElementById('chev-panel-depositos');
+  const cApo = document.getElementById('chev-panel-apostado');
   const cGas = document.getElementById('chev-panel-gasto');
 
   if(activePanel === type) {
     pDep.classList.remove('open');
+    pApo.classList.remove('open');
     pGas.classList.remove('open');
     cDep.classList.remove('open');
+    cApo.classList.remove('open');
     cGas.classList.remove('open');
     activePanel = null;
   } else {
-    pDep.classList.toggle('open', type === 'depositos');
-    pGas.classList.toggle('open', type === 'gasto');
+    pDep.toggleAttribute('open', type === 'depositos'); pDep.classList.toggle('open', type === 'depositos');
+    pApo.toggleAttribute('open', type === 'apostado'); pApo.classList.toggle('open', type === 'apostado');
+    pGas.toggleAttribute('open', type === 'gasto'); pGas.classList.toggle('open', type === 'gasto');
+    
     cDep.classList.toggle('open', type === 'depositos');
+    cApo.classList.toggle('open', type === 'apostado');
     cGas.classList.toggle('open', type === 'gasto');
     activePanel = type;
   }
@@ -331,22 +350,26 @@ function calcTicket(t){
   } else if(t.resultado==='Perdeu'){
     lucro = -gastoReal; lucroClass = 'loss'; lucroTxt = fmt(lucro);
   }
-  return { retorno, lucro, lucroClass, lucroTxt, retornoTxt: retorno > 0 ? fmt(retorno) : '—', gastoLiquido: gastoReal };
+  return { retorno, lucro, lucroClass, lucroTxt, retornoTxt: retorno > 0 ? fmt(retorno) : '—', gastoLiquido: gastoReal, gastoBruto: gasto > 0 ? gasto : 0 };
 }
 
 function updateGlobals(){
-  let tG=0,tR=0,tL=0,tP=0, tDep=0;
+  let tG=0, tA=0, tR=0, tL=0, tP=0, tDep=0;
   let htmlDepositos = '';
+  let htmlApostado = '';
   let htmlGasto = '';
 
   appData.bets.forEach(bet=>{
     let impactoBanca = 0; 
     let gastoBanca = 0;
+    let apostadoBanca = 0;
     
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
       tG+=c.gastoLiquido; 
+      tA+=c.gastoBruto;
       gastoBanca+=c.gastoLiquido;
+      apostadoBanca+=c.gastoBruto;
 
       if(t.resultado==='Pendente'){
         tR+=c.retorno; tP++;
@@ -393,6 +416,12 @@ function updateGlobals(){
         <span class="b-val" style="color:var(--grn)">${fmt(bancaRestante)}</span>
       </div>`;
 
+    htmlApostado += `
+      <div class="breakdown-item">
+        <span class="b-name">${bet}</span>
+        <span class="b-val" style="color:var(--yel)">${fmt(apostadoBanca)}</span>
+      </div>`;
+
     htmlGasto += `
       <div class="breakdown-item">
         <span class="b-name">${bet}</span>
@@ -405,6 +434,7 @@ function updateGlobals(){
   });
   
   document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos;
+  document.getElementById('list-breakdown-apostado').innerHTML = htmlApostado;
   document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto;
 
   const lucroTotalEl = document.getElementById('total-lucro');
@@ -415,6 +445,7 @@ function updateGlobals(){
     else {lucroTotalEl.className='stat-val white'}
   }
 
+  document.getElementById('total-apostado').textContent=fmt(tA);
   document.getElementById('total-gasto').textContent=fmt(tG);
   document.getElementById('total-retorno').textContent=fmt(tR);
   document.getElementById('total-pendentes').textContent=tP;
@@ -557,7 +588,7 @@ function renderBet(bet){
       ${tickets.length===0
         ?`<div class="no-tickets">Nenhum bilhete nesta banca.</div>`
         :`<table class="tickets-table">
-          <thead><tr><th>Tópicos e Palpites por Time</th><th>Odd</th><th>Gasto</th><th>Tipo de Aposta</th><th>Retorno</th><th>Lucro</th><th>Resultado</th><th></th></tr></thead>
+          <thead><tr><th>Tópicos e Palpites por Time</th><th>Odd</th><th>Valor da Aposta</th><th>Tipo de Aposta</th><th>Retorno</th><th>Lucro</th><th>Resultado</th><th></th></tr></thead>
           <tbody>${tickets.map((t,i)=>{
             const c=calcTicket(t);
             const tUniqueId = sid + '_' + (t.id || i);
