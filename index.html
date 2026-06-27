@@ -495,15 +495,22 @@ function updateGlobals(){
     const isSacado = !!appData.withdrawals[bet];
     if(!isSacado) { tDep += bancaRestante; }
 
-    // Constrói os dados das listas laterais (mostra tudo)
-    htmlDepositos += `<div class="breakdown-item ${isSacado ? 'muted' : ''}"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--grn)">${fmt(bancaRestante)}</span></div>`;
-    htmlApostado += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--yel)">${fmt(apostadoBanca)}</span></div>`;
-    htmlGasto += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val">${fmt(gastoRealBanca)}</span></div>`;
-    
-    let colorLucro = 'var(--txt)';
-    if(lucroBanca > 0) colorLucro = 'var(--grn)';
-    else if(lucroBanca < 0) colorLucro = 'var(--red)';
-    htmlLucro += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:${colorLucro}">${fmt(lucroBanca)}</span></div>`;
+    // Constrói os dados das listas laterais (apenas com valor > 0)
+    if (!isSacado && bancaRestante > 0) {
+      htmlDepositos += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--grn)">${fmt(bancaRestante)}</span></div>`;
+    }
+    if (apostadoBanca > 0) {
+      htmlApostado += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--yel)">${fmt(apostadoBanca)}</span></div>`;
+    }
+    if (gastoRealBanca > 0) {
+      htmlGasto += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val">${fmt(gastoRealBanca)}</span></div>`;
+    }
+    if (lucroBanca !== 0) {
+      let colorLucro = 'var(--txt)';
+      if(lucroBanca > 0) colorLucro = 'var(--grn)';
+      else if(lucroBanca < 0) colorLucro = 'var(--red)';
+      htmlLucro += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:${colorLucro}">${fmt(lucroBanca)}</span></div>`;
+    }
 
     // Filtro rígido para os gráficos: Só adiciona se for MAIOR que zero (ou diferente de zero no caso de lucro/prejuízo)
     if (!isSacado && bancaRestante > 0) {
@@ -528,10 +535,11 @@ function updateGlobals(){
     if(liveDisplay) { liveDisplay.textContent = fmt(bancaRestante); }
   });
   
-  document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos;
-  document.getElementById('list-breakdown-apostado').innerHTML = htmlApostado;
-  document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto;
-  document.getElementById('list-breakdown-lucro').innerHTML = htmlLucro;
+  const emptyMsg = '<div style="color:var(--txt2);font-size:13px;padding:12px;font-style:italic">Nenhuma banca com valor nesta categoria.</div>';
+  document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos || emptyMsg;
+  document.getElementById('list-breakdown-apostado').innerHTML = htmlApostado || emptyMsg;
+  document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto || emptyMsg;
+  document.getElementById('list-breakdown-lucro').innerHTML = htmlLucro || emptyMsg;
 
   const lucroTotalEl = document.getElementById('total-lucro');
   if(lucroTotalEl) {
