@@ -25,14 +25,32 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:4px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:6px}
 .logout-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--txt2);cursor:pointer}
 .logout-btn:hover{border-color:var(--red);color:var(--red)}
-.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.2rem}
-.stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
-.stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:0.5rem}
+.stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px;position:relative}
+.stat-card.clickable{cursor:pointer;user-select:none;transition:background 0.2s}
+.stat-card.clickable:hover{background:var(--bg2)}
+.stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:between;gap:4px}
 .stat-val{font-size:19px;font-weight:600}
 .stat-val.green{color:var(--grn) !important}
 .stat-val.red{color:var(--red) !important}
 .stat-val.yellow{color:var(--yel) !important}
 .stat-val.white{color:var(--txt) !important}
+
+.stat-chevron{font-size:12px;color:var(--txt2);transition:transform 0.2s;position:absolute;top:12px;right:14px}
+.stat-chevron.open{transform:rotate(180deg);color:var(--acc)}
+
+.breakdown-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:14px;margin-bottom:1.2rem;animation:fadeIn 0.2s ease}
+.breakdown-panel.open{display:block}
+.breakdown-title{font-size:12px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-bottom:0.5px solid var(--bdr);padding-bottom:6px}
+.breakdown-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.breakdown-item{background:var(--bg2);border:0.5px solid var(--bdr);padding:6px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.breakdown-item .b-name{font-weight:500}
+.breakdown-item .b-val{font-weight:600}
+.breakdown-item.muted{opacity:0.5;text-decoration:line-through}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
 .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
 .bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none;flex-wrap:wrap;gap:8px}
@@ -145,11 +163,29 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
   </div>
 
   <div class="summary-grid">
-    <div class="stat-card" style="border-color: var(--grn); background: rgba(52, 211, 153, 0.03);"><div class="stat-label" style="color: var(--grn)">Saldo Total Disponível</div><div class="stat-val green" id="total-depositos">R$ 0,00</div></div>
-    <div class="stat-card"><div class="stat-label">Total Gasto (Real)</div><div class="stat-val white" id="total-gasto">R$ 0,00</div></div>
+    <div class="stat-card clickable" onclick="toggleBreakdown('depositos')" style="border-color: var(--grn); background: rgba(52, 211, 153, 0.03);">
+      <div class="stat-label" style="color: var(--grn)">Saldo Total Disponível</div>
+      <div class="stat-val green" id="total-depositos">R$ 0,00</div>
+      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-depositos"></i>
+    </div>
+    <div class="stat-card clickable" onclick="toggleBreakdown('gasto')">
+      <div class="stat-label">Total Gasto (Real)</div>
+      <div class="stat-val white" id="total-gasto">R$ 0,00</div>
+      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-gasto"></i>
+    </div>
     <div class="stat-card"><div class="stat-label">Possível Retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
     <div class="stat-card"><div class="stat-label">Lucro / Prejuízo Líquido</div><div class="stat-val white" id="total-lucro">R$ 0,00</div></div>
     <div class="stat-card"><div class="stat-label">Bilhetes Abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
+  </div>
+
+  <div class="breakdown-panel" id="panel-depositos">
+    <div class="breakdown-title">Origem do Saldo por Banca</div>
+    <div class="breakdown-list" id="list-breakdown-depositos"></div>
+  </div>
+
+  <div class="breakdown-panel" id="panel-gasto">
+    <div class="breakdown-title">Distribuição de Gastos por Banca</div>
+    <div class="breakdown-list" id="list-breakdown-gasto"></div>
   </div>
 
   <div class="saving-indicator" id="saving-indicator"></div>
@@ -185,7 +221,7 @@ try {
   const firebaseApp = initializeApp(firebaseConfig);
   db = getFirestore(firebaseApp);
 } catch(e) {
-  console.log("Servidor em manutenção temporária. Usando modo offline local.");
+  console.log("Servidor offline. Usando memória de segurança.");
 }
 
 const DEFAULT_BETS=["Betano","Superbet","Bet365"];
@@ -193,6 +229,7 @@ let currentUser='';
 let openSections={};
 let expandedNotes={}; 
 let openEditors={}; 
+let activePanel=null; 
 let saveTimer=null;
 let addFormOpen=false;
 let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{},withdrawals:{},savedBalances:{}};
@@ -210,23 +247,14 @@ async function cloudSave(){
 
 async function cloudLoad(){
   const local = localStorage.getItem('local_data_' + userDocId());
-  if(local) {
-    appData = JSON.parse(local);
-  }
+  if(local) { appData = JSON.parse(local); }
   if(!db) return;
-
   try {
     const promise = getDoc(doc(db,'usuarios',userDocId()));
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000));
     const snap = await Promise.race([promise, timeout]);
-    
-    if(snap && snap.exists()) {
-      appData=JSON.parse(snap.data().data);
-    }
-  } catch(e) {
-    console.log("Carregado via memória local de segurança.");
-  }
-  
+    if(snap && snap.exists()) { appData=JSON.parse(snap.data().data); }
+  } catch(e){}
   if(!appData.deposits) appData.deposits = {};
   if(!appData.withdrawals) appData.withdrawals = {};
   if(!appData.savedBalances) appData.savedBalances = {};
@@ -239,17 +267,34 @@ function showSaving(msg,cls){
   setTimeout(()=>{el.textContent='';},2000);
 }
 
+window.toggleBreakdown = function(type) {
+  const pDep = document.getElementById('panel-depositos');
+  const pGas = document.getElementById('panel-gasto');
+  const cDep = document.getElementById('chev-panel-depositos');
+  const cGas = document.getElementById('chev-panel-gasto');
+
+  if(activePanel === type) {
+    pDep.classList.remove('open');
+    pGas.classList.remove('open');
+    cDep.classList.remove('open');
+    cGas.classList.remove('open');
+    activePanel = null;
+  } else {
+    pDep.classList.toggle('open', type === 'depositos');
+    pGas.classList.toggle('open', type === 'gasto');
+    cDep.classList.toggle('open', type === 'depositos');
+    cGas.classList.toggle('open', type === 'gasto');
+    activePanel = type;
+  }
+};
+
 window.entrar=async function(){
   const btn = document.getElementById('btn-entrar');
   const v=document.getElementById('username-input').value.trim();
   if(!v)return;
-  
-  btn.disabled = true;
-  btn.textContent = "Carregando...";
+  btn.disabled = true; btn.textContent = "Carregando...";
   currentUser=v;
-  
   await cloudLoad();
-  
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('username-display').textContent=v;
@@ -257,7 +302,7 @@ window.entrar=async function(){
 };
 
 window.sair=function(){
-  currentUser=''; 
+  currentUser='';
   const btn = document.getElementById('btn-entrar');
   if(btn) { btn.disabled = false; btn.textContent = "Entrar"; }
   document.getElementById('login-screen').style.display='flex';
@@ -275,52 +320,38 @@ function fmt(n){return'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+
 function calcTicket(t){
   const odd=parseFloat(String(t.odd||'').replace(',','.'));
   const gasto=parseFloat(String(t.gasto||'').replace(',','.'));
-  
   const fbType = t.fbType || 'none';
   const valFreebet = fbType === 'total' ? gasto : (fbType === 'partial' ? parseFloat(String(t.fbPartialVal || '0').replace(',','.')) : 0);
-  
   let gastoReal = gasto - valFreebet;
   if(gastoReal < 0 || fbType === 'total') gastoReal = 0;
-
   const retorno = odd > 0 && gasto > 0 ? odd * gasto : 0;
   let lucro = 0, lucroClass = 'pending', lucroTxt = 'Aguardando';
-  
   if(t.resultado==='Ganhou'){
-    lucro = retorno - gastoReal;
-    lucroClass = 'win';
-    lucroTxt = fmt(lucro);
+    lucro = retorno - gastoReal; lucroClass = 'win'; lucroTxt = fmt(lucro);
   } else if(t.resultado==='Perdeu'){
-    lucro = -gastoReal;
-    lucroClass = 'loss';
-    lucroTxt = fmt(lucro);
+    lucro = -gastoReal; lucroClass = 'loss'; lucroTxt = fmt(lucro);
   }
-  
-  return {
-    retorno,
-    lucro,
-    lucroClass,
-    lucroTxt,
-    retornoTxt: retorno > 0 ? fmt(retorno) : '—',
-    gastoLiquido: gastoReal
-  };
+  return { retorno, lucro, lucroClass, lucroTxt, retornoTxt: retorno > 0 ? fmt(retorno) : '—', gastoLiquido: gastoReal };
 }
 
 function updateGlobals(){
   let tG=0,tR=0,tL=0,tP=0, tDep=0;
+  let htmlDepositos = '';
+  let htmlGasto = '';
 
   appData.bets.forEach(bet=>{
     let impactoBanca = 0; 
+    let gastoBanca = 0;
     
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t); 
       tG+=c.gastoLiquido; 
+      gastoBanca+=c.gastoLiquido;
 
       if(t.resultado==='Pendente'){
-        tR+=c.retorno;
-        tP++;
+        tR+=c.retorno; tP++;
       } else if(t.resultado==='Ganhou') {
-        tL+=c.lucro;
-        impactoBanca += c.retorno; 
+        tL+=c.lucro; impactoBanca += c.retorno; 
       } else if(t.resultado==='Perdeu') {
         tL+=c.lucro;
       }
@@ -356,13 +387,26 @@ function updateGlobals(){
       tDep += bancaRestante; 
     }
 
+    htmlDepositos += `
+      <div class="breakdown-item ${isSacado ? 'muted' : ''}">
+        <span class="b-name">${bet} ${isSacado ? '(Sacado)' : ''}</span>
+        <span class="b-val" style="color:var(--grn)">${fmt(bancaRestante)}</span>
+      </div>`;
+
+    htmlGasto += `
+      <div class="breakdown-item">
+        <span class="b-name">${bet}</span>
+        <span class="b-val">${fmt(gastoBanca)}</span>
+      </div>`;
+
     const sid = safeId(bet);
     const liveDisplay = document.getElementById('banca-realtime-'+sid);
-    if(liveDisplay) {
-      liveDisplay.textContent = fmt(bancaRestante);
-    }
+    if(liveDisplay) { liveDisplay.textContent = fmt(bancaRestante); }
   });
   
+  document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos;
+  document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto;
+
   const lucroTotalEl = document.getElementById('total-lucro');
   if(lucroTotalEl) {
     lucroTotalEl.textContent=fmt(tL);
@@ -383,28 +427,22 @@ window.updateDepositValue=function(bet, val){
   if(!appData.deposits) appData.deposits = {};
   appData.deposits[bet] = val;
   if(appData.savedBalances) delete appData.savedBalances[bet]; 
-  updateGlobals();
-  scheduleSave();
+  updateGlobals(); scheduleSave();
 };
 
 window.toggleSacado=function(bet) {
   if(!appData.withdrawals) appData.withdrawals = {};
   appData.withdrawals[bet] = !appData.withdrawals[bet];
-  
   const sid = safeId(bet);
   const btn = document.getElementById('btn-saque-'+sid);
   if(btn) {
     if(appData.withdrawals[bet]) {
-      btn.className = 'sacado-btn checked';
-      btn.innerHTML = '<i class="ti ti-wallet"></i> Sacado';
+      btn.className = 'sacado-btn checked'; btn.innerHTML = '<i class="ti ti-wallet"></i> Sacado';
     } else {
-      btn.className = 'sacado-btn';
-      btn.innerHTML = '<i class="ti ti-cash"></i> Já Saquei';
+      btn.className = 'sacado-btn'; btn.innerHTML = '<i class="ti ti-cash"></i> Já Saquei';
     }
   }
-  updateGlobals();
-  renderAll();
-  scheduleSave();
+  updateGlobals(); renderAll(); scheduleSave();
 };
 
 window.toggleNote=function(ticketUniqueId){
@@ -430,7 +468,6 @@ window.buildTimelineDOM=function(ticketUniqueId, textValue, checkedMap, bet, idx
     const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
     let cleanText = trimmed.replace(/^[-*]\s*/, '');
     const isChecked = !!checkedMap[lineId];
-    
     html += `
       <div class="timeline-node ${isSub ? 'sub-node' : ''} ${isChecked ? 'checked-node' : ''}">
         ${isSub ? `<input type="checkbox" class="node-checkbox" ${isChecked ? 'checked' : ''} onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})"/>` : ''}
@@ -453,60 +490,37 @@ window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
   ticket.notas = textValue;
   if(!ticket.checkedItems) ticket.checkedItems = {};
   window.buildTimelineDOM(ticketUniqueId, textValue, ticket.checkedItems, bet, idx);
-  
   const lines = textValue.split('\n');
   const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
   const btnEl = document.getElementById('btn-title-'+ticketUniqueId);
   if(btnEl) btnEl.innerHTML = `<i class="ti ti-ticket" style="color:var(--acc)"></i> <strong>${firstTeam}</strong>`;
-  
   scheduleSave();
 };
 
 window.changeFbType=function(bet, idx, rowId, typeVal) {
   appData.tickets[bet][idx].fbType = typeVal;
-  
   const selectEl = document.getElementById('sel-fb-'+rowId);
-  if(selectEl) {
-    selectEl.className = 'fb-select ' + (typeVal !== 'none' ? 'active-fb' : '');
-  }
-
+  if(selectEl) { selectEl.className = 'fb-select ' + (typeVal !== 'none' ? 'active-fb' : ''); }
   const pInput = document.getElementById('part-input-'+rowId);
-  if(pInput) {
-    pInput.style.display = (typeVal === 'partial') ? 'block' : 'none';
-  }
-
+  if(pInput) { pInput.style.display = (typeVal === 'partial') ? 'block' : 'none'; }
   const ticket = appData.tickets[bet][idx];
   const c = calcTicket(ticket);
   const lucEl = document.getElementById('luc-'+rowId);
-  if(lucEl) {
-    lucEl.textContent = c.lucroTxt;
-    lucEl.className = 'computed ' + c.lucroClass;
-  }
-  
-  updateGlobals();
-  scheduleSave();
+  if(lucEl) { lucEl.textContent = c.lucroTxt; lucEl.className = 'computed ' + c.lucroClass; }
+  updateGlobals(); scheduleSave();
 };
 
 window.liveUpdateMath=function(bet, idx, field, val, rowId){
   appData.tickets[bet][idx][field] = val;
   const ticket = appData.tickets[bet][idx];
   const c = calcTicket(ticket);
-  
   const retEl = document.getElementById('ret-'+rowId);
   const lucEl = document.getElementById('luc-'+rowId);
   const selEl = document.getElementById('sel-'+rowId);
-  
   if(retEl) retEl.textContent = c.retornoTxt;
-  if(lucEl) {
-    lucEl.textContent = c.lucroTxt;
-    lucEl.className = 'computed ' + c.lucroClass;
-  }
-  if(selEl && field === 'resultado') {
-    selEl.className = 'result-select ' + val.toLowerCase();
-  }
-  
-  updateGlobals();
-  scheduleSave();
+  if(lucEl) { lucEl.textContent = c.lucroTxt; lucEl.className = 'computed ' + c.lucroClass; }
+  if(selEl && field === 'resultado') { selEl.className = 'result-select ' + val.toLowerCase(); }
+  updateGlobals(); scheduleSave();
 };
 
 function renderBet(bet){
@@ -516,7 +530,6 @@ function renderBet(bet){
   const section=document.createElement('div');
   section.className='bet-section'; section.id='section-'+sid;
   const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  
   const depVal = (appData.deposits && appData.deposits[bet]) ? appData.deposits[bet] : '';
   const isSacado = appData.withdrawals ? !!appData.withdrawals[bet] : false;
   
@@ -551,7 +564,6 @@ function renderBet(bet){
             const isNxtOpen = expandedNotes[tUniqueId] !== false; 
             const isEdOpen = !!openEditors[tUniqueId];
             const currentFbType = t.fbType || 'none';
-
             const lines = (t.notas || '').split('\n');
             const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
 
@@ -598,7 +610,6 @@ function renderBet(bet){
       window.buildTimelineDOM(tUniqueId, t.notas || '', t.checkedItems || {}, bet, i);
     });
   }, 10);
-
   return section;
 }
 
