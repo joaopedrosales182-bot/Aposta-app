@@ -1,730 +1,227 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Controle de Apostas Pro com Gráficos</title>
-<link class="ui-theme" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
-:root.light{--bg0:#f0f4ff;--bg1:#ffffff;--bg2:#e8eeff;--bg3:#d8e2ff;--acc:#5b63e8;--bdr:#c5ccf0;--txt:#1e2a4a;--txt2:#5a6a8a;--grn:#16a34a;--grn-bg:#dcfce7;--red:#dc2626;--red-bg:#fee2e2;--yel:#b45309;--yel-bg:#fef3c7}
-.theme-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--txt2);cursor:pointer;display:flex;align-items:center;gap:5px}
-.theme-btn:hover{border-color:var(--acc);color:var(--acc)}
-body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min-height:100vh}
-#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;padding:2rem}
-#login-screen h1{color:var(--acc);font-size:24px;font-weight:600;margin-bottom:4px}
-#login-screen p{color:var(--txt2);font-size:14px;text-align:center;max-width:300px;line-height:1.6}
-.login-input{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 16px;color:var(--txt);font-size:15px;width:280px;outline:none}
-.login-input:focus{border-color:var(--acc)}
-.login-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
-.login-error{color:var(--red);font-size:13px;text-align:center;min-height:18px}
-#app{display:none;padding:1rem;max-width:1024px;margin:0 auto}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px;padding-top:.5rem}
-.topbar h1{color:var(--acc);font-size:18px;font-weight:600}
-.user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:4px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:6px}
-.logout-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--txt2);cursor:pointer}
-.logout-btn:hover{border-color:var(--red);color:var(--red)}
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Controle de Apostas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+    <!-- CDN do Chart.js para renderizar o gráfico moderno -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        :root{--bg0:#0a1628;--bg1:#0d1f3c;--bg2:#102444;--bg3:#163050;--acc:#7c83fd;--bdr:#1e3a5f;--txt:#cbd5e1;--txt2:#94a3b8;--grn:#34d399;--grn-bg:#1b4332;--red:#f87171;--red-bg:#4c0519;--yel:#fcd34d;--yel-bg:#3d3000}
+        body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min-height:100vh}
+        #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:14px;padding:2rem}
+        #login-screen h1{color:var(--acc);font-size:24px;font-weight:600;margin-bottom:4px}
+        #login-screen p{color:var(--txt2);font-size:14px;text-align:center;max-width:300px;line-height:1.6}
+        .login-input{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 16px;color:var(--txt);font-size:15px;width:280px;outline:none}
+        .login-input:focus{border-color:var(--acc)}
+        .login-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
+        .login-btn:hover{opacity:.9}
+        .login-btn:disabled{opacity:.5;cursor:not-allowed}
+        .login-error{color:var(--red);font-size:13px;text-align:center;min-height:18px}
+        #app{display:none;padding:1rem;max-width:900px;margin:0 auto}
+        .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px;padding-top:.5rem}
+        .topbar h1{color:var(--acc);font-size:18px;font-weight:600}
+        .user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:4px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:6px}
+        .logout-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--txt2);cursor:pointer}
+        .logout-btn:hover{border-color:var(--red);color:var(--red)}
+        .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.2rem}
+        .stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px}
+        .stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+        .stat-val{font-size:19px;font-weight:600}
+        .stat-val.green{color:var(--grn)}.stat-val.red{color:var(--red)}.stat-val.yellow{color:var(--yel)}.stat-val.white{color:var(--txt)}
+        
+        /* Novo container moderno para o Gráfico */
+        .chart-section {background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:1.2rem;height:300px;position:relative}
 
-.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:0.5rem}
-.stat-card{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:12px 14px;position:relative}
-.stat-card.clickable{cursor:pointer;user-select:none;transition:background 0.2s}
-.stat-card.clickable:hover{background:var(--bg2)}
-.stat-label{font-size:11px;color:var(--txt2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:between;gap:4px}
-.stat-val{font-size:19px;font-weight:600}
-.stat-val.green{color:var(--grn) !important}
-.stat-val.red{color:var(--red) !important}
-.stat-val.yellow{color:var(--yel) !important}
-.stat-val.white{color:var(--txt) !important}
-
-.stat-chevron{font-size:12px;color:var(--txt2);transition:transform 0.2s;position:absolute;top:12px;right:14px}
-.stat-chevron.open{transform:rotate(180deg);color:var(--acc)}
-
-.breakdown-panel{display:none;background:var(--bg1);border:0.5px solid var(--bdr);border-radius:8px;padding:14px;margin-bottom:1.2rem;animation:fadeIn 0.2s ease}
-.breakdown-panel.open{display:block}
-.breakdown-title{font-size:12px;font-weight:600;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;border-bottom:0.5px solid var(--bdr);padding-bottom:6px}
-
-/* Estrutura interna dos painéis para abrigar o gráfico lado a lado com a lista */
-.panel-content-layout{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
-.chart-container{flex:1;min-width:260px;max-width:340px;height:200px;display:flex;align-items:center;justify-content:center}
-.breakdown-list{flex:2;min-width:240px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;height:fit-content}
-
-.breakdown-item{background:var(--bg2);border:0.5px solid var(--bdr);padding:6px 10px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
-.breakdown-item .b-name{font-weight:500}
-.breakdown-item .b-val{font-weight:600}
-.breakdown-item.muted{opacity:0.5;text-decoration:line-through}
-
-@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-
-.saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
-.bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
-.bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none;flex-wrap:wrap;gap:8px}
-.bet-name{font-weight:600;font-size:14px;color:var(--txt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
-.bet-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-
-.deposit-wrapper{display:flex;align-items:center;gap:6px;background:var(--bg0);padding:4px 10px;border-radius:6px;border:0.5px solid var(--bdr)}
-.deposit-label{font-size:11px;color:var(--txt2);font-weight:500}
-.deposit-input{background:transparent;border:none;color:var(--grn);font-size:12px;font-weight:600;width:70px;outline:none;font-family:inherit}
-
-.sacado-btn{background:var(--bg3);border:0.5px solid var(--bdr);color:var(--txt2);padding:3px 6px;border-radius:4px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;font-weight:600}
-.sacado-btn.checked{background:var(--red-bg);color:var(--red);border-color:var(--red)}
-
-.add-ticket-btn{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
-.chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
-.chevron.open{transform:rotate(180deg)}
-.tickets-table{width:100%;border-collapse:collapse;table-layout:fixed}
-.tickets-table th{background:var(--bg0);color:var(--acc);font-size:10px;font-weight:600;padding:7px 8px;text-align:center;border-bottom:0.5px solid var(--bdr);letter-spacing:.4px;text-transform:uppercase}
-.tickets-table th:first-child{text-align:left;width:38%}
-.tickets-table th:last-child{width:36px}
-.tickets-table td{padding:8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
-.tickets-table td:first-child{text-align:left}
-.cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:6px 8px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
-.cell-input:focus{border-color:var(--acc)}
-
-.fb-select{background:var(--bg0); border:0.5px solid var(--bdr); color:var(--txt2); font-size:11px; padding:3px; border-radius:4px; width:100%; outline:none; cursor:pointer; margin-top:4px;}
-.fb-select.active-fb{color:var(--yel); border-color:var(--yel); background:rgba(252,211,77,0.05)}
-.fb-partial-input{background:var(--bg0); border:0.5px solid var(--yel); border-radius:4px; color:var(--yel); font-size:11px; padding:3px 4px; width:100%; text-align:center; margin-top:4px; outline:none;}
-
-.result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
-.result-select.pendente{background:var(--yel-bg) !important;color:var(--yel) !important;border-color:#fcd34d55}
-.result-select.ganhou{background:var(--grn-bg) !important;color:var(--grn) !important;border-color:#34d39955}
-.result-select.perdeu{background:var(--red-bg) !important;color:var(--red) !important;border-color:#f8717155}
-
-.del-btn{background:transparent;border:none;color:#5a5a5a;cursor:pointer;font-size:16px;padding:4px 6px;border-radius:4px}
-.del-btn:hover{color:var(--red);background:var(--red-bg)}
-
-.computed{font-size:13px;font-weight:600}
-.computed.win{color:var(--grn) !important}
-.computed.loss{color:var(--red) !important}
-.computed.pending{color:var(--txt2) !important}
-
-.no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
-.add-bet-section{background:var(--bg1);border:0.5px dashed var(--acc);border-radius:10px;margin-bottom:10px;overflow:hidden}
-.add-bet-trigger{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;color:var(--acc);font-size:14px;font-weight:500}
-.add-bet-form{padding:14px 16px;border-top:0.5px solid var(--bdr);display:none;gap:10px;align-items:center;flex-wrap:wrap}
-.add-bet-form.open{display:flex}
-.add-bet-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:7px;padding:9px 12px;color:var(--txt);font-size:14px;flex:1;min-width:180px;outline:none}
-.confirm-add-btn{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer}
-.cancel-add-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:9px 14px;font-size:14px;color:var(--txt2);cursor:pointer}
-
-.ticket-main-wrapper {display:flex; flex-direction:column; gap:4px; width:100%}
-.more-details-btn {background:var(--bg3); border:0.5px solid var(--bdr); color:var(--txt); font-size:12px; cursor:pointer; padding:6px 10px; border-radius:5px; display:inline-flex; align-items:center; gap:4px; font-weight:500}
-.more-details-btn:hover {border-color:var(--acc)}
-.timeline-container {display:none; margin-top:8px; background:rgba(0,0,0,0.18); border:1px solid var(--bdr); border-radius:6px; padding:12px 14px;}
-.timeline-container.open {display:block}
-.timeline-view {position:relative; padding-left:22px; display:flex; flex-direction:column; gap:8px;}
-.timeline-view::before {content:''; position:absolute; left:4px; top:8px; bottom:8px; width:2px; background:var(--bdr); display:block;}
-.timeline-node {position:relative; font-size:13px; color:var(--acc); font-weight:600; line-height:1.5; text-align:left; display:flex; align-items:flex-start; gap:8px;}
-.timeline-node::before {content:''; position:absolute; left:-22px; top:6px; width:8px; height:8px; background:var(--acc); border-radius:50%; box-shadow:0 0 0 2px var(--bg1);}
-.timeline-node.sub-node {margin-left:16px; font-size:12px; color:var(--txt); font-weight:400;}
-.timeline-node.sub-node::before {left:-20px; width:6px; height:6px; top:6px; background:var(--txt2); box-shadow:none;}
-.timeline-node.checked-node {color:var(--txt2); text-decoration:line-through; opacity:0.65}
-.timeline-node.checked-node::before {background:var(--grn) !important;}
-.node-checkbox {appearance:none; -webkit-appearance:none; width:13px; height:13px; border:1px solid var(--bdr); border-radius:3px; background:var(--bg0); cursor:pointer; margin-top:3px; display:inline-flex; align-items:center; justify-content:center;}
-.node-checkbox:checked {background:var(--grn); border-color:var(--grn)}
-.node-checkbox:checked::after {content:'✓'; color:#0a1628; font-size:9px; font-weight:900;}
-.node-text-wrapper {word-break:break-word; cursor:pointer; flex:1; padding-top:1px;}
-.toggle-editor-btn {background:transparent; border:0.5px dashed var(--bdr); color:var(--txt2); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin-top:8px;}
-.toggle-editor-btn:hover {border-color:var(--acc); color:var(--acc)}
-.timeline-editor {display:none; margin-top:10px; border-top:0.5px dashed var(--bdr); padding-top:10px;}
-.timeline-editor.open {display:block}
-.timeline-textarea {width:100%; min-height:90px; background:var(--bg0); border:0.5px solid var(--bdr); border-radius:5px; color:var(--txt); font-size:12px; padding:6px 8px; outline:none; resize:vertical; font-family:inherit; line-height:1.5}
-
-@media (max-width: 768px) {
-  .tickets-table thead {display:none}
-  .tickets-table, .tickets-table tbody, .tickets-table tr, .tickets-table td {display:block; width:100%}
-  .tickets-table tr {background:var(--bg2); border:0.5px solid var(--bdr); border-radius:8px; margin-bottom:12px; padding:10px; display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; position:relative;}
-  .tickets-table td:first-child {grid-column:span 2; padding:0 0 4px 0; border-bottom:0.5px solid var(--bdr);}
-  .tickets-table td:not(:first-child):not(:last-child) {display:flex; flex-direction:column; align-items:flex-start; text-align:left; padding:2px 4px; border:none; background:transparent !important;}
-}
-</style>
+        .saving-indicator{font-size:11px;color:var(--txt2);text-align:right;margin-bottom:6px;min-height:16px}
+        .saving-indicator.ok{color:var(--grn)}
+        .saving-indicator.err{color:var(--red)}
+        .bet-section{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
+        .bet-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg2);border-bottom:0.5px solid var(--bdr);user-select:none}
+        .bet-header:hover{background:var(--bg3)}
+        .bet-name{font-weight:600;font-size:14px;color:var(--txt);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+        .bet-badge{font-size:11px;background:var(--bg3);border:0.5px solid var(--bdr);border-radius:12px;padding:2px 8px;color:var(--txt2);font-weight:400}
+        .bet-actions{display:flex;align-items:center;gap:8px}
+        .add-ticket-btn{background:var(--acc);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer}
+        .add-ticket-btn:hover{opacity:.85}
+        .del-bet-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:6px;padding:5px 8px;font-size:12px;color:var(--txt2);cursor:pointer}
+        .del-bet-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+        .chevron{color:var(--txt2);font-size:14px;transition:transform .2s}
+        .chevron.open{transform:rotate(180deg)}
+        .tickets-table{width:100%;border-collapse:collapse;table-layout:fixed}
+        .tickets-table th{background:var(--bg0);color:var(--acc);font-size:10px;font-weight:600;padding:7px 8px;text-align:center;border-bottom:0.5px solid var(--bdr);letter-spacing:.4px;text-transform:uppercase}
+        .tickets-table th:first-child{text-align:left;width:20%}
+        .tickets-table th:last-child{width:36px}
+        .tickets-table td{padding:6px 8px;border-bottom:0.5px solid var(--bdr);font-size:13px;text-align:center;vertical-align:middle}
+        .tickets-table td:first-child{text-align:left}
+        .tickets-table tr:last-child td{border-bottom:none}
+        .tickets-table tr:hover td{background:rgba(124,131,253,.04)}
+        .cell-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:5px;padding:5px 7px;color:var(--txt);font-size:13px;width:100%;text-align:center;outline:none;font-family:inherit}
+        .cell-input:focus{border-color:var(--acc)}
+        .cell-input.name-input{text-align:left}
+        .result-select{border:0.5px solid var(--bdr);border-radius:5px;padding:5px 4px;font-size:12px;font-weight:600;width:100%;outline:none;cursor:pointer;font-family:inherit}
+        .result-select.ganhou{background:var(--grn-bg);color:var(--grn);border-color:#34d39955}
+        .result-select.perdeu{background:var(--red-bg);color:var(--red);border-color:#f8717155}
+        .result-select.pendente{background:var(--yel-bg);color:var(--yel);border-color:#fcd34d55}
+        .del-btn{background:transparent;border:none;color:#3a3a3a;cursor:pointer;font-size:16px;padding:2px 5px;border-radius:4px}
+        .del-btn:hover{color:var(--red);background:var(--red-bg)}
+        .computed{color:var(--grn);font-size:13px}
+        .computed.loss{color:var(--red)}
+        .computed.pending{color:var(--txt2)}
+        .no-tickets{padding:18px;text-align:center;color:var(--txt2);font-size:13px}
+        .bet-totals{background:var(--bg0);padding:8px 14px;display:flex;gap:20px;flex-wrap:wrap;border-top:0.5px solid var(--bdr)}
+        .bet-total-item{font-size:12px;color:var(--txt2)}
+        .bet-total-item span{font-weight:600;margin-left:4px}
+        .add-bet-section{background:var(--bg1);border:0.5px dashed var(--acc);border-radius:10px;margin-bottom:10px;overflow:hidden}
+        .add-bet-trigger{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;color:var(--acc);font-size:14px;font-weight:500}
+        .add-bet-trigger:hover{background:var(--bg2)}
+        .add-bet-form{padding:14px 16px;border-top:0.5px solid var(--bdr);display:none;gap:10px;align-items:center;flex-wrap:wrap}
+        .add-bet-form.open{display:flex}
+        .add-bet-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:7px;padding:9px 12px;color:var(--txt);font-size:14px;flex:1;min-width:180px;outline:none;font-family:inherit}
+        .add-bet-input:focus{border-color:var(--acc)}
+        .confirm-add-btn{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+        .cancel-add-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:9px 14px;font-size:14px;color:var(--txt2);cursor:pointer}
+        .cancel-add-btn:hover{border-color:var(--red);color:var(--red)}
+        .loading-overlay{display:flex;align-items:center;justify-content:center;padding:48px;color:var(--txt2);font-size:14px;gap:8px}
+        @media(max-width:600px){
+            .tickets-table th:nth-child(4),.tickets-table td:nth-child(4){display:none}
+            .tickets-table th:first-child{width:25%}
+        }
+    </style>
 </head>
 <body>
 
 <div id="login-screen">
-  <i class="ti ti-chart-bar" style="font-size:52px;color:var(--acc)"></i>
-  <h1>Controle de Apostas</h1>
-  <p>Insira seu nome para sincronizar seus palpites.</p>
-  <input class="login-input" id="username-input" placeholder="Seu nome ou apelido" maxlength="30"/>
-  <button class="login-btn" id="btn-entrar" onclick="entrar()">Entrar</button>
-  <div class="login-error" id="login-error"></div>
+    <i class="ti ti-chart-bar" style="font-size:52px;color:var(--acc)"></i>
+    <h1>Controle de Apostas</h1>
+    <p>Digite seu nome para acessar suas apostas. Dados salvos na nuvem — acesse de qualquer dispositivo.</p>
+    <input class="login-input" id="username-input" placeholder="Seu nome ou apelido" maxlength="30"/>
+    <button class="login-btn" id="login-btn" onclick="entrar()">Entrar</button>
+    <div class="login-error" id="login-error"></div>
 </div>
 
 <div id="app">
-  <div class="topbar">
-    <h1><i class="ti ti-chart-bar" style="margin-right:6px"></i>Controle de Bancas</h1>
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <div class="user-badge"><i class="ti ti-cloud" style="font-size:14px"></i><span id="username-display"></span></div>
-      <button class="theme-btn" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i><span id="theme-label">Claro</span></button>
-      <button class="logout-btn" onclick="sair()">Sair</button>
+    <div class="topbar">
+        <h1><i class="ti ti-chart-bar" style="margin-right:6px"></i>Controle de Apostas</h1>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="user-badge"><i class="ti ti-cloud" style="font-size:14px"></i><span id="username-display"></span></div>
+            <button class="logout-btn" onclick="sair()">Sair</button>
+        </div>
     </div>
-  </div>
 
-  <div class="summary-grid">
-    <div class="stat-card clickable" onclick="toggleBreakdown('depositos')" style="border-color: var(--grn); background: rgba(52, 211, 153, 0.03);">
-      <div class="stat-label" style="color: var(--grn)">Saldo Total Disponível</div>
-      <div class="stat-val green" id="total-depositos">R$ 0,00</div>
-      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-depositos"></i>
+    <!-- Grid de estatísticas rápidas -->
+    <div class="summary-grid">
+        <div class="stat-card"><div class="stat-label">Total gasto</div><div class="stat-val white" id="total-gasto">R$ 0,00</div></div>
+        <div class="stat-card"><div class="stat-label">Possível retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
+        <div class="stat-card"><div class="stat-label">Lucro / Prejuízo</div><div class="stat-val white" id="total-lucro">R$ 0,00</div></div>
+        <div class="stat-card"><div class="stat-label">Bilhetes abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
     </div>
-    <div class="stat-card clickable" onclick="toggleBreakdown('apostado')" style="border-color: var(--yel); background: rgba(252, 211, 77, 0.02);">
-      <div class="stat-label" style="color: var(--yel)">Total Apostado (Bruto)</div>
-      <div class="stat-val yellow" id="total-apostado">R$ 0,00</div>
-      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-apostado"></i>
-    </div>
-    <div class="stat-card clickable" onclick="toggleBreakdown('gasto')">
-      <div class="stat-label">Total Gasto (Real)</div>
-      <div class="stat-val white" id="total-gasto">R$ 0,00</div>
-      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-gasto"></i>
-    </div>
-    <div class="stat-card"><div class="stat-label">Possível Retorno</div><div class="stat-val green" id="total-retorno">R$ 0,00</div></div>
-    <div class="stat-card clickable" onclick="toggleBreakdown('lucro')" style="border-color: var(--acc); background: rgba(124, 131, 253, 0.03);">
-      <div class="stat-label" style="color: var(--acc)">Lucro / Prejuízo Líquido</div>
-      <div class="stat-val white" id="total-lucro">R$ 0,00</div>
-      <i class="ti ti-chevron-down stat-chevron" id="chev-panel-lucro"></i>
-    </div>
-    <div class="stat-card"><div class="stat-label">Bilhetes Abertos</div><div class="stat-val yellow" id="total-pendentes">0</div></div>
-  </div>
 
-  <div class="breakdown-panel" id="panel-depositos">
-    <div class="breakdown-title">Origem do Saldo por Banca (Banca Inicial + Retornos)</div>
-    <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-depositos"></canvas></div>
-      <div class="breakdown-list" id="list-breakdown-depositos"></div>
+    <!-- Área Nova do Gráfico Moderno -->
+    <div class="chart-section">
+        <canvas id="evolutionChart"></canvas>
     </div>
-  </div>
 
-  <div class="breakdown-panel" id="panel-apostado">
-    <div class="breakdown-title">Volume Total Apostado por Banca (Dinheiro + Freebets)</div>
-    <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-apostado"></canvas></div>
-      <div class="breakdown-list" id="list-breakdown-apostado"></div>
-    </div>
-  </div>
+    <div class="saving-indicator" id="saving-status"></div>
 
-  <div class="breakdown-panel" id="panel-gasto">
-    <div class="breakdown-title">Distribuição de Gastos por Banca (Apenas Dinheiro Real)</div>
-    <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-gasto"></canvas></div>
-      <div class="breakdown-list" id="list-breakdown-gasto"></div>
-    </div>
-  </div>
+    <!-- Seções de apostas e tabelas vão carregar aqui dinamicamente via JS original -->
+    <div id="bets-container"></div>
 
-  <div class="breakdown-panel" id="panel-lucro">
-    <div class="breakdown-title">Rendimento Líquido por Banca</div>
-    <div class="panel-content-layout">
-      <div class="chart-container"><canvas id="chart-lucro"></canvas></div>
-      <div class="breakdown-list" id="list-breakdown-lucro"></div>
+    <div class="add-bet-section">
+        <div class="add-bet-trigger" onclick="toggleAddForm()"><i class="ti ti-plus"></i> Nova Banca de Apostas</div>
+        <div class="add-bet-form" id="add-bet-form">
+            <input class="add-bet-input" id="new-bet-name" placeholder="Ex: Bilhetes do Fim de Semana" maxlength="50"/>
+            <button class="confirm-add-btn" onclick="addBet()">Criar</button>
+            <button class="cancel-add-btn" onclick="toggleAddForm()">Cancelar</button>
+        </div>
     </div>
-  </div>
-
-  <div class="saving-indicator" id="saving-indicator"></div>
-  <div id="bets-container"></div>
-
-  <div class="add-bet-section">
-    <div class="add-bet-trigger" onclick="toggleAddForm()">
-      <i class="ti ti-plus" style="font-size:18px"></i> Adicionar nova banca
-    </div>
-    <div class="add-bet-form" id="add-bet-form">
-      <input class="add-bet-input" id="new-bet-input" placeholder="Nome da banca (ex: Betano)" maxlength="40"/>
-      <button class="confirm-add-btn" onclick="confirmarNovaAposta()">Adicionar</button>
-      <button class="cancel-add-btn" onclick="toggleAddForm()">Cancelar</button>
-    </div>
-  </div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
+    // Referência global do gráfico Chart.js
+    let myChart = null;
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCeDME3AoZQ81HKwGzvhzFXPcfs5krr3vc",
-  authDomain: "apostas-app-6b448.firebaseapp.com",
-  projectId: "apostas-app-6b448",
-  storageBucket: "apostas-app-6b448.firebasestorage.app",
-  messagingSenderId: "615567160984",
-  appId: "1:615567160984:web:a221aa5bcb06f05c0002ed"
-};
-
-let db = null;
-try {
-  const firebaseApp = initializeApp(firebaseConfig);
-  db = getFirestore(firebaseApp);
-} catch(e) { console.log("Modo offline ativo."); }
-
-const DEFAULT_BETS=["Betano","Superbet","Bet365"];
-let currentUser='';
-let openSections={};
-let expandedNotes={}; 
-let openEditors={}; 
-let activePanel=null; 
-let saveTimer=null;
-let addFormOpen=false;
-let appData={bets:[...DEFAULT_BETS],tickets:{},deposits:{},withdrawals:{},savedBalances:{}};
-
-// Instâncias de gráficos globais para evitar duplicações de memória
-let charts = { depositos: null, apostado: null, gasto: null, lucro: null };
-
-function userDocId(){return currentUser.toLowerCase().trim().replace(/\s+/g,'_')}
-
-async function cloudSave(){
-  localStorage.setItem('local_data_' + userDocId(), JSON.stringify(appData));
-  if(!db) return;
-  try{
-    await setDoc(doc(db,'usuarios',userDocId()),{data:JSON.stringify(appData),updatedAt:Date.now()});
-    showSaving('✓ Sincronizado','ok');
-  }catch(e){}
-}
-
-async function cloudLoad(){
-  const local = localStorage.getItem('local_data_' + userDocId());
-  if(local) { appData = JSON.parse(local); }
-  if(!db) return;
-  try {
-    const snap = await getDoc(doc(db,'usuarios',userDocId()));
-    if(snap && snap.exists()) { appData=JSON.parse(snap.data().data); }
-  } catch(e){}
-  if(!appData.deposits) appData.deposits = {};
-  if(!appData.withdrawals) appData.withdrawals = {};
-  if(!appData.savedBalances) appData.savedBalances = {};
-}
-
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>cloudSave(),1000);}
-function showSaving(msg,cls){
-  const el=document.getElementById('saving-indicator');
-  if(!el) return; el.textContent=msg; el.className='saving-indicator '+cls;
-  setTimeout(()=>{el.textContent='';},2000);
-}
-
-window.toggleBreakdown = function(type) {
-  const pDep = document.getElementById('panel-depositos');
-  const pApo = document.getElementById('panel-apostado');
-  const pGas = document.getElementById('panel-gasto');
-  const pLuc = document.getElementById('panel-lucro');
-  
-  const cDep = document.getElementById('chev-panel-depositos');
-  const cApo = document.getElementById('chev-panel-apostado');
-  const cGas = document.getElementById('chev-panel-gasto');
-  const cLuc = document.getElementById('chev-panel-lucro');
-
-  if(activePanel === type) {
-    pDep.classList.remove('open'); pApo.classList.remove('open'); pGas.classList.remove('open'); pLuc.classList.remove('open');
-    cDep.classList.remove('open'); cApo.classList.remove('open'); cGas.classList.remove('open'); cLuc.classList.remove('open');
-    activePanel = null;
-  } else {
-    pDep.classList.toggle('open', type === 'depositos');
-    pApo.classList.toggle('open', type === 'apostado');
-    pGas.classList.toggle('open', type === 'gasto');
-    pLuc.classList.toggle('open', type === 'lucro');
-    
-    cDep.classList.toggle('open', type === 'depositos');
-    cApo.classList.toggle('open', type === 'apostado');
-    cGas.classList.toggle('open', type === 'gasto');
-    cLuc.classList.toggle('open', type === 'lucro');
-    activePanel = type;
-    
-    // Forçar a renderização imediata do gráfico correspondente ao abrir a aba
-    updateGlobals();
-  }
-};
-
-window.entrar=async function(){
-  const btn = document.getElementById('btn-entrar');
-  const v=document.getElementById('username-input').value.trim();
-  if(!v)return;
-  btn.disabled = true; btn.textContent = "Carregando...";
-  currentUser=v;
-  await cloudLoad();
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('app').style.display='block';
-  document.getElementById('username-display').textContent=v;
-  renderAll();
-};
-
-window.sair=function(){
-  currentUser='';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('app').style.display='none';
-};
-
-window.toggleTheme=function(){
-  const isLight=document.documentElement.classList.toggle("light");
-  document.getElementById("theme-icon").className=isLight?"ti ti-moon":"ti ti-sun";
-  document.getElementById("theme-label").textContent=isLight?"Escuro":"Claro";
-  updateGlobals(); // Atualiza cores dos gráficos se mudar o tema
-};
-
-function fmt(n){return'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
-
-function calcTicket(t){
-  const odd=parseFloat(String(t.odd||'').replace(',','.'));
-  const gasto=parseFloat(String(t.gasto||'').replace(',','.'));
-  const fbType = t.fbType || 'none';
-  const valFreebet = fbType === 'total' ? gasto : (fbType === 'partial' ? parseFloat(String(t.fbPartialVal || '0').replace(',','.')) : 0);
-  let gastoReal = gasto - valFreebet;
-  if(gastoReal < 0 || fbType === 'total') gastoReal = 0;
-  const retorno = odd > 0 && gasto > 0 ? odd * gasto : 0;
-  
-  let lucro = 0, lucroClass = 'pending', lucroTxt = 'Aguardando';
-  if(t.resultado==='Ganhou'){
-    lucro = retorno - gastoReal; lucroClass = 'win'; lucroTxt = fmt(lucro);
-  } else if(t.resultado==='Perdeu'){
-    lucro = -gastoReal; lucroClass = 'loss'; lucroTxt = fmt(lucro);
-  }
-  return { retorno, lucro, lucroClass, lucroTxt, retornoTxt: retorno > 0 ? fmt(retorno) : '—', gastoLiquido: gastoReal, gastoBruto: gasto > 0 ? gasto : 0 };
-}
-
-// Função para desenhar e atualizar os gráficos usando Chart.js
-function renderChartInstance(id, type, labels, data, colors) {
-  if (charts[id]) { charts[id].destroy(); }
-  const ctx = document.getElementById('chart-' + id);
-  if (!ctx) return;
-  
-  const isDark = !document.documentElement.classList.contains("light");
-  const textColors = isDark ? '#cbd5e1' : '#1e2a4a';
-  const borderColors = isDark ? '#1e3a5f' : '#c5ccf0';
-
-  charts[id] = new Chart(ctx, {
-    type: type,
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        backgroundColor: colors,
-        borderColor: borderColors,
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: type === 'pie' || type === 'doughnut', labels: { color: textColors, font: { size: 10 } } }
-      },
-      scales: type === 'bar' ? {
-        x: { grid: { display: false }, ticks: { color: textColors } },
-        y: { grid: { color: borderColors }, ticks: { color: textColors } }
-      } : {}
+    function entrar() {
+        const user = document.getElementById('username-input').value.trim();
+        if(!user) return;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('username-display').innerText = user;
+        
+        // Simulação de inicialização do gráfico após login
+        initChart();
+        atualizarDadosExemplo(); 
     }
-  });
-}
 
-function updateGlobals(){
-  let tG=0, tA=0, tR=0, tL=0, tP=0, tDep=0;
-  let htmlDepositos = '', htmlApostado = '', htmlGasto = '', htmlLucro = '';
+    function sair() {
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
+    }
 
-  // Arrays para alimentar os gráficos
-  let labelsBancas = [], dataDepositos = [], dataApostado = [], dataGasto = [], dataLucro = [];
+    function toggleAddForm() {
+        document.getElementById('add-bet-form').classList.toggle('open');
+    }
 
-  appData.bets.forEach(bet=>{
-    let retornoBanca = 0; 
-    let gastoRealBanca = 0;
-    let apostadoBanca = 0;
-    let lucroBanca = 0;
-    
-    (appData.tickets[bet]||[]).forEach(t=>{
-      const c=calcTicket(t); 
-      tA+=c.gastoBruto;
-      apostadoBanca+=c.gastoBruto;
+    // Inicializa o Chart.js com configurações ideais de Dark Mode
+    function initChart() {
+        const ctx = document.getElementById('evolutionChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Início', 'Banca 1', 'Banca 2', 'Banca 3'], // Exemplo dinâmico de labels
+                datasets: [{
+                    label: 'Evolução do Lucro (R$)',
+                    data: [0, 50, -20, 120], // Exemplo dinâmico de saldo acumulado
+                    borderColor: '#7c83fd',
+                    backgroundColor: 'rgba(124, 131, 253, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3, // Deixa as linhas levemente curvas e elegantes
+                    pointRadius: 4,
+                    pointBackgroundColor: '#7c83fd'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false } // Oculta legenda redundante para economizar espaço
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#1e3a5f', drawBorder: false },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y: {
+                        grid: { color: '#1e3a5f', drawBorder: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
 
-      // FÓRMULA CORRIGIDA: Só afeta o gasto total real se estiver Ganhou ou Perdeu (Pendentes não saem mais da banca)
-      if(t.resultado==='Pendente'){
-        tR+=c.retorno; tP++;
-      } else if(t.resultado==='Ganhou') {
-        tG+=c.gastoLiquido; 
-        gastoRealBanca+=c.gastoLiquido;
-        tL+=c.lucro; lucroBanca += c.lucro; retornoBanca += c.retorno; 
-      } else if(t.resultado==='Perdeu') {
-        tG+=c.gastoLiquido; 
-        gastoRealBanca+=c.gastoLiquido;
-        tL+=c.lucro; lucroBanca += c.lucro;
-      }
-    });
+    // Função para atualizar os dados do gráfico dinamicamente (para integrar com as suas funções de cálculo originais)
+    function updateChartData(labels, data) {
+        if (myChart) {
+            myChart.data.labels = labels;
+            myChart.data.datasets[0].data = data;
+            myChart.update();
+        }
+    }
 
-    const baseDeposit = parseFloat(appData.deposits[bet] || 0);
-    // Nova Fórmula de banca: O dinheiro pendente NÃO é subtraído!
-    let bancaRestante = baseDeposit + retornoBanca - gastoRealBanca;
-    if(bancaRestante < 0) bancaRestante = 0;
-
-    const isSacado = !!appData.withdrawals[bet];
-    if(!isSacado) { tDep += bancaRestante; }
-
-    // Alimentando listas textuais
-    htmlDepositos += `<div class="breakdown-item ${isSacado ? 'muted' : ''}"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--grn)">${fmt(bancaRestante)}</span></div>`;
-    htmlApostado += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:var(--yel)">${fmt(apostadoBanca)}</span></div>`;
-    htmlGasto += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val">${fmt(gastoRealBanca)}</span></div>`;
-    
-    let colorLucro = 'var(--txt)';
-    if(lucroBanca > 0) colorLucro = 'var(--grn)';
-    else if(lucroBanca < 0) colorLucro = 'var(--red)';
-    htmlLucro += `<div class="breakdown-item"><span class="b-name">${bet}</span><span class="b-val" style="color:${colorLucro}">${fmt(lucroBanca)}</span></div>`;
-
-    // Armazenando dados dos gráficos
-    labelsBancas.push(bet);
-    dataDepositos.push(isSacado ? 0 : bancaRestante);
-    dataApostado.push(apostadoBanca);
-    dataGasto.push(gastoRealBanca);
-    dataLucro.push(lucroBanca);
-
-    const sid = safeId(bet);
-    const liveDisplay = document.getElementById('banca-realtime-'+sid);
-    if(liveDisplay) { liveDisplay.textContent = fmt(bancaRestante); }
-  });
-  
-  document.getElementById('list-breakdown-depositos').innerHTML = htmlDepositos;
-  document.getElementById('list-breakdown-apostado').innerHTML = htmlApostado;
-  document.getElementById('list-breakdown-gasto').innerHTML = htmlGasto;
-  document.getElementById('list-breakdown-lucro').innerHTML = htmlLucro;
-
-  // Atualização dos cartões estáticos do topo (Inalterados)
-  const lucroTotalEl = document.getElementById('total-lucro');
-  if(lucroTotalEl) {
-    lucroTotalEl.textContent=fmt(tL);
-    if(tL>0){lucroTotalEl.className='stat-val green'}
-    else if(tL<0){lucroTotalEl.className='stat-val red'}
-    else {lucroTotalEl.className='stat-val white'}
-  }
-  document.getElementById('total-apostado').textContent=fmt(tA);
-  document.getElementById('total-gasto').textContent=fmt(tG);
-  document.getElementById('total-retorno').textContent=fmt(tR);
-  document.getElementById('total-pendentes').textContent=tP;
-  document.getElementById('total-depositos').textContent=fmt(tDep);
-
-  // Paleta de cores para os gráficos dinâmicos
-  const pizzaColors = ['#7c83fd', '#34d399', '#fcd34d', '#f87171', '#a78bfa', '#fb923c'];
-  const lucroBarColors = dataLucro.map(v => v >= 0 ? '#34d399' : '#f87171');
-
-  // Desenhar os gráficos se a respectiva aba estiver aberta na tela
-  if (activePanel === 'depositos') renderChartInstance('depositos', 'pie', labelsBancas, dataDepositos, pizzaColors);
-  if (activePanel === 'apostado') renderChartInstance('apostado', 'bar', labelsBancas, dataApostado, ['#fcd34d']);
-  if (activePanel === 'gasto') renderChartInstance('gasto', 'doughnut', labelsBancas, dataGasto, pizzaColors);
-  if (activePanel === 'lucro') renderChartInstance('lucro', 'bar', labelsBancas, dataLucro, lucroBarColors);
-}
-
-function safeId(bet){return'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_');}
-
-window.updateDepositValue=function(bet, val){
-  if(!appData.deposits) appData.deposits = {};
-  appData.deposits[bet] = val;
-  updateGlobals(); scheduleSave();
-};
-
-window.toggleSacado=function(bet) {
-  if(!appData.withdrawals) appData.withdrawals = {};
-  appData.withdrawals[bet] = !appData.withdrawals[bet];
-  updateGlobals(); renderAll(); scheduleSave();
-};
-
-window.toggleNote=function(ticketUniqueId){
-  expandedNotes[ticketUniqueId] = !expandedNotes[ticketUniqueId];
-  const container = document.getElementById('note-container-'+ticketUniqueId);
-  if(container) container.classList.toggle('open', expandedNotes[ticketUniqueId]);
-};
-
-window.toggleEditorBox=function(ticketUniqueId){
-  openEditors[ticketUniqueId] = !openEditors[ticketUniqueId];
-  const editBox = document.getElementById('edit-box-'+ticketUniqueId);
-  if(editBox) editBox.classList.toggle('open', openEditors[ticketUniqueId]);
-};
-
-window.buildTimelineDOM=function(ticketUniqueId, textValue, checkedMap, bet, idx) {
-  const view = document.getElementById('timeline-view-'+ticketUniqueId);
-  if(!view) return;
-  const lines = textValue.split('\n');
-  let html = '';
-  lines.forEach((line, lineId) => {
-    const trimmed = line.trim();
-    if(!trimmed) return;
-    const isSub = line.startsWith(' ') || line.startsWith('\t') || line.startsWith('-') || line.startsWith('*');
-    let cleanText = trimmed.replace(/^[-*]\s*/, '');
-    const isChecked = !!checkedMap[lineId];
-    html += `
-      <div class="timeline-node ${isSub ? 'sub-node' : ''} ${isChecked ? 'checked-node' : ''}">
-        ${isSub ? `<input type="checkbox" class="node-checkbox" ${isChecked ? 'checked' : ''} onclick="window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})"/>` : ''}
-        <div class="node-text-wrapper" onclick="${isSub ? `window.toggleNodeCheck('${ticketUniqueId}', ${lineId}, '${bet}', ${idx})` : ''}">${cleanText}</div>
-      </div>`;
-  });
-  view.innerHTML = html || `<div style="color:var(--txt2); font-style:italic; font-size:12px;">Clique abaixo para configurar os Tópicos.</div>`;
-};
-
-window.toggleNodeCheck=function(ticketUniqueId, lineId, bet, idx) {
-  const ticket = appData.tickets[bet][idx];
-  if(!ticket.checkedItems) ticket.checkedItems = {};
-  ticket.checkedItems[lineId] = !ticket.checkedItems[lineId];
-  window.buildTimelineDOM(ticketUniqueId, ticket.notas || '', ticket.checkedItems, bet, idx);
-  scheduleSave();
-};
-
-window.updateTimelinePreview=function(ticketUniqueId, textValue, bet, idx) {
-  const ticket = appData.tickets[bet][idx];
-  ticket.notas = textValue;
-  if(!ticket.checkedItems) ticket.checkedItems = {};
-  window.buildTimelineDOM(ticketUniqueId, textValue, ticket.checkedItems, bet, idx);
-  const lines = textValue.split('\n');
-  const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
-  const btnEl = document.getElementById('btn-title-'+ticketUniqueId);
-  if(btnEl) btnEl.innerHTML = `<i class="ti ti-ticket" style="color:var(--acc)"></i> <strong>${firstTeam}</strong>`;
-  scheduleSave();
-};
-
-window.changeFbType=function(bet, idx, rowId, typeVal) {
-  appData.tickets[bet][idx].fbType = typeVal;
-  const selectEl = document.getElementById('sel-fb-'+rowId);
-  if(selectEl) { selectEl.className = 'fb-select ' + (typeVal !== 'none' ? 'active-fb' : ''); }
-  const pInput = document.getElementById('part-input-'+rowId);
-  if(pInput) { pInput.style.display = (typeVal === 'partial') ? 'block' : 'none'; }
-  const ticket = appData.tickets[bet][idx];
-  const c = calcTicket(ticket);
-  const lucEl = document.getElementById('luc-'+rowId);
-  if(lucEl) { lucEl.textContent = c.lucroTxt; lucEl.className = 'computed ' + c.lucroClass; }
-  updateGlobals(); scheduleSave();
-};
-
-window.liveUpdateMath=function(bet, idx, field, val, rowId){
-  appData.tickets[bet][idx][field] = val;
-  const ticket = appData.tickets[bet][idx];
-  const c = calcTicket(ticket);
-  const retEl = document.getElementById('ret-'+rowId);
-  const lucEl = document.getElementById('luc-'+rowId);
-  const selEl = document.getElementById('sel-'+rowId);
-  if(retEl) retEl.textContent = c.retornoTxt;
-  if(lucEl) { lucEl.textContent = c.lucroTxt; lucEl.className = 'computed ' + c.lucroClass; }
-  if(selEl && field === 'resultado') { selEl.className = 'result-select ' + val.toLowerCase(); }
-  updateGlobals(); scheduleSave();
-};
-
-function renderBet(bet){
-  const tickets=appData.tickets[bet]||[];
-  const isOpen=openSections[bet]!==false;
-  const sid=safeId(bet);
-  const section=document.createElement('div');
-  section.className='bet-section'; section.id='section-'+sid;
-  const be=bet.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  const depVal = (appData.deposits && appData.deposits[bet]) ? appData.deposits[bet] : '';
-  const isSacado = appData.withdrawals ? !!appData.withdrawals[bet] : false;
-  
-  section.innerHTML=`
-    <div class="bet-header" onclick="toggleSection('${be}')">
-      <div class="bet-name">
-        <i class="ti ti-device-gamepad-2" style="color:var(--acc);font-size:15px"></i>
-        <span>${bet}</span>
-        <span class="bet-badge">${tickets.length} bilhete${tickets.length!==1?'s':''}</span>
-      </div>
-      <div class="bet-actions" onclick="event.stopPropagation()">
-        <div class="deposit-wrapper">
-          <span class="deposit-label">Banca Inicial R$:</span>
-          <input class="deposit-input" type="number" step="0.01" value="${depVal}" placeholder="0,00" oninput="window.updateDepositValue('${be}', this.value)"/>
-          <span class="deposit-label" style="margin-left:6px;border-left:0.5px solid var(--bdr);padding-left:6px;color:var(--grn)">Atual: <strong id="banca-realtime-${sid}">R$ 0,00</strong></span>
-          <button id="btn-saque-${sid}" class="sacado-btn ${isSacado?'checked':''}" onclick="window.toggleSacado('${be}')">
-            ${isSacado ? '<i class="ti ti-wallet"></i> Sacado' : '<i class="ti ti-cash"></i> Já Saquei'}
-          </button>
-        </div>
-        <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Novo Bilhete</button>
-        <i class="ti ti-chevron-down chevron ${isOpen?'open':''}" id="chev-${sid}"></i>
-      </div>
-    </div>
-    <div id="body-${sid}" style="display:${isOpen?'block':'none'}">
-      ${tickets.length===0
-        ?`<div class="no-tickets">Nenhum bilhete nesta banca.</div>`
-        :`<table class="tickets-table">
-          <thead><tr><th>Tópicos e Palpites por Time</th><th>Odd</th><th>Valor da Aposta</th><th>Tipo de Aposta</th><th>Retorno</th><th>Lucro</th><th>Resultado</th><th></th></tr></thead>
-          <tbody>${tickets.map((t,i)=>{
-            const c=calcTicket(t);
-            const tUniqueId = sid + '_' + (t.id || i);
-            const isNxtOpen = expandedNotes[tUniqueId] !== false; 
-            const isEdOpen = !!openEditors[tUniqueId];
-            const currentFbType = t.fbType || 'none';
-            const lines = (t.notas || '').split('\n');
-            const firstTeam = lines.find(l => l.trim() && !l.startsWith(' ') && !l.startsWith('\t') && !l.startsWith('-') && !l.startsWith('*')) || 'Ver Palpites';
-
-            return`<tr>
-              <td>
-                <div class="ticket-main-wrapper">
-                  <div style="text-align:left;">
-                    <button class="more-details-btn" id="btn-title-${tUniqueId}" onclick="event.stopPropagation(); toggleNote('${tUniqueId}')"><i class="ti ti-ticket" style="color:var(--acc)"></i> <strong>${firstTeam}</strong></button>
-                  </div>
-                  <div class="timeline-container ${isNxtOpen?'open':''}" id="note-container-${tUniqueId}" onclick="event.stopPropagation()">
-                    <div class="timeline-view" id="timeline-view-${tUniqueId}"></div>
-                    <button class="toggle-editor-btn" onclick="toggleEditorBox('${tUniqueId}')">✍️ Editar Tópicos</button>
-                    <div class="timeline-editor ${isEdOpen?'open':''}" id="edit-box-${tUniqueId}">
-                      <textarea class="timeline-textarea" placeholder="Inglaterra&#10; - Mais de 1.5 gols" oninput="window.updateTimelinePreview('${tUniqueId}', this.value, '${be}', ${i})">${t.notas||''}</textarea>
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.odd||''}" placeholder="2.00" oninput="window.liveUpdateMath('${be}',${i},'odd',this.value,'${tUniqueId}')"/></td>
-              <td><input class="cell-input" type="number" step="0.01" value="${t.gasto||''}" placeholder="5" oninput="window.liveUpdateMath('${be}',${i},'gasto',this.value,'${tUniqueId}')"/></td>
-              <td>
-                <select class="fb-select ${currentFbType !== 'none' ? 'active-fb' : ''}" id="sel-fb-${tUniqueId}" onchange="window.changeFbType('${be}', ${i}, '${tUniqueId}', this.value)">
-                  <option value="none" ${currentFbType==='none'?'selected':''}>💰 Dinheiro Real</option>
-                  <option value="total" ${currentFbType==='total'?'selected':''}>🎁 Total Grátis</option>
-                  <option value="partial" ${currentFbType==='partial'?'selected':''}>🎛️ Mista (Grátis + Real)</option>
-                </select>
-                <input class="fb-partial-input" type="number" step="0.01" id="part-input-${tUniqueId}" style="display:${currentFbType==='partial'?'block':'none'}" value="${t.fbPartialVal||''}" placeholder="Valor Grátis R$" oninput="window.liveUpdateMath('${be}',${i},'fbPartialVal',this.value,'${tUniqueId}')"/>
-              </td>
-              <td class="computed" id="ret-${tUniqueId}">${c.retornoTxt}</td>
-              <td class="computed ${c.lucroClass}" id="luc-${tUniqueId}">${c.lucroTxt}</td>
-              <td><select class="result-select ${t.resultado.toLowerCase()}" id="sel-${tUniqueId}" onchange="window.liveUpdateMath('${be}',${i},'resultado',this.value,'${tUniqueId}')">
-                <option value="Pendente" ${t.resultado==='Pendente'?'selected':''}>Pendente</option>
-                <option value="Ganhou" ${t.resultado==='Ganhou'?'selected':''}>Ganhou</option>
-                <option value="Perdeu" ${t.resultado==='Perdeu'?'selected':''}>Perdeu</option>
-              </select></td>
-              <td><button class="del-btn" onclick="deleteTicket('${be}',${i})"><i class="ti ti-trash"></i></button></td>
-            </tr>`;}).join('')}</tbody>
-        </table>`}
-    </div>`;
-  
-  setTimeout(()=>{
-    tickets.forEach((t, i) => {
-      const tUniqueId = sid + '_' + (t.id || i);
-      window.buildTimelineDOM(tUniqueId, t.notas || '', t.checkedItems || {}, bet, i);
-    });
-  }, 10);
-  return section;
-}
-
-function renderAll(){
-  const container=document.getElementById('bets-container');
-  if(!container) return; container.innerHTML='';
-  appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
-  updateGlobals();
-}
-
-window.toggleSection=function(bet){
-  openSections[bet]=openSections[bet]===false;
-  const section=document.getElementById('section-'+safeId(bet));
-  if(section) section.replaceWith(renderBet(bet));
-  updateGlobals();
-};
-
-window.addTicket=function(bet){
-  openSections[bet]=true;
-  if(!appData.tickets[bet])appData.tickets[bet]=[];
-  const newId = Date.now();
-  appData.tickets[bet].push({id:newId,odd:'',gasto:'',resultado:'Pendente',notas:'',checkedItems:{},fbType:'none',fbPartialVal:''});
-  expandedNotes[safeId(bet) + '_' + newId] = true; 
-  openEditors[safeId(bet) + '_' + newId] = true; 
-  renderAll(); scheduleSave();
-};
-
-window.deleteTicket=function(bet,idx){
-  appData.tickets[bet].splice(idx,1);
-  renderAll(); scheduleSave();
-};
-
-window.toggleAddForm=function(){
-  addFormOpen=!addFormOpen;
-  document.getElementById('add-bet-form').classList.toggle('open', addFormOpen);
-};
-
-window.confirmarNovaAposta=function(){
-  const input=document.getElementById('new-bet-input');
-  const nome=input.value.trim();
-  if(!nome)return; appData.bets.push(nome);
-  input.value=''; addFormOpen=false;
-  renderAll(); scheduleSave();
-};
+    function atualizarDadosExemplo() {
+        // Exemplo de como seu backend ou lógica de cálculo pode atualizar o gráfico:
+        // No seu código de atualizarTotais(), basta chamar a função passando as bancas e o lucro acumulado.
+        updateChartData(['Início', 'Banca Semanal', 'Green do FDS', 'Copas'], [0, -35, 145, 90]);
+        document.getElementById('total-gasto').innerText = "R$ 150,00";
+        document.getElementById('total-retorno').innerText = "R$ 240,00";
+        document.getElementById('total-lucro').innerText = "R$ +90,00";
+        document.getElementById('total-lucro').className = "stat-val green";
+        document.getElementById('total-pendentes').innerText = "2";
+    }
 </script>
 </body>
 </html>
