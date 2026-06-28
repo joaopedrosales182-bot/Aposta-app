@@ -485,7 +485,8 @@ async function cloudSave(){
     // Sempre salva local primeiro (garantia)
     localStorage.setItem('ap_v2_'+userDocId(), JSON.stringify(appData));
     if(!db) return showSaving('💾 Salvo local','ok');
-    await setDoc(doc(db,'usuarios',userDocId()),{data:JSON.stringify(appData),updatedAt:Date.now()});
+    const hist = loadHistorico();
+    await setDoc(doc(db,'usuarios',userDocId()),{data:JSON.stringify(appData),historico:JSON.stringify(hist),updatedAt:Date.now()});
     showSaving('✓ Sincronizado','ok');
     const el=document.getElementById('last-update-txt');
     if(el) el.textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -531,6 +532,19 @@ async function cloudLoad(){
 
   // Salva de volta garantindo consistência
   localStorage.setItem('ap_v2_'+userDocId(), JSON.stringify(appData));
+
+  // Tenta carregar histórico do Firebase junto
+  try{
+    const snapH = await getDoc(doc(db,'usuarios',userDocId()));
+    if(snapH&&snapH.exists()&&snapH.data().historico){
+      const remoteHist = JSON.parse(snapH.data().historico);
+      const localHist = loadHistorico();
+      const merged = {};
+      [...localHist,...remoteHist].forEach(d=>{ merged[d.data]=d; });
+      const arr = Object.values(merged).sort((a,b)=>b.data.localeCompare(a.data));
+      try{ localStorage.setItem(getHistKey(), JSON.stringify(arr)); }catch(e){}
+    }
+  }catch(e){}
 }
 
 function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>cloudSave(),800); }
@@ -1391,19 +1405,32 @@ function getHistKey(){ return 'apostas_hist_'+userDocId(); }
 function loadHistorico(){ try{ return JSON.parse(localStorage.getItem(getHistKey())||'[]'); }catch(e){ return []; } }
 function saveHistorico(hist){
   try{ localStorage.setItem(getHistKey(), JSON.stringify(hist)); }catch(e){}
-  if(db){ try{ setDoc(doc(db,'historico',userDocId()),{data:JSON.stringify(hist),updatedAt:Date.now()}); }catch(e){} }
+  // Salva junto com appData no mesmo documento (evita problema de permissão)
+  if(db){
+    try{
+      setDoc(doc(db,'usuarios',userDocId()),{
+        data: JSON.stringify(appData),
+        historico: JSON.stringify(hist),
+        updatedAt: Date.now()
+      });
+    }catch(e){}
+  }
 }
 async function loadHistoricoRemoto(){
   if(!db) return loadHistorico();
   try{
-    const snap = await getDoc(doc(db,'historico',userDocId()));
+    const snap = await getDoc(doc(db,'usuarios',userDocId()));
     if(snap&&snap.exists()){
-      const remote = JSON.parse(snap.data().data);
-      const local = loadHistorico();
-      const merged = {};
-      [...local,...remote].forEach(d=>{ merged[d.data]=d; });
-      const arr = Object.values(merged).sort((a,b)=>b.data.localeCompare(a.data));
-      saveHistorico(arr); return arr;
+      const data = snap.data();
+      // Tenta ler histórico do mesmo documento
+      if(data.historico){
+        const remote = JSON.parse(data.historico);
+        const local = loadHistorico();
+        const merged = {};
+        [...local,...remote].forEach(d=>{ merged[d.data]=d; });
+        const arr = Object.values(merged).sort((a,b)=>b.data.localeCompare(a.data));
+        saveHistorico(arr); return arr;
+      }
     }
   }catch(e){}
   return loadHistorico();
