@@ -19,8 +19,8 @@ body{font-family:system-ui,sans-serif;background:var(--bg0);color:var(--txt);min
 .login-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:15px;font-weight:600;cursor:pointer;width:280px}
 .login-btn:hover{opacity:.9}
 .login-btn:disabled{opacity:.5;cursor:not-allowed}
-#app{display:none;padding:1rem;max-width:1024px;margin:0 auto}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px;padding-top:.5rem}
+#app{display:none;padding:0;max-width:1024px;margin:0 auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px;padding:14px 1rem 12px;background:linear-gradient(135deg,rgba(10,22,40,0.98) 0%,rgba(16,36,68,0.95) 60%,rgba(124,131,253,0.08) 100%);border-bottom:0.5px solid var(--bdr);position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)}
 .topbar h1{color:var(--acc);font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px}
 .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .user-badge{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:20px;padding:5px 14px;font-size:13px;color:var(--txt2);display:flex;align-items:center;gap:8px}
@@ -167,21 +167,6 @@ body.foco-mode .computed:hover { filter:none; }
   padding:10px 24px; font-size:14px; font-weight:600; cursor:pointer; width:180px; }
 .pin-error { color:var(--red); font-size:13px; min-height:18px; }
 
-/* ATALHO RÁPIDO */
-.fab { position:fixed; bottom:24px; right:24px; background:var(--acc); color:#fff;
-  border:none; border-radius:50%; width:52px; height:52px; font-size:24px; cursor:pointer;
-  box-shadow:0 4px 16px rgba(124,131,253,.4); z-index:200; display:none;
-  align-items:center; justify-content:center; transition:transform .2s; }
-.fab:hover { transform:scale(1.1); }
-.fab-menu { position:fixed; bottom:88px; right:24px; background:var(--bg1);
-  border:0.5px solid var(--bdr); border-radius:10px; padding:8px; z-index:200;
-  display:none; flex-direction:column; gap:4px; min-width:200px;
-  box-shadow:0 4px 20px rgba(0,0,0,.3); }
-.fab-menu.open { display:flex; }
-.fab-menu-item { background:transparent; border:none; color:var(--txt); font-size:13px;
-  padding:8px 12px; border-radius:6px; cursor:pointer; text-align:left;
-  display:flex; align-items:center; gap:8px; transition:background .15s; }
-.fab-menu-item:hover { background:var(--bg2); color:var(--acc); }
 
 /* ANÁLISE DE ODDS */
 .odds-panel { margin-top:16px; }
@@ -226,6 +211,21 @@ body.foco-mode .computed:hover { filter:none; }
 .hist-label{color:var(--txt2)}.hist-val{font-weight:700}
 .hist-empty{color:var(--txt2);font-size:13px;text-align:center;padding:20px;font-style:italic}
 
+
+/* SWIPE DELETE */
+.swipe-row{position:relative;overflow:hidden;touch-action:pan-y}
+.swipe-row-inner{transition:transform .2s;background:var(--bg1)}
+.swipe-delete-bg{position:absolute;right:0;top:0;bottom:0;width:80px;background:var(--red-bg);
+  display:flex;align-items:center;justify-content:center;color:var(--red);font-size:20px}
+/* DRAG HANDLE */
+.drag-handle-icon{cursor:grab;color:var(--txt2);padding:0 6px;font-size:18px;flex-shrink:0}
+.drag-handle-icon:active{cursor:grabbing}
+.bet-section.drag-over-top{border-top:2px solid var(--acc)}
+
+/* LOADING */
+.dot-pulse{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:dotPulse 1s infinite ease-in-out}
+@keyframes dotPulse{0%,100%{transform:scale(.6);opacity:.4}50%{transform:scale(1.2);opacity:1}}
+
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){
   .tickets-table thead{display:none}
@@ -240,6 +240,31 @@ body.foco-mode .computed:hover { filter:none; }
 </style>
 </head>
 <body>
+
+<div id="loading-screen" style="display:none;position:fixed;inset:0;background:var(--bg0);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="font-size:52px">🎯</div>
+  <div style="color:var(--acc);font-size:18px;font-weight:700">Controle de Apostas</div>
+  <div style="display:flex;gap:6px;margin-top:8px">
+    <div class="dot-pulse" style="animation-delay:0s"></div>
+    <div class="dot-pulse" style="animation-delay:.15s"></div>
+    <div class="dot-pulse" style="animation-delay:.3s"></div>
+  </div>
+  <div style="color:var(--txt2);font-size:13px" id="loading-msg">Carregando seus dados...</div>
+</div>
+
+
+<!-- MODAL SALVAR DIA -->
+<div id="modal-salvar-dia" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center;padding:1rem">
+  <div style="background:var(--bg1);border:0.5px solid var(--bdr);border-radius:12px;padding:20px;max-width:380px;width:100%">
+    <div style="font-size:14px;font-weight:700;color:var(--acc);margin-bottom:12px;display:flex;align-items:center;gap:8px"><i class="ti ti-device-floppy"></i> Salvar Resultado do Dia</div>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">Adicione uma observação sobre o dia (opcional):</div>
+    <textarea id="obs-dia-input" style="width:100%;background:var(--bg2);border:0.5px solid var(--bdr);border-radius:7px;padding:10px;color:var(--txt);font-size:13px;resize:none;min-height:80px;outline:none;font-family:inherit" placeholder="Ex: Dia difícil, perdi no último minuto. Apostei mais do que devia..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="confirmarSalvarDia()" style="flex:1;background:var(--acc);color:#fff;border:none;border-radius:7px;padding:10px;font-size:13px;font-weight:600;cursor:pointer">Salvar</button>
+      <button onclick="fecharModalSalvarDia()" style="background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:10px 16px;font-size:13px;color:var(--txt2);cursor:pointer">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 <div id="pin-screen">
   <div style="font-size:48px">🔐</div>
@@ -265,7 +290,7 @@ body.foco-mode .computed:hover { filter:none; }
     <div class="topbar-right">
       <div class="user-badge">
         <div class="user-avatar" id="user-avatar">?</div>
-        <span id="username-display"></span>
+        <span id="username-display" style="font-weight:600;background:linear-gradient(90deg,var(--acc),var(--grn));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"></span>
       </div>
       <span class="last-update"><i class="ti ti-clock"></i><span id="last-update-txt">—</span></span>
       <button class="icon-btn" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i><span id="theme-label">Claro</span></button>
@@ -274,6 +299,7 @@ body.foco-mode .computed:hover { filter:none; }
     </div>
   </div>
 
+  <div style="padding:1rem">
   <!-- BUSCA -->
   <div class="search-bar">
     <i class="ti ti-search"></i>
@@ -312,7 +338,7 @@ body.foco-mode .computed:hover { filter:none; }
       <div class="stat-val white" id="total-lucro">R$ 0,00</div>
       <div class="stat-sub"><span class="stat-badge neu" id="badge-roi">ROI: 0%</span></div>
       <div class="stat-progress"><div class="stat-progress-bar" id="lucro-progress" style="width:0%;background:var(--grn)"></div></div>
-      <button class="hist-btn" onclick="event.stopPropagation();salvarDia()" title="Salvar resultado do dia atual"><i class="ti ti-device-floppy"></i> Salvar Dia</button>
+      <button class="hist-btn" onclick="event.stopPropagation();abrirModalSalvarDia()" title="Salvar resultado do dia"><i class="ti ti-device-floppy"></i> Salvar Dia</button>
       <i class="ti ti-chevron-down stat-chevron" id="chev-panel-lucro"></i>
     </div>
     <div class="stat-card clickable" onclick="toggleBreakdown('timeline')" style="border-color:var(--acc);background:rgba(124,131,253,.03)">
@@ -389,6 +415,8 @@ body.foco-mode .computed:hover { filter:none; }
     </div>
     <div class="resumo-period-grid" id="resumo-grid"></div>
     <div class="hist-chart-wrap" id="chart-hist-bar" style="min-height:200px;margin-top:16px"></div>
+    <div style="font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px">📈 Evolução do Lucro Acumulado</div>
+    <div class="hist-chart-wrap" id="chart-hist-area" style="min-height:200px"></div>
   </div>
 
   <!-- HISTÓRICO DIÁRIO -->
@@ -415,9 +443,7 @@ body.foco-mode .computed:hover { filter:none; }
   </div>
 
 
-  <!-- FAB -->
-  <button class="fab" id="fab-btn" onclick="toggleFab()"><i class="ti ti-plus"></i></button>
-  <div class="fab-menu" id="fab-menu">
+
   </div>
   <div class="app-footer">Controle de Apostas Pro · Dados na nuvem · <span id="footer-user"></span></div>
 </div>
@@ -518,6 +544,7 @@ function showSaving(msg,cls){
 window.entrar=async function(){
   const v=document.getElementById('username-input').value.trim();
   if(!v) return;
+  showLoading('Buscando seus dados na nuvem...');
   const btn=document.getElementById('btn-entrar');
   btn.disabled=true; btn.textContent='Carregando...';
   currentUser=v;
@@ -528,18 +555,22 @@ window.entrar=async function(){
   document.getElementById('footer-user').textContent=v;
   const av=document.getElementById('user-avatar');
   av.textContent=v.charAt(0).toUpperCase(); av.style.background=avatarColor(v);
+  hideLoading();
   btn.disabled=false; btn.textContent='Entrar';
-  // Verifica se tem PIN
+  // Sempre mostra PIN (cadastro ou verificação)
   const hasPwd = localStorage.getItem(getPinKey(v));
-  if(hasPwd !== null){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='none';
-    document.getElementById('pin-screen').style.display='flex';
-    document.getElementById('pin-msg').textContent='Bem-vindo de volta, '+v+'! Digite seu PIN.';
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='none';
+  document.getElementById('pin-screen').style.display='flex';
+  if(!hasPwd){
+    document.getElementById('pin-msg').textContent='Olá, '+v+'! Crie um PIN de 4+ dígitos para proteger sua conta.';
+  } else {
+    document.getElementById('pin-msg').textContent='Bem-vindo de volta, '+v+'!';
   }
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-error').textContent='';
+  setTimeout(()=>document.getElementById('pin-input').focus(),100);
   renderAll();
-  buildFabMenu();
-  document.getElementById('fab-btn').style.display='flex';
 };
 
 window.sair=function(){
@@ -940,7 +971,8 @@ function renderBet(bet){
   section.innerHTML=`
     <div class="bet-header" onclick="toggleSection('${be}')">
       <div class="bet-name">
-        <i class="ti ti-device-gamepad-2" style="color:var(--acc);font-size:15px"></i>
+        <i class="ti ti-grip-vertical drag-handle-icon" title="Arrastar para reordenar"></i>
+        ${getBetIcon(bet)}
         <span>${bet}</span>
         <span class="bet-badge">${tickets.length} bilhete${tickets.length!==1?'s':''}</span>
         ${lucroB!==0?`<span class="bet-badge" style="color:${lucroColor};border-color:${lucroColor}44">${lucroB>0?'↑':'↓'} ${fmt(Math.abs(lucroB))}</span>`:''}
@@ -1006,10 +1038,14 @@ function renderBet(bet){
         </table>`}
     </div>`;
 
+  setupDragBet(section, bet);
   setTimeout(()=>{
     tickets.forEach((t,i)=>{
       const uid=sid+'_'+(t.id||i);
       window.buildTimelineDOM(uid,t.notas||'',t.checkedItems||{},bet,i);
+      // Swipe to delete no mobile
+      const trEl=section.querySelector(`tr:nth-child(${i+1})`);
+      if(trEl) setupSwipeDelete(trEl, bet, i);
     });
   },10);
   return section;
@@ -1021,7 +1057,7 @@ function renderAll(){
   container.innerHTML='';
   appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
   updateGlobals();
-  buildFabMenu();
+  // buildFabMenu removido
 }
 
 window.toggleSection=function(bet){
@@ -1077,7 +1113,7 @@ window.verificarPin = function(){
     localStorage.setItem(getPinKey(currentUser), pin);
     document.getElementById('pin-screen').style.display = 'none';
     document.getElementById('app').style.display = 'block';
-    showSaving('✓ PIN definido com sucesso!','ok');
+    showSaving('✓ PIN definido! Lembre-se dele para próximos acessos.','ok');
   } else {
     if(pin === savedPin){
       document.getElementById('pin-screen').style.display = 'none';
@@ -1227,19 +1263,22 @@ function calcResumo(hist, periodo){
   const inicioSemana = getInicioSemana();
   const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
 
-  return hist.filter(d=>{
+  const filtered = hist.filter(d=>{
     const dt = parseDateBR(d.data);
     if(periodo==='semana') return dt>=inicioSemana && dt<=hoje;
     if(periodo==='mes') return dt>=inicioMes && dt<=hoje;
     return true;
-  }).reduce((acc, d)=>{
+  });
+  // Lucro acumulado total (todos os dias, independente do período)
+  const lucroAcumuladoTotal = hist.reduce((a,d)=>a+(d.lucro||0),0);
+  return filtered.reduce((acc, d)=>{
     acc.lucro += (d.lucro||0);
     acc.gasto += (d.gasto||0);
     acc.ganhou += (d.ganhou||0);
     acc.perdeu += (d.perdeu||0);
     acc.dias++;
     return acc;
-  }, {lucro:0, gasto:0, ganhou:0, perdeu:0, dias:0});
+  }, {lucro:0, gasto:0, ganhou:0, perdeu:0, dias:0, lucroAcumulado:lucroAcumuladoTotal});
 }
 
 window.toggleResumo = function(){
@@ -1264,10 +1303,36 @@ function renderResumo(){
     <div class="resumo-period-card"><div class="resumo-period-label">✓ Ganhou</div><div class="resumo-period-val" style="color:var(--grn)">${res.ganhou}</div></div>
     <div class="resumo-period-card"><div class="resumo-period-label">✗ Perdeu</div><div class="resumo-period-val" style="color:var(--red)">${res.perdeu}</div></div>
     <div class="resumo-period-card"><div class="resumo-period-label">Dias salvos</div><div class="resumo-period-val" style="color:var(--acc)">${res.dias}</div></div>
+    <div class="resumo-period-card" style="border-color:var(--acc)"><div class="resumo-period-label" style="color:var(--acc)">📊 Lucro Acumulado Total</div><div class="resumo-period-val" style="color:${res.lucroAcumulado>=0?'var(--grn)':'var(--red)'}">${res.lucroAcumulado>=0?'+':''}R$ ${Math.abs(res.lucroAcumulado||0).toFixed(2).replace('.',',')}</div></div>
   `;
 
-  // Gráfico de barras dos dias
+  // Histórico de dias detalhado
+  const histGrid = document.getElementById('hist-grid');
+  if(histGrid){
+    if(!hist.length){
+      histGrid.innerHTML='<div style="color:var(--txt2);font-size:13px;padding:16px;font-style:italic">Nenhum dia salvo ainda.</div>';
+    } else {
+      histGrid.innerHTML = hist.map(d=>{
+        const lucroColor=d.lucro>0?'var(--grn)':d.lucro<0?'var(--red)':'var(--txt)';
+        const emoji=d.lucro>0?'📈':d.lucro<0?'📉':'➡️';
+        const roi=d.gasto>0?((d.lucro/d.gasto)*100).toFixed(1):0;
+        return `<div class="hist-card">
+          <div class="hist-date">${emoji} ${d.data} <span style="color:var(--txt2);font-weight:400">${d.hora||''}</span></div>
+          <div class="hist-row"><span class="hist-label">Lucro/Prejuízo</span><span class="hist-val" style="color:${lucroColor}">${d.lucro>=0?'+':''}R$ ${Math.abs(d.lucro).toFixed(2).replace('.',',')}</span></div>
+          <div class="hist-row"><span class="hist-label">Gasto Real</span><span class="hist-val">R$ ${(d.gasto||0).toFixed(2).replace('.',',')}</span></div>
+          <div class="hist-row"><span class="hist-label">ROI</span><span class="hist-val" style="color:${roi>0?'var(--grn)':roi<0?'var(--red)':'var(--txt)'}">${roi>0?'+':''}${roi}%</span></div>
+          <div class="hist-row"><span class="hist-label">Taxa acerto</span><span class="hist-val" style="color:var(--acc)">${d.taxaAcerto||0}%</span></div>
+          <div class="hist-row"><span class="hist-label" style="color:var(--grn)">✓ Ganhou</span><span class="hist-val" style="color:var(--grn)">${d.ganhou}</span></div>
+          <div class="hist-row"><span class="hist-label" style="color:var(--red)">✗ Perdeu</span><span class="hist-val" style="color:var(--red)">${d.perdeu}</span></div>
+          ${d.obs?`<div style="margin-top:8px;padding:6px 8px;background:rgba(124,131,253,.08);border-left:2px solid var(--acc);border-radius:4px;font-size:11px;color:var(--txt2);font-style:italic">${d.obs}</div>`:''}
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Gráfico de barras e de ondas dos dias
   renderHistBarChart(hist);
+  renderHistAreaChart(hist);
 }
 
 function renderHistBarChart(hist){
@@ -1344,7 +1409,8 @@ async function loadHistoricoRemoto(){
   return loadHistorico();
 }
 
-window.salvarDia = function(){
+window.salvarDia = window.abrirModalSalvarDia; // compatibilidade
+function _salvarDiaLegado(){
   const hoje = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
   const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
   let lucroTotal=0,gastoTotal=0,ganhou=0,perdeu=0,pendentes=0,retornoTotal=0;
@@ -1376,6 +1442,176 @@ window.limparHistorico=function(){
   if(!confirm('Apagar todo o histórico?')) return;
   saveHistorico([]); renderResumo();
 };
+
+
+function showLoading(msg){ 
+  document.getElementById('loading-screen').style.display='flex';
+  document.getElementById('loading-msg').textContent=msg||'Carregando...';
+}
+function hideLoading(){ document.getElementById('loading-screen').style.display='none'; }
+
+// ═══════════════════════════════════════════════════════
+// ÍCONES DAS CASAS DE APOSTA
+// ═══════════════════════════════════════════════════════
+const BET_LOGOS = {
+  'betano': 'https://logo.clearbit.com/betano.com',
+  'bet365': 'https://logo.clearbit.com/bet365.com',
+  'superbet': 'https://logo.clearbit.com/superbet.com',
+  'sportingbet': 'https://logo.clearbit.com/sportingbet.com',
+  'betmgm': 'https://logo.clearbit.com/betmgm.com',
+  'kto': 'https://logo.clearbit.com/kto.com',
+  'novibet': 'https://logo.clearbit.com/novibet.com',
+  'estrelabet': 'https://logo.clearbit.com/estrelabet.com',
+  'betnacional': 'https://logo.clearbit.com/betnacional.com',
+  'betesporte': 'https://logo.clearbit.com/betesporte.com',
+  'pixbet': 'https://logo.clearbit.com/pixbet.com',
+};
+
+function getBetIcon(bet){
+  const key = bet.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const url = BET_LOGOS[key];
+  if(url) return `<img src="${url}" onerror="this.style.display='none'" style="width:16px;height:16px;border-radius:3px;object-fit:contain;flex-shrink:0" loading="lazy"/>`;
+  return `<i class="ti ti-device-gamepad-2" style="color:var(--acc);font-size:15px"></i>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// DRAG AND DROP — REORDENAR BANCAS
+// ═══════════════════════════════════════════════════════
+let dragSrcBet = null;
+
+function setupDragBet(section, bet){
+  section.draggable = true;
+  const handle = section.querySelector('.drag-handle-icon');
+
+  section.addEventListener('dragstart', e=>{
+    dragSrcBet = bet;
+    section.style.opacity = '0.5';
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  section.addEventListener('dragend', ()=>{
+    section.style.opacity = '1';
+    document.querySelectorAll('.bet-section').forEach(s=>s.classList.remove('drag-over-top','drag-over-bot'));
+  });
+  section.addEventListener('dragover', e=>{
+    if(!dragSrcBet || dragSrcBet===bet) return;
+    e.preventDefault();
+    document.querySelectorAll('.bet-section').forEach(s=>s.classList.remove('drag-over-top'));
+    section.classList.add('drag-over-top');
+  });
+  section.addEventListener('drop', e=>{
+    if(!dragSrcBet || dragSrcBet===bet) return;
+    e.preventDefault();
+    const from = appData.bets.indexOf(dragSrcBet);
+    const to = appData.bets.indexOf(bet);
+    if(from<0||to<0) return;
+    appData.bets.splice(from,1);
+    appData.bets.splice(to,0,dragSrcBet);
+    dragSrcBet = null;
+    renderAll();
+    scheduleSave();
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL SALVAR DIA
+// ═══════════════════════════════════════════════════════
+window.abrirModalSalvarDia = function(){
+  document.getElementById('obs-dia-input').value='';
+  document.getElementById('modal-salvar-dia').style.display='flex';
+  setTimeout(()=>document.getElementById('obs-dia-input').focus(),100);
+};
+window.fecharModalSalvarDia = function(){
+  document.getElementById('modal-salvar-dia').style.display='none';
+};
+window.confirmarSalvarDia = function(){
+  const obs = document.getElementById('obs-dia-input').value.trim();
+  fecharModalSalvarDia();
+  salvarDiaComObs(obs);
+};
+
+function salvarDiaComObs(obs){
+  const hoje = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hora = new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let lucroTotal=0,gastoTotal=0,ganhou=0,perdeu=0,pendentes=0,retornoTotal=0,allOdds=[];
+  appData.bets.forEach(bet=>{
+    (appData.tickets[bet]||[]).forEach(t=>{
+      const c=calcTicket(t);
+      if(t.resultado==='Ganhou'){ lucroTotal+=c.lucro; gastoTotal+=c.gastoLiquido; ganhou++; if(c.odd>0)allOdds.push(c.odd); }
+      else if(t.resultado==='Perdeu'){ lucroTotal+=c.lucro; gastoTotal+=c.gastoLiquido; perdeu++; if(c.odd>0)allOdds.push(c.odd); }
+      else{ pendentes++; retornoTotal+=c.retorno; }
+    });
+  });
+  const taxaAcerto=(ganhou+perdeu)>0?(ganhou/(ganhou+perdeu)*100):0;
+  const oddMedia=allOdds.length?(allOdds.reduce((a,b)=>a+b,0)/allOdds.length):0;
+  const entrada={data:hoje,hora,lucro:parseFloat(lucroTotal.toFixed(2)),gasto:parseFloat(gastoTotal.toFixed(2)),
+    taxaAcerto:parseFloat(taxaAcerto.toFixed(1)),ganhou,perdeu,pendentes,obs:obs||'',
+    retorno:parseFloat(retornoTotal.toFixed(2)),oddMedia:parseFloat(oddMedia.toFixed(2))};
+  const hist=loadHistorico();
+  const idx=hist.findIndex(h=>h.data===hoje);
+  if(idx>=0){ hist[idx]=entrada; } else { hist.unshift(entrada); }
+  saveHistorico(hist);
+  showSaving('✓ Dia salvo: '+hoje,'ok');
+  document.getElementById('panel-resumo').classList.add('open');
+  renderResumo();
+}
+
+function renderHistAreaChart(hist){
+  const container = document.getElementById('chart-hist-area');
+  if(!container || !hist.length) return;
+  container.innerHTML = '';
+  const isL = document.documentElement.classList.contains('light');
+  const tc = isL?'#1e2a4a':'#cbd5e1';
+  const sorted = [...hist].sort((a,b)=>parseDateBR(a.data)-parseDateBR(b.data));
+  let cum = 0;
+  const seriesData = sorted.map(d=>{ cum+=d.lucro||0; return parseFloat(cum.toFixed(2)); });
+  const lastVal = seriesData[seriesData.length-1]||0;
+  const lineColor = lastVal>=0?'#34d399':'#f87171';
+  const opts = {
+    series:[{name:'Lucro Acumulado',data:seriesData}],
+    chart:{type:'area',height:200,fontFamily:'system-ui,sans-serif',toolbar:{show:false},background:'transparent',animations:{enabled:true,easing:'easeinout',speed:800}},
+    colors:[lineColor],
+    stroke:{curve:'smooth',width:2},
+    fill:{type:'gradient',gradient:{shadeIntensity:1,opacityFrom:.35,opacityTo:.02,stops:[0,100]}},
+    markers:{size:3,colors:[lineColor],strokeColors:isL?'#fff':'#0a1628',strokeWidth:2},
+    grid:{borderColor:isL?'#e8eeff':'#1e3a5f',strokeDashArray:3},
+    xaxis:{categories:sorted.map(d=>d.data.slice(0,5)),labels:{style:{colors:tc,fontSize:'10px'}},axisBorder:{show:false}},
+    yaxis:{labels:{style:{colors:tc},formatter:v=>'R$ '+v.toFixed(0)}},
+    theme:{mode:isL?'light':'dark'},
+    annotations:{yaxis:[{y:0,borderColor:'#94a3b8',borderWidth:1,strokeDashArray:3}]},
+    tooltip:{theme:isL?'light':'dark',y:{formatter:v=>'R$ '+v.toFixed(2).replace('.',',')}}
+  };
+  let ac = null;
+  if(ac){ ac.destroy(); ac=null; }
+  ac = new ApexCharts(container,opts);
+  ac.render();
+}
+
+
+// ═══════════════════════════════════════════════════════
+// SWIPE TO DELETE (mobile)
+// ═══════════════════════════════════════════════════════
+function setupSwipeDelete(trEl, bet, idx){
+  let startX=0, currentX=0, swiping=false;
+  trEl.addEventListener('touchstart', e=>{ startX=e.touches[0].clientX; swiping=true; }, {passive:true});
+  trEl.addEventListener('touchmove', e=>{
+    if(!swiping) return;
+    currentX = e.touches[0].clientX - startX;
+    if(currentX < -20){ trEl.style.transform=`translateX(${Math.max(currentX,-80)}px)`; trEl.style.background='rgba(76,5,25,0.3)'; }
+  }, {passive:true});
+  trEl.addEventListener('touchend', ()=>{
+    if(currentX < -60){
+      trEl.style.transition='transform .3s,opacity .3s';
+      trEl.style.transform='translateX(-100%)';
+      trEl.style.opacity='0';
+      setTimeout(()=>{ deleteTicket(bet,idx); },300);
+    } else {
+      trEl.style.transition='transform .2s';
+      trEl.style.transform='';
+      trEl.style.background='';
+    }
+    swiping=false; currentX=0;
+  });
+}
 
 window.confirmarNovaAposta=function(){
   const input=document.getElementById('new-bet-input');
