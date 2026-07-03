@@ -4,6 +4,13 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Controle de Apostas Pro</title>
+<meta name="theme-color" content="#0a1628"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Apostas Pro"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2442/2442589.png"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
@@ -226,6 +233,33 @@ body.foco-mode .computed:hover { filter:none; }
 .dot-pulse{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:dotPulse 1s infinite ease-in-out}
 @keyframes dotPulse{0%,100%{transform:scale(.6);opacity:.4}50%{transform:scale(1.2);opacity:1}}
 
+
+/* OFFLINE INDICATOR */
+.offline-bar{position:fixed;top:0;left:0;right:0;background:#f87171;color:#fff;text-align:center;
+  font-size:12px;font-weight:600;padding:6px;z-index:9999;display:none;align-items:center;
+  justify-content:center;gap:6px;animation:slideDown .3s ease}
+.offline-bar.visible{display:flex}
+.online-bar{background:#34d399}
+@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+
+/* INSTALL PWA BANNER */
+.install-banner{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  background:var(--bg1);border:0.5px solid var(--acc);border-radius:12px;
+  padding:12px 20px;display:none;align-items:center;gap:12px;z-index:300;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);max-width:340px;width:90%}
+.install-banner.visible{display:flex}
+.install-banner-text{flex:1;font-size:13px;color:var(--txt)}
+.install-banner-text strong{color:var(--acc);display:block;margin-bottom:2px}
+.install-btn{background:var(--acc);color:#fff;border:none;border-radius:8px;
+  padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.install-close{background:transparent;border:none;color:var(--txt2);cursor:pointer;font-size:18px;padding:2px}
+
+/* SYNC QUEUE INDICATOR */
+.sync-badge{position:fixed;top:12px;right:12px;background:var(--yel-bg);border:0.5px solid var(--yel);
+  color:var(--yel);font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;
+  z-index:500;display:none;align-items:center;gap:4px}
+.sync-badge.visible{display:flex}
+
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){
   .tickets-table thead{display:none}
@@ -274,6 +308,19 @@ body.foco-mode .computed:hover { filter:none; }
   <button class="pin-btn" onclick="verificarPin()">Entrar</button>
   <div class="pin-error" id="pin-error"></div>
   <button style="margin-top:8px;background:transparent;border:none;color:var(--txt2);font-size:12px;cursor:pointer" onclick="voltarLogin()">← Voltar ao login</button>
+</div>
+
+<div class="offline-bar" id="offline-bar">
+  <i class="ti ti-wifi-off"></i> Sem conexão — suas apostas estão sendo salvas localmente
+</div>
+<div class="sync-badge" id="sync-badge"><i class="ti ti-cloud-upload"></i> <span id="sync-count">0</span> pendente(s)</div>
+<div class="install-banner" id="install-banner">
+  <div class="install-banner-text">
+    <strong>📲 Instalar como App</strong>
+    Adicione à tela inicial para acesso rápido e modo offline
+  </div>
+  <button class="install-btn" onclick="instalarPWA()">Instalar</button>
+  <button class="install-close" onclick="fecharInstallBanner()">×</button>
 </div>
 
 <div id="login-screen">
@@ -405,7 +452,8 @@ body.foco-mode .computed:hover { filter:none; }
     <div class="hist-title">
       <span><i class="ti ti-calendar-month"></i> Resumo por Período</span>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="export-btn" onclick="exportarHistorico()"><i class="ti ti-download"></i> Exportar</button>
+        <button class="export-btn" onclick="exportarHistorico()"><i class="ti ti-download"></i> Exportar CSV</button>
+        <button class="export-btn" onclick="compartilharResultado()" style="border-color:var(--grn);color:var(--grn)"><i class="ti ti-share"></i> Compartilhar</button>
         <button class="icon-btn" onclick="limparHistorico()" style="font-size:11px;padding:3px 8px"><i class="ti ti-trash"></i> Limpar</button>
       </div>
     </div>
@@ -549,7 +597,7 @@ async function cloudLoad(){
   }catch(e){}
 }
 
-function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>cloudSave(),800); }
+// scheduleSave redefinida no bloco PWA
 function showSaving(msg,cls){
   const el=document.getElementById('saving-indicator');
   if(!el) return; el.textContent=msg; el.className='saving-indicator '+cls;
@@ -1641,6 +1689,226 @@ function setupSwipeDelete(trEl, bet, idx){
     swiping=false; currentX=0;
   });
 }
+
+
+// ═══════════════════════════════════════════════════════
+// PWA — SERVICE WORKER + INSTALL + OFFLINE
+// ═══════════════════════════════════════════════════════
+let deferredPrompt = null;
+let offlineQueue = []; // Saves pendentes enquanto offline
+
+// Registrar service worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      console.log('SW registrado:', reg.scope);
+      // Verificar atualizações a cada 30min
+      setInterval(()=>reg.update(), 30*60*1000);
+    }).catch(e=>console.log('SW erro:', e));
+  });
+}
+
+// Detectar instalação PWA
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  // Só mostra banner se nunca instalou
+  if(!localStorage.getItem('pwa_installed')){
+    setTimeout(()=>{
+      const banner = document.getElementById('install-banner');
+      if(banner) banner.classList.add('visible');
+    }, 3000);
+  }
+});
+
+window.addEventListener('appinstalled', ()=>{
+  localStorage.setItem('pwa_installed','1');
+  fecharInstallBanner();
+  showSaving('✓ App instalado com sucesso!','ok');
+});
+
+window.instalarPWA = function(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(r=>{
+    if(r.outcome==='accepted') localStorage.setItem('pwa_installed','1');
+    deferredPrompt = null;
+    fecharInstallBanner();
+  });
+};
+
+window.fecharInstallBanner = function(){
+  const b = document.getElementById('install-banner');
+  if(b) b.classList.remove('visible');
+  localStorage.setItem('pwa_dismissed','1');
+};
+
+// ── ONLINE / OFFLINE ──────────────────────────────────
+function atualizarStatusOnline(online){
+  const bar = document.getElementById('offline-bar');
+  if(!bar) return;
+  if(online){
+    bar.innerHTML = '<i class="ti ti-wifi"></i> Conexão restaurada! Sincronizando...';
+    bar.className = 'offline-bar online-bar visible';
+    setTimeout(()=>bar.classList.remove('visible'), 3000);
+    // Sincronizar fila de saves pendentes
+    if(offlineQueue.length > 0){
+      offlineQueue = [];
+      atualizarSyncBadge();
+      cloudSave();
+    }
+  } else {
+    bar.innerHTML = '<i class="ti ti-wifi-off"></i> Sem conexão — suas apostas estão sendo salvas localmente';
+    bar.className = 'offline-bar visible';
+  }
+}
+
+window.addEventListener('online', ()=>atualizarStatusOnline(true));
+window.addEventListener('offline', ()=>atualizarStatusOnline(false));
+
+// Verificar status ao carregar
+if(!navigator.onLine) atualizarStatusOnline(false);
+
+function atualizarSyncBadge(){
+  const badge = document.getElementById('sync-badge');
+  const count = document.getElementById('sync-count');
+  if(!badge || !count) return;
+  if(offlineQueue.length > 0){
+    count.textContent = offlineQueue.length;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+// Sobrescrever scheduleSave para suportar offline
+const _originalCloudSave = cloudSave;
+async function cloudSaveWithOffline(){
+  if(!navigator.onLine){
+    // Salva local e adiciona à fila
+    try{ localStorage.setItem('ap_v2_'+userDocId(), JSON.stringify({...appData, lastModified:Date.now()})); }catch(e){}
+    if(!offlineQueue.includes('main')) offlineQueue.push('main');
+    atualizarSyncBadge();
+    showSaving('💾 Salvo localmente (offline)','ok');
+    return;
+  }
+  await _originalCloudSave();
+  offlineQueue = [];
+  atualizarSyncBadge();
+}
+
+// Patch scheduleSave
+function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>cloudSaveWithOffline(),800); }
+
+// ═══════════════════════════════════════════════════════
+// COMPARTILHAR RESULTADO COMO IMAGEM
+// ═══════════════════════════════════════════════════════
+window.compartilharResultado = function(){
+  const hist = loadHistorico();
+  const periodo = periodoAtivo || 'total';
+  const res = calcResumo(hist, periodo);
+  const hoje = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const lucroColor = res.lucro>0?'#34d399':res.lucro<0?'#f87171':'#94a3b8';
+  const emoji = res.lucro>0?'📈':res.lucro<0?'📉':'➡️';
+  const roi = res.gasto>0?((res.lucro/res.gasto)*100).toFixed(1):0;
+  const taxa = (res.ganhou+res.perdeu)>0?(res.ganhou/(res.ganhou+res.perdeu)*100).toFixed(1):0;
+  const periodoLabel = periodo==='semana'?'Esta Semana':periodo==='mes'?'Este Mês':'Total';
+
+  // Criar canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 800; canvas.height = 500;
+  const ctx = canvas.getContext('2d');
+
+  // Fundo gradiente
+  const grad = ctx.createLinearGradient(0,0,800,500);
+  grad.addColorStop(0,'#0a1628');
+  grad.addColorStop(1,'#0d1f3c');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,800,500);
+
+  // Borda
+  ctx.strokeStyle = '#1e3a5f';
+  ctx.lineWidth = 2;
+  ctx.roundRect(8,8,784,484,16);
+  ctx.stroke();
+
+  // Linha decorativa
+  const lineGrad = ctx.createLinearGradient(40,0,760,0);
+  lineGrad.addColorStop(0,'#7c83fd');
+  lineGrad.addColorStop(1,'#34d399');
+  ctx.fillStyle = lineGrad;
+  ctx.fillRect(40,60,720,3);
+
+  // Título
+  ctx.fillStyle = '#7c83fd';
+  ctx.font = 'bold 18px system-ui';
+  ctx.fillText('🎯 Controle de Apostas Pro', 40, 44);
+
+  // Usuário + período
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px system-ui';
+  ctx.fillText(currentUser + ' · ' + periodoLabel + ' · ' + hoje, 40, 100);
+
+  // Lucro principal
+  ctx.fillStyle = lucroColor;
+  ctx.font = 'bold 56px system-ui';
+  const lucroStr = emoji + ' ' + (res.lucro>=0?'+':'') + 'R$ ' + Math.abs(res.lucro).toFixed(2).replace('.',',');
+  ctx.fillText(lucroStr, 40, 180);
+
+  // Stats grid
+  const stats = [
+    ['Gasto Real', 'R$ '+res.gasto.toFixed(2).replace('.',','), '#cbd5e1'],
+    ['ROI', (roi>0?'+':'')+roi+'%', roi>=0?'#34d399':'#f87171'],
+    ['Taxa Acerto', taxa+'%', '#7c83fd'],
+    ['✓ Ganhou', res.ganhou+'', '#34d399'],
+    ['✗ Perdeu', res.perdeu+'', '#f87171'],
+    ['Dias', res.dias+'', '#fcd34d'],
+  ];
+
+  stats.forEach((s,i)=>{
+    const x = 40 + (i%3)*250;
+    const y = 240 + Math.floor(i/3)*100;
+    ctx.fillStyle = '#0f2444';
+    ctx.roundRect(x, y, 220, 80, 10);
+    ctx.fill();
+    ctx.strokeStyle = '#1e3a5f';
+    ctx.lineWidth = 1;
+    ctx.roundRect(x, y, 220, 80, 10);
+    ctx.stroke();
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px system-ui';
+    ctx.fillText(s[0].toUpperCase(), x+12, y+22);
+    ctx.fillStyle = s[2];
+    ctx.font = 'bold 22px system-ui';
+    ctx.fillText(s[1], x+12, y+58);
+  });
+
+  // Rodapé
+  ctx.fillStyle = '#1e3a5f';
+  ctx.fillRect(40, 460, 720, 1);
+  ctx.fillStyle = '#4a5568';
+  ctx.font = '12px system-ui';
+  ctx.fillText('aposta-app-a2wb.vercel.app', 40, 482);
+  ctx.textAlign = 'right';
+  ctx.fillText('gerado em '+hoje, 760, 482);
+
+  // Baixar/compartilhar
+  canvas.toBlob(blob=>{
+    const url = URL.createObjectURL(blob);
+    if(navigator.share && navigator.canShare({files:[new File([blob],'resultado.png',{type:'image/png'})]})){
+      navigator.share({
+        title:'Meus resultados — Controle de Apostas',
+        text:lucroStr,
+        files:[new File([blob],'resultado.png',{type:'image/png'})]
+      }).catch(()=>{});
+    } else {
+      const a = document.createElement('a');
+      a.href = url; a.download = 'resultado_'+currentUser+'_'+hoje.replace(/\//g,'-')+'.png';
+      a.click();
+    }
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  },'image/png');
+};
 
 // ═══════════════════════════════════════════════════════
 // APAGAR TODAS AS APOSTAS
