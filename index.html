@@ -295,6 +295,7 @@ body.foco-mode .computed:hover { filter:none; }
       <span class="last-update"><i class="ti ti-clock"></i><span id="last-update-txt">—</span></span>
       <button class="icon-btn" onclick="toggleTheme()"><i class="ti ti-sun" id="theme-icon"></i><span id="theme-label">Claro</span></button>
       <button class="icon-btn foco-btn" id="foco-btn" onclick="toggleFoco()"><i class="ti ti-eye-off"></i> Foco</button>
+      <button class="icon-btn danger" onclick="confirmarApagarTudo()"><i class="ti ti-trash-x"></i> Apagar Tudo</button>
       <button class="icon-btn danger" onclick="sair()"><i class="ti ti-logout"></i> Sair</button>
     </div>
   </div>
@@ -482,6 +483,7 @@ function safeId(bet){ return 'b_'+bet.replace(/[^a-zA-Z0-9]/g,'_'); }
 // ── SAVE / LOAD ──────────────────────────────────────────
 async function cloudSave(){
   try{
+    appData.lastModified = Date.now();
     // Sempre salva local primeiro (garantia)
     localStorage.setItem('ap_v2_'+userDocId(), JSON.stringify(appData));
     if(!db) return showSaving('💾 Salvo local','ok');
@@ -500,16 +502,16 @@ async function cloudLoad(){
     if(loc) appData=JSON.parse(loc);
   }catch(e){}
 
-  // 2. Tenta Firebase — usa o que tiver mais dados
+  // 2. Tenta Firebase — usa SEMPRE a versão mais recente (por timestamp)
   if(db){
     try{
       const snap=await getDoc(doc(db,'usuarios',userDocId()));
       if(snap && snap.exists()){
         const remote=JSON.parse(snap.data().data);
-        const remoteTickets=Object.values(remote.tickets||{}).flat().length;
-        const localTickets=Object.values(appData.tickets||{}).flat().length;
-        // Firebase vence se tiver mais bilhetes ou se local estiver vazio
-        if(remoteTickets>=localTickets) appData=remote;
+        const remoteTime = remote.lastModified || snap.data().updatedAt || 0;
+        const localTime = appData.lastModified || 0;
+        // O dado mais recente sempre vence, independente de quantos bilhetes tem
+        if(remoteTime >= localTime) appData=remote;
       }
     }catch(e){}
   }
@@ -1639,6 +1641,21 @@ function setupSwipeDelete(trEl, bet, idx){
     swiping=false; currentX=0;
   });
 }
+
+// ═══════════════════════════════════════════════════════
+// APAGAR TODAS AS APOSTAS
+// ═══════════════════════════════════════════════════════
+window.confirmarApagarTudo = function(){
+  const ok1 = confirm('⚠️ Isso vai apagar TODAS as suas apostas, bilhetes e bancas. Esta ação não pode ser desfeita.\n\nTem certeza que quer continuar?');
+  if(!ok1) return;
+  const ok2 = confirm('Última confirmação: todos os dados de apostas serão excluídos permanentemente (o histórico de dias salvos NÃO será afetado).\n\nApagar tudo agora?');
+  if(!ok2) return;
+
+  appData = { bets:[...DEFAULT_BETS], tickets:{}, deposits:{}, withdrawals:{}, lastModified: Date.now() };
+  renderAll();
+  scheduleSave();
+  showSaving('🗑️ Todas as apostas foram apagadas','ok');
+};
 
 window.confirmarNovaAposta=function(){
   const input=document.getElementById('new-bet-input');
