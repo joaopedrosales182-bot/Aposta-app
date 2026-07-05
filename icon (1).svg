@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a0a3d"/>
+      <stop offset="100%" stop-color="#060212"/>
+    </radialGradient>
+    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9333ea" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+    <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#e9d5ff"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="strongglow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="arrowglow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0.8 0 0.8 0 0.2  0 0 0.8 0 0  0.8 0 0.8 0 0.8  0 0 0 1 0"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="chartClip">
+      <rect x="30" y="80" width="460" height="360"/>
+    </clipPath>
+  </defs>
+
+  <!-- Fundo -->
+  <rect width="512" height="512" rx="88" fill="url(#bgGrad)"/>
+
+  <!-- Brilho central sutil -->
+  <ellipse cx="256" cy="260" rx="220" ry="180" fill="#4c1d95" opacity="0.08"/>
+
+  <!-- GRID LINES — horizontais -->
+  <g opacity="0.18" stroke="#7c3aed" stroke-width="1">
+    <line x1="50" y1="380" x2="475" y2="380"/>
+    <line x1="50" y1="310" x2="475" y2="310"/>
+    <line x1="50" y1="240" x2="475" y2="240"/>
+    <line x1="50" y1="170" x2="475" y2="170"/>
+    <line x1="50" y1="100" x2="475" y2="100"/>
+  </g>
+  <!-- Grid vertical -->
+  <g opacity="0.12" stroke="#7c3aed" stroke-width="1">
+    <line x1="50" y1="95" x2="50" y2="385"/>
+    <line x1="155" y1="95" x2="155" y2="385"/>
+    <line x1="260" y1="95" x2="260" y2="385"/>
+    <line x1="365" y1="95" x2="365" y2="385"/>
+    <line x1="470" y1="95" x2="470" y2="385"/>
+  </g>
+
+  <!-- ÁREA PREENCHIDA DO GRÁFICO -->
+  <!-- Os pontos do gráfico: subindo até o pico no alvo -->
+  <polygon
+    points="50,380 50,355 105,340 155,348 205,315 250,318 295,278 330,282 365,230 365,380"
+    fill="url(#areaGrad)"
+    clip-path="url(#chartClip)"
+  />
+
+  <!-- LINHA DO GRÁFICO — sobe e tem pico exatamente no centro do alvo -->
+  <polyline
+    points="50,355 105,340 155,348 205,315 250,318 295,278 330,282 365,230"
+    fill="none"
+    stroke="url(#chartGrad)"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#glow)"
+  />
+
+  <!-- PONTOS DA LINHA -->
+  <g filter="url(#glow)">
+    <circle cx="50" cy="355" r="4.5" fill="none" stroke="#c084fc" stroke-width="2.2"/>
+    <circle cx="105" cy="340" r="4.5" fill="none" stroke="#c084fc" stroke-width="2.2"/>
+    <circle cx="155" cy="348" r="4.5" fill="none" stroke="#c084fc" stroke-width="2.2"/>
+    <circle cx="205" cy="315" r="4.5" fill="none" stroke="#c084fc" stroke-width="2.2"/>
+    <circle cx="250" cy="318" r="4.5" fill="none" stroke="#c084fc" stroke-width="2.2"/>
+    <circle cx="295" cy="278" r="4.5" fill="none" stroke="#c084fc" stroke-width="2.2"/>
+    <circle cx="330" cy="282" r="4.5" fill="none" stroke="#c084fc" stroke-width="2.2"/>
+    <!-- Último ponto destacado — pico = centro do alvo -->
+    <circle cx="365" cy="230" r="6" fill="#c084fc" opacity="0.3"/>
+    <circle cx="365" cy="230" r="3.5" fill="#c084fc"/>
+  </g>
+
+  <!-- EIXOS -->
+  <line x1="50" y1="95" x2="50" y2="385" stroke="#7c3aed" stroke-width="1.8" opacity="0.5"/>
+  <line x1="50" y1="385" x2="475" y2="385" stroke="#7c3aed" stroke-width="1.8" opacity="0.5"/>
+
+  <!-- ALVO — centro exatamente no pico do gráfico (365, 230) -->
+  <g transform="translate(365,230)" filter="url(#strongglow)">
+    <!-- Círculo externo -->
+    <circle cx="0" cy="0" r="75" fill="none" stroke="#c084fc" stroke-width="2" opacity="0.7"/>
+    <!-- Círculo médio -->
+    <circle cx="0" cy="0" r="52" fill="none" stroke="#c084fc" stroke-width="2" opacity="0.8"/>
+    <!-- Círculo interno -->
+    <circle cx="0" cy="0" r="30" fill="none" stroke="#c084fc" stroke-width="2.2" opacity="0.9"/>
+    <!-- Círculo centro -->
+    <circle cx="0" cy="0" r="12" fill="#7c3aed" opacity="0.4"/>
+    <circle cx="0" cy="0" r="6" fill="#c084fc" opacity="0.9"/>
+
+    <!-- Cruz do alvo -->
+    <line x1="-75" y1="0" x2="-36" y2="0" stroke="#c084fc" stroke-width="1.6" opacity="0.55"/>
+    <line x1="36" y1="0" x2="75" y2="0" stroke="#c084fc" stroke-width="1.6" opacity="0.55"/>
+    <line x1="0" y1="-75" x2="0" y2="-36" stroke="#c084fc" stroke-width="1.6" opacity="0.55"/>
+    <line x1="0" y1="36" x2="0" y2="75" stroke="#c084fc" stroke-width="1.6" opacity="0.55"/>
+  </g>
+
+  <!-- FLECHA — vinda de fora do alvo em diagonal, cravada no centro -->
+  <!-- A flecha vem de cima-esquerda em diagonal e termina no centro (365,230) -->
+  <!-- Corpo da flecha — linha de (195, 100) até (358, 223) -->
+  <line
+    x1="195" y1="108"
+    x2="357" y2="224"
+    stroke="url(#arrowGrad)"
+    stroke-width="3.5"
+    stroke-linecap="round"
+    filter="url(#arrowglow)"
+  />
+
+  <!-- Ponta da flecha (triângulo sólido apontando para o centro do alvo) -->
+  <polygon
+    points="365,230 352,217 344,232"
+    fill="#e9d5ff"
+    filter="url(#arrowglow)"
+  />
+
+  <!-- Aletas da cauda da flecha (plumas) — na extremidade (195,108) -->
+  <!-- Aleta superior -->
+  <line x1="195" y1="108" x2="180" y2="93" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)" opacity="0.9"/>
+  <line x1="195" y1="108" x2="182" y2="100" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)" opacity="0.9"/>
+  <!-- Aleta inferior -->
+  <line x1="195" y1="108" x2="208" y2="93" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)" opacity="0.9"/>
+  <line x1="195" y1="108" x2="205" y2="101" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round" filter="url(#glow)" opacity="0.9"/>
+
+  <!-- Brilho de impacto no centro do alvo -->
+  <circle cx="365" cy="230" r="9" fill="none" stroke="#e9d5ff" stroke-width="1.5" opacity="0.6" filter="url(#strongglow)"/>
+
+  <!-- Partículas de brilho ao redor do impacto -->
+  <g filter="url(#glow)" opacity="0.7">
+    <circle cx="348" cy="212" r="2" fill="#e9d5ff"/>
+    <circle cx="384" cy="215" r="1.5" fill="#e9d5ff"/>
+    <circle cx="380" cy="247" r="2" fill="#e9d5ff"/>
+    <circle cx="350" cy="248" r="1.5" fill="#e9d5ff"/>
+    <circle cx="340" cy="228" r="1.5" fill="#e9d5ff"/>
+    <circle cx="390" cy="230" r="1.5" fill="#e9d5ff"/>
+  </g>
+</svg>
