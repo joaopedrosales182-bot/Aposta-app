@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="Apostas Pro"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2442/2442589.png"/>
+<link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <style>
@@ -260,6 +260,34 @@ body.foco-mode .computed:hover { filter:none; }
   z-index:500;display:none;align-items:center;gap:4px}
 .sync-badge.visible{display:flex}
 
+
+/* ANÁLISE DIA/HORA */
+.analise-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:12px}
+.analise-card{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:10px 12px;position:relative;overflow:hidden}
+.analise-card-label{font-size:10px;color:var(--txt2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.analise-card-val{font-size:18px;font-weight:700}
+.analise-card-sub{font-size:11px;color:var(--txt2);margin-top:3px}
+.analise-bar-bg{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--bg3)}
+.analise-bar-fill{height:100%;border-radius:0 0 8px 8px;transition:width .5s}
+.analise-section-title{font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+
+/* ARQUIVAR BANCA */
+.archived-section{background:var(--bg1);border:0.5px dashed var(--bdr);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.archived-trigger{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;color:var(--txt2);font-size:13px;font-weight:500;transition:background .15s}
+.archived-trigger:hover{background:var(--bg2);color:var(--txt)}
+.archived-list{padding:0 0 10px}
+.archived-bet-row{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:0.5px solid var(--bdr);flex-wrap:wrap;gap:8px}
+.archived-bet-row:last-child{border-bottom:none}
+.archived-bet-name{font-size:13px;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:6px}
+.archived-stats{font-size:11px;color:var(--txt2);display:flex;gap:10px;flex-wrap:wrap}
+.archive-actions{display:flex;gap:6px}
+.restore-btn{background:var(--bg3);border:0.5px solid var(--bdr);color:var(--acc);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;transition:all .15s}
+.restore-btn:hover{border-color:var(--acc);background:rgba(124,131,253,.1)}
+.archive-del-btn{background:transparent;border:0.5px solid var(--bdr);color:var(--txt2);border-radius:5px;padding:3px 6px;font-size:11px;cursor:pointer}
+.archive-del-btn:hover{border-color:var(--red);color:var(--red)}
+.archive-btn-banca{background:transparent;border:0.5px solid var(--bdr);color:var(--txt2);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;transition:all .15s}
+.archive-btn-banca:hover{border-color:var(--yel);color:var(--yel)}
+
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){
   .tickets-table thead{display:none}
@@ -324,7 +352,7 @@ body.foco-mode .computed:hover { filter:none; }
 </div>
 
 <div id="login-screen">
-  <div style="font-size:56px;margin-bottom:4px">🎯</div>
+  <img src="icon.svg" style="width:80px;height:80px;margin-bottom:4px;border-radius:18px"/>
   <h1>Controle de Apostas</h1>
   <p>Insira seu nome para sincronizar suas bancas e bilhetes na nuvem.</p>
   <input class="login-input" id="username-input" placeholder="Seu nome ou apelido" maxlength="30"/>
@@ -443,6 +471,7 @@ body.foco-mode .computed:hover { filter:none; }
     <div id="chart-timeline" style="min-height:280px"></div>
     <div class="breakdown-list" id="list-ranking" style="margin-top:16px"></div>
     <div class="odds-panel" id="odds-panel"></div>
+    <div id="analise-dia-hora-panel"></div>
   </div>
 
 
@@ -494,6 +523,17 @@ body.foco-mode .computed:hover { filter:none; }
 
 
   </div>
+
+  <!-- BANCAS ARQUIVADAS -->
+  <div class="archived-section" id="archived-section" style="display:none">
+    <div class="archived-trigger" onclick="toggleArchivedList()">
+      <i class="ti ti-archive"></i> Bancas Arquivadas
+      <span id="archived-count-badge" class="bet-badge" style="margin-left:4px">0</span>
+      <i class="ti ti-chevron-down" id="chev-archived" style="margin-left:auto;font-size:13px;transition:transform .2s"></i>
+    </div>
+    <div id="archived-list" class="archived-list" style="display:none"></div>
+  </div>
+
   <div class="app-footer">Controle de Apostas Pro · Dados na nuvem · <span id="footer-user"></span></div>
 </div>
 
@@ -827,6 +867,10 @@ function updateGlobals(){
     if(hasTickets) bancasAtivas++;
 
     const baseD=parseFloat(appData.deposits[bet]||0);
+    // Banca = depósito inicial - gastos das apostas perdidas + retorno das apostas ganhas
+    // gastoRealB inclui ganhou+perdeu, retB é só o retorno das ganhas
+    // Fórmula correta: base - gastos_perdidos - gastos_ganhos + retorno_ganhos
+    // = base - gastoRealB + retB  ← retB já inclui o valor apostado de volta
     let bancaR=baseD+retB-gastoRealB;
     if(bancaR<0) bancaR=0;
     const isSacado=!!appData.withdrawals[bet];
@@ -912,7 +956,7 @@ function updateGlobals(){
   if(activePanel==='apostado') renderApex('apostado','bar',lApo,dApo,prem);
   if(activePanel==='gasto') renderApex('gasto','donut',lGas,dGas,prem);
   if(activePanel==='lucro') renderApex('lucro','bar',lLuc,dLuc,profitColors);
-  if(activePanel==='timeline'){ renderTimeline(timelineEvents); renderOddsAnalysis(); }
+  if(activePanel==='timeline'){ renderTimeline(timelineEvents); renderOddsAnalysis(); renderAnaliseDiaHora(); }
 }
 
 // ── AUTO BANCA ────────────────────────────────────────────
@@ -1051,6 +1095,8 @@ function renderBet(bet){
           </button>
         </div>
         <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Bilhete</button>
+        ${tickets.length>0?`<button class="add-ticket-btn" style="background:var(--red-bg);color:var(--red);border:0.5px solid var(--red)" onclick="event.stopPropagation();apagarBilhetesBanca('${be}')" title="Apagar todos os bilhetes desta banca"><i class="ti ti-trash"></i></button>`:''}
+        <button class="archive-btn-banca" onclick="event.stopPropagation();arquivarBanca('${be}')" title="Arquivar esta banca"><i class="ti ti-archive"></i></button>
         <i class="ti ti-chevron-down chevron ${isOpen?'open':''}" id="chev-${sid}"></i>
       </div>
     </div>
@@ -1121,6 +1167,7 @@ function renderAll(){
   container.innerHTML='';
   appData.bets.forEach(bet=>container.appendChild(renderBet(bet)));
   updateGlobals();
+  renderArchivedSection();
   // buildFabMenu removido
 }
 
@@ -1806,12 +1853,34 @@ function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>cloud
 window.compartilharResultado = function(){
   const hist = loadHistorico();
   const periodo = periodoAtivo || 'total';
-  const res = calcResumo(hist, periodo);
+  let res = calcResumo(hist, periodo);
+
+  // Se não tem histórico suficiente, usa dados ao vivo do appData
+  if(res.dias === 0 || (res.ganhou === 0 && res.perdeu === 0)){
+    let lucroVivo=0, gastoVivo=0, ganhouVivo=0, perdeuVivo=0;
+    let oddsVivas=[];
+    appData.bets.forEach(bet=>{
+      (appData.tickets[bet]||[]).forEach(t=>{
+        const cv=calcTicket(t);
+        if(t.resultado==='Ganhou'){ lucroVivo+=cv.lucro; gastoVivo+=cv.gastoLiquido; ganhouVivo++; if(cv.odd>0)oddsVivas.push(cv.odd); }
+        else if(t.resultado==='Perdeu'){ lucroVivo+=cv.lucro; gastoVivo+=cv.gastoLiquido; perdeuVivo++; if(cv.odd>0)oddsVivas.push(cv.odd); }
+      });
+    });
+    res = {
+      lucro: lucroVivo,
+      gasto: gastoVivo,
+      ganhou: ganhouVivo,
+      perdeu: perdeuVivo,
+      dias: res.dias || 0,
+      oddMedia: oddsVivas.length?(oddsVivas.reduce((a,b)=>a+b,0)/oddsVivas.length).toFixed(2):0
+    };
+  }
   const hoje = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
   const lucroColor = res.lucro>0?'#34d399':res.lucro<0?'#f87171':'#94a3b8';
   const emoji = res.lucro>0?'📈':res.lucro<0?'📉':'➡️';
   const roi = res.gasto>0?((res.lucro/res.gasto)*100).toFixed(1):0;
-  const taxa = (res.ganhou+res.perdeu)>0?(res.ganhou/(res.ganhou+res.perdeu)*100).toFixed(1):0;
+  const taxaNum = (res.ganhou+res.perdeu)>0?(res.ganhou/(res.ganhou+res.perdeu)*100):0;
+  const taxa = taxaNum.toFixed(1);
   const periodoLabel = periodo==='semana'?'Esta Semana':periodo==='mes'?'Este Mês':'Total';
 
   // Criar canvas
@@ -1859,7 +1928,7 @@ window.compartilharResultado = function(){
   const stats = [
     ['Gasto Real', 'R$ '+res.gasto.toFixed(2).replace('.',','), '#cbd5e1'],
     ['ROI', (roi>0?'+':'')+roi+'%', roi>=0?'#34d399':'#f87171'],
-    ['Taxa Acerto', taxa+'%', '#7c83fd'],
+    ['Taxa Acerto', taxa+'%', taxaNum>=60?'#34d399':taxaNum>=40?'#fcd34d':'#f87171'],
     ['✓ Ganhou', res.ganhou+'', '#34d399'],
     ['✗ Perdeu', res.perdeu+'', '#f87171'],
     ['Dias', res.dias+'', '#fcd34d'],
@@ -1909,6 +1978,231 @@ window.compartilharResultado = function(){
     setTimeout(()=>URL.revokeObjectURL(url), 5000);
   },'image/png');
 };
+
+window.apagarBilhetesBanca = function(bet){
+  const total = (appData.tickets[bet]||[]).length;
+  if(!total) return;
+  if(!confirm(`Apagar todos os ${total} bilhete${total>1?'s':''} de ${bet}? Esta ação não pode ser desfeita.`)) return;
+  appData.tickets[bet] = [];
+  appData.lastModified = Date.now();
+  renderAll();
+  scheduleSave();
+  showSaving('🗑️ Bilhetes de '+bet+' apagados','ok');
+};
+
+
+// ═══════════════════════════════════════════════════════
+// ANÁLISE POR DIA DA SEMANA E HORÁRIO
+// ═══════════════════════════════════════════════════════
+const DIAS_SEMANA = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const FAIXAS_HORA = [
+  {label:'Madrugada', min:0, max:5},
+  {label:'Manhã', min:6, max:11},
+  {label:'Tarde', min:12, max:17},
+  {label:'Noite', min:18, max:23},
+];
+
+function calcAnaliseDiaSemana(){
+  const dias = DIAS_SEMANA.map(d=>({label:d,ganhou:0,perdeu:0,lucro:0,gasto:0}));
+  appData.bets.forEach(bet=>{
+    (appData.tickets[bet]||[]).forEach(t=>{
+      if(t.resultado==='Pendente'||!t.id) return;
+      const dt = new Date(t.id);
+      const dia = dt.getDay();
+      const c = calcTicket(t);
+      if(t.resultado==='Ganhou'){ dias[dia].ganhou++; dias[dia].lucro+=c.lucro; dias[dia].gasto+=c.gastoLiquido; }
+      else { dias[dia].perdeu++; dias[dia].lucro+=c.lucro; dias[dia].gasto+=c.gastoLiquido; }
+    });
+  });
+  return dias.filter(d=>d.ganhou+d.perdeu>0);
+}
+
+function calcAnaliseHorario(){
+  const faixas = FAIXAS_HORA.map(f=>({...f,ganhou:0,perdeu:0,lucro:0,gasto:0}));
+  appData.bets.forEach(bet=>{
+    (appData.tickets[bet]||[]).forEach(t=>{
+      if(t.resultado==='Pendente'||!t.id) return;
+      const hora = new Date(t.id).getHours();
+      const f = faixas.find(f=>hora>=f.min&&hora<=f.max);
+      if(!f) return;
+      const c = calcTicket(t);
+      if(t.resultado==='Ganhou'){ f.ganhou++; f.lucro+=c.lucro; f.gasto+=c.gastoLiquido; }
+      else { f.perdeu++; f.lucro+=c.lucro; f.gasto+=c.gastoLiquido; }
+    });
+  });
+  return faixas.filter(f=>f.ganhou+f.perdeu>0);
+}
+
+function renderAnaliseDiaHora(){
+  const panel = document.getElementById('analise-dia-hora-panel');
+  if(!panel) return;
+
+  const dias = calcAnaliseDiaSemana();
+  const faixas = calcAnaliseHorario();
+
+  if(!dias.length && !faixas.length){
+    panel.innerHTML = '';
+    return;
+  }
+
+  const maxTaxaDia = Math.max(...dias.map(d=>(d.ganhou+d.perdeu)>0?d.ganhou/(d.ganhou+d.perdeu)*100:0), 1);
+  const maxTaxaHora = Math.max(...faixas.map(f=>(f.ganhou+f.perdeu)>0?f.ganhou/(f.ganhou+f.perdeu)*100:0), 1);
+
+  function cardHtml(item, maxTaxa){
+    const total = item.ganhou+item.perdeu;
+    const taxa = total>0?(item.ganhou/total*100):0;
+    const roi = item.gasto>0?(item.lucro/item.gasto*100):0;
+    const color = taxa>=60?'#34d399':taxa>=40?'#fcd34d':'#f87171';
+    const barW = Math.round((taxa/maxTaxa)*100);
+    return `<div class="analise-card">
+      <div class="analise-card-label">${item.label}</div>
+      <div class="analise-card-val" style="color:${color}">${taxa.toFixed(0)}%</div>
+      <div class="analise-card-sub">${item.ganhou}/${total} · ROI ${roi>0?'+':''}${roi.toFixed(0)}%</div>
+      <div class="analise-bar-bg"><div class="analise-bar-fill" style="width:${barW}%;background:${color}"></div></div>
+    </div>`;
+  }
+
+  let html = '';
+  if(dias.length){
+    html += `<div class="analise-section-title"><i class="ti ti-calendar-week"></i> Desempenho por Dia da Semana</div>
+    <div class="analise-grid">${dias.map(d=>cardHtml(d,maxTaxaDia)).join('')}</div>`;
+  }
+  if(faixas.length){
+    html += `<div class="analise-section-title" style="margin-top:20px"><i class="ti ti-clock"></i> Desempenho por Horário</div>
+    <div class="analise-grid">${faixas.map(f=>cardHtml(f,maxTaxaHora)).join('')}</div>`;
+  }
+
+  panel.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+// ARQUIVAR BANCA
+// ═══════════════════════════════════════════════════════
+function getArchivedKey(){ return 'apostas_archived_'+userDocId(); }
+function loadArchived(){ try{ return JSON.parse(localStorage.getItem(getArchivedKey())||'[]'); }catch(e){ return []; } }
+function saveArchived(arr){
+  try{ localStorage.setItem(getArchivedKey(), JSON.stringify(arr)); }catch(e){}
+  // Salvar no Firebase junto
+  if(db){ try{ setDoc(doc(db,'usuarios',userDocId()),{
+    data:JSON.stringify(appData),
+    historico:JSON.stringify(loadHistorico()),
+    archived:JSON.stringify(arr),
+    updatedAt:Date.now()
+  }); }catch(e){} }
+}
+
+window.arquivarBanca = function(bet){
+  if(!confirm(`Arquivar a banca "${bet}"? Ela ficará guardada e pode ser restaurada a qualquer momento.`)) return;
+
+  // Calcular stats antes de arquivar
+  let lucro=0, gasto=0, ganhou=0, perdeu=0;
+  (appData.tickets[bet]||[]).forEach(t=>{
+    const cv=calcTicket(t);
+    if(t.resultado==='Ganhou'){ lucro+=cv.lucro; gasto+=cv.gastoLiquido; ganhou++; }
+    else if(t.resultado==='Perdeu'){ lucro+=cv.lucro; gasto+=cv.gastoLiquido; perdeu++; }
+  });
+
+  const archived = loadArchived();
+  archived.push({
+    bet,
+    tickets: appData.tickets[bet]||[],
+    deposit: appData.deposits[bet]||0,
+    archivedAt: new Date().toLocaleDateString('pt-BR'),
+    stats: { lucro, gasto, ganhou, perdeu }
+  });
+  saveArchived(archived);
+
+  // Remove da lista ativa
+  appData.bets = appData.bets.filter(b=>b!==bet);
+  delete appData.tickets[bet];
+  delete appData.deposits[bet];
+  delete appData.withdrawals[bet];
+  appData.lastModified = Date.now();
+
+  renderAll();
+  renderArchivedSection();
+  scheduleSave();
+  showSaving('📦 '+bet+' arquivada','ok');
+};
+
+window.restaurarBanca = function(idx){
+  const archived = loadArchived();
+  const entry = archived[idx];
+  if(!entry) return;
+  if(!confirm(`Restaurar "${entry.bet}" para a lista ativa?`)) return;
+
+  // Adiciona de volta
+  if(!appData.bets.includes(entry.bet)) appData.bets.push(entry.bet);
+  appData.tickets[entry.bet] = entry.tickets||[];
+  appData.deposits[entry.bet] = entry.deposit||0;
+  appData.lastModified = Date.now();
+
+  archived.splice(idx,1);
+  saveArchived(archived);
+  renderAll();
+  renderArchivedSection();
+  scheduleSave();
+  showSaving('✓ '+entry.bet+' restaurada','ok');
+};
+
+window.deletarArquivada = function(idx){
+  const archived = loadArchived();
+  const entry = archived[idx];
+  if(!entry) return;
+  if(!confirm(`Excluir permanentemente "${entry.bet}" e todos seus bilhetes?`)) return;
+  archived.splice(idx,1);
+  saveArchived(archived);
+  renderArchivedSection();
+};
+
+window.toggleArchivedList = function(){
+  const list = document.getElementById('archived-list');
+  const chev = document.getElementById('chev-archived');
+  if(!list) return;
+  const isOpen = list.style.display==='block';
+  list.style.display = isOpen?'none':'block';
+  if(chev) chev.style.transform = isOpen?'':'rotate(180deg)';
+  if(!isOpen) renderArchivedList();
+};
+
+function renderArchivedList(){
+  const list = document.getElementById('archived-list');
+  if(!list) return;
+  const archived = loadArchived();
+  if(!archived.length){
+    list.innerHTML='<div style="padding:12px 14px;color:var(--txt2);font-size:13px;font-style:italic">Nenhuma banca arquivada.</div>';
+    return;
+  }
+  list.innerHTML = archived.map((entry,i)=>{
+    const {stats={}} = entry;
+    const taxa = (stats.ganhou+stats.perdeu)>0?(stats.ganhou/(stats.ganhou+stats.perdeu)*100).toFixed(0):0;
+    const lucroColor = stats.lucro>0?'var(--grn)':stats.lucro<0?'var(--red)':'var(--txt2)';
+    return `<div class="archived-bet-row">
+      <div>
+        <div class="archived-bet-name"><i class="ti ti-archive" style="font-size:13px"></i>${entry.bet}
+          <span class="bet-badge">${entry.archivedAt}</span>
+        </div>
+        <div class="archived-stats">
+          <span style="color:${lucroColor}">${stats.lucro>=0?'+':''}R$ ${(stats.lucro||0).toFixed(2).replace('.',',')} lucro</span>
+          <span>${stats.ganhou||0}✓ ${stats.perdeu||0}✗ ${taxa}% acerto</span>
+        </div>
+      </div>
+      <div class="archive-actions">
+        <button class="restore-btn" onclick="restaurarBanca(${i})"><i class="ti ti-arrow-back-up"></i> Restaurar</button>
+        <button class="archive-del-btn" onclick="deletarArquivada(${i})"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderArchivedSection(){
+  const section = document.getElementById('archived-section');
+  const badge = document.getElementById('archived-count-badge');
+  const archived = loadArchived();
+  if(section){ section.style.display = archived.length>0?'block':'none'; }
+  if(badge){ badge.textContent = archived.length; }
+  renderArchivedList();
+}
 
 // ═══════════════════════════════════════════════════════
 // APAGAR TODAS AS APOSTAS
