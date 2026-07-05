@@ -567,20 +567,9 @@ body.foco-mode .computed:hover { filter:none; }
 <div class="import-modal-overlay" id="import-modal-overlay" onclick="if(event.target===this)fecharImportModal()">
   <div class="import-modal">
     <div class="import-modal-title"><i class="ti ti-link"></i> Importar Aposta — <span id="import-bet-name" style="color:var(--txt)"></span></div>
-    <div class="import-tabs">
-      <div class="import-tab active" id="tab-link" onclick="switchImportTab('link')"><i class="ti ti-link"></i> Link</div>
-      <div class="import-tab" id="tab-img" onclick="switchImportTab('img')"><i class="ti ti-photo"></i> Imagem</div>
-    </div>
-
-    <!-- Tab Link -->
-    <div id="import-tab-link">
-      <div style="background:rgba(252,211,77,.07);border:0.5px solid var(--yel);border-radius:7px;padding:8px 12px;font-size:12px;color:var(--yel);margin-bottom:10px;display:flex;gap:6px;align-items:flex-start">
-        <i class="ti ti-info-circle" style="flex-shrink:0;margin-top:1px"></i>
-        <span>As casas de apostas bloqueiam acesso externo. O link extrai o nome automaticamente — preencha odd e valor manualmente. Para extrair tudo automaticamente, use <strong>Imagem</strong>.</span>
-      </div>
-      <input class="import-url-input" id="import-url-input" placeholder="Cole o link da aposta (betano.com/...)" oninput="onImportUrlChange(this.value)"/>
-      <div class="import-status" id="import-url-status">Cole o link e clique em Detectar</div>
-      <button class="import-btn-primary" id="btn-analisar-link" onclick="analisarLink()"><i class="ti ti-link"></i> Detectar da URL</button>
+    <div style="font-size:12px;color:var(--txt2);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+      <i class="ti ti-camera" style="color:var(--acc)"></i>
+      Tire um print do bilhete na casa de apostas e envie abaixo
     </div>
 
     <!-- Tab Imagem -->
@@ -2049,24 +2038,31 @@ window.compartilharResultado = async function(){
   ctx.textAlign = 'right';
   ctx.fillText('gerado em '+hoje, 760, 482);
 
-  // Baixar/compartilhar — converte para data URL para compatibilidade iOS
-  const dataURL = canvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.href = dataURL;
-  a.download = 'resultado_'+currentUser+'_'+hoje.replace(/\/\//g,'-')+'.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  // Gera o PNG
+  canvas.toBlob(async (blob)=>{
+    const file = new File([blob], 'apostas_'+currentUser+'.png', {type:'image/png'});
+    const dataURL = canvas.toDataURL('image/png');
 
-  // Tenta compartilhar via Web Share API se disponível
-  try{
-    const resp = await fetch(dataURL);
-    const blob = await resp.blob();
-    const file = new File([blob],'resultado.png',{type:'image/png'});
-    if(navigator.share && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:'Meus resultados'});
+    // iOS Safari — Web Share API com arquivo
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({
+          files:[file],
+          title:'Meus Resultados — Controle de Apostas',
+          text: periodoLabel+': '+(res.lucro>=0?'+':'')+'R$ '+Math.abs(res.lucro).toFixed(2).replace('.',',')+' | ROI: '+(roi>0?'+':'')+roi+'%'
+        });
+        return;
+      }catch(e){ if(e.name==='AbortError') return; }
     }
-  }catch(e){}
+
+    // Android/Desktop — download direto
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'apostas_'+currentUser+'_'+hoje.replace(/\//g,'-')+'.png';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>document.body.removeChild(a), 100);
+  }, 'image/png');
 };
 
 window.apagarBilhetesBanca = function(bet){
@@ -2310,7 +2306,7 @@ window.abrirImportModal = function(bet){
   document.getElementById('import-result').classList.remove('show');
   document.getElementById('btn-confirmar-import').disabled = true;
   document.getElementById('import-modal-overlay').classList.add('open');
-  switchImportTab('link');
+  switchImportTab('img');
 };
 
 window.fecharImportModal = function(){
@@ -2319,10 +2315,9 @@ window.fecharImportModal = function(){
 };
 
 window.switchImportTab = function(tab){
-  document.getElementById('import-tab-link').style.display = tab==='link'?'block':'none';
-  document.getElementById('import-tab-img').style.display = tab==='img'?'block':'none';
-  document.getElementById('tab-link').classList.toggle('active', tab==='link');
-  document.getElementById('tab-img').classList.toggle('active', tab==='img');
+  // Só imagem disponível agora
+  const tabImg = document.getElementById('import-tab-img');
+  if(tabImg) tabImg.style.display = 'block';
 };
 
 window.onImportUrlChange = function(val){
@@ -2342,28 +2337,7 @@ window.onImportUrlChange = function(val){
   else status.textContent = 'Link válido — clique em Analisar';
 };
 
-async function chamarClaudeAPI(messages, maxTokens=400){
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'anthropic-dangerous-direct-browser-ipc':'true'
-    },
-    body:JSON.stringify({
-      model:'claude-sonnet-4-6',
-      max_tokens: maxTokens,
-      messages
-    })
-  });
-  if(!response.ok){
-    const err = await response.text();
-    throw new Error('API error: '+err);
-  }
-  const data = await response.json();
-  const text = data.content?.[0]?.text||'{}';
-  try{ return JSON.parse(text.replace(/```json|```/g,'').trim()); }
-  catch(e){ return {}; }
-}
+// chamarClaudeAPI removed - uses OCR instead
 
 window.analisarLink = async function(){
   const url = document.getElementById('import-url-input').value.trim();
@@ -2419,7 +2393,7 @@ window.handleImportDrop = async function(event){
 
 async function analisarImagem(file){
   const status = document.getElementById('import-img-status');
-  status.textContent = '🔍 Lendo imagem com IA...';
+  status.textContent = '🔍 Enviando para IA...';
 
   try{
     // Converter para base64
@@ -2430,28 +2404,49 @@ async function analisarImagem(file){
       reader.readAsDataURL(file);
     });
 
-    // Garantir tipo MIME válido para Claude
     const mimeType = ['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)
       ? file.type : 'image/jpeg';
 
     const prompt = `Você está vendo um screenshot de uma aposta esportiva em uma casa de apostas brasileira.
-Extraia os dados visíveis e retorne SOMENTE um JSON válido, sem texto adicional, sem markdown:
-{"nome":"nome completo do evento ou partida apostada","odd":2.50,"valor":10.00,"retorno":25.00,"casa":"nome da casa de apostas"}
-Regras:
-- odd: número decimal da cotação (ex: 2.50)
-- valor: valor apostado em reais (número)
-- retorno: retorno total possível em reais (número)
-- nome: time A x time B ou descrição do mercado
-- Se não encontrar um campo, use null
-Retorne APENAS o JSON, nada mais.`;
+Extraia os dados visíveis e retorne SOMENTE um JSON, sem texto extra, sem markdown, sem explicação:
+{"nome":"nome do evento ou partida apostada","odd":2.50,"valor":10.00,"retorno":25.00,"casa":"nome da casa"}
+- odd: cotação decimal (ex: 2.50)
+- valor: valor apostado em reais
+- retorno: retorno total possível
+- nome: ex "Flamengo x Vasco" ou descrição do mercado
+- Para campos não encontrados use null`;
 
-    const parsed = await chamarClaudeAPI([{
-      role:'user',
-      content:[
-        {type:'image', source:{type:'base64', media_type:mimeType, data:base64}},
-        {type:'text', text:prompt}
-      ]
-    }], 300);
+    status.textContent = '⏳ IA lendo a imagem...';
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'anthropic-dangerous-direct-browser-ipc':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:256,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image', source:{type:'base64', media_type:mimeType, data:base64}},
+            {type:'text', text:prompt}
+          ]
+        }]
+      })
+    });
+
+    if(!resp.ok){
+      const errText = await resp.text();
+      throw new Error('API: '+errText);
+    }
+
+    const apiData = await resp.json();
+    const text = apiData.content?.[0]?.text || '{}';
+    let parsed = {};
+    try{ parsed = JSON.parse(text.replace(/```json|```/g,'').trim()); }
+    catch(e){ console.warn('parse err', e, text); }
 
     const temDados = parsed.odd || parsed.valor;
     exibirResultadoImport({
@@ -2461,14 +2456,13 @@ Retorne APENAS o JSON, nada mais.`;
       retorno: parsed.retorno || null,
     });
     status.textContent = temDados
-      ? '✓ Dados extraídos! Confirme e edite se necessário.'
-      : '⚠️ Imagem analisada mas odd/valor não detectados. Preencha manualmente.';
+      ? '✅ Dados extraídos! Confira e edite se necessário.'
+      : '⚠️ IA leu a imagem mas não encontrou odd/valor. Preencha manualmente.';
 
   }catch(e){
     console.error('Erro imagem:', e);
-    // Mostra o formulário vazio para preenchimento manual
     exibirResultadoImport({nome:'Aposta importada', odd:null, valor:null, retorno:null});
-    status.textContent = '⚠️ Não foi possível ler a imagem automaticamente. Preencha os campos abaixo.';
+    status.textContent = '⚠️ Erro ao processar. Preencha os campos manualmente.';
   }
 }
 
