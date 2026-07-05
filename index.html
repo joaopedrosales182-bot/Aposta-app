@@ -2300,11 +2300,16 @@ let importedData = null;
 window.abrirImportModal = function(bet){
   importBet = bet;
   importedData = null;
-  document.getElementById('import-bet-name').textContent = bet;
-  document.getElementById('import-url-input').value = '';
-  document.getElementById('import-url-status').textContent = 'Cole o link da aposta e clique em Analisar';
-  document.getElementById('import-result').classList.remove('show');
-  document.getElementById('btn-confirmar-import').disabled = true;
+  const nameEl = document.getElementById('import-bet-name');
+  if(nameEl) nameEl.textContent = bet;
+  const resultEl = document.getElementById('import-result');
+  if(resultEl) resultEl.classList.remove('show');
+  const btnEl = document.getElementById('btn-confirmar-import');
+  if(btnEl) btnEl.disabled = true;
+  const statusEl = document.getElementById('import-img-status');
+  if(statusEl) statusEl.textContent = 'Aguardando imagem...';
+  const fileInput = document.getElementById('import-file-input');
+  if(fileInput) fileInput.value = '';
   document.getElementById('import-modal-overlay').classList.add('open');
   switchImportTab('img');
 };
@@ -2407,14 +2412,19 @@ async function analisarImagem(file){
     const mimeType = ['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)
       ? file.type : 'image/jpeg';
 
-    const prompt = `Você está vendo um screenshot de uma aposta esportiva em uma casa de apostas brasileira.
-Extraia os dados visíveis e retorne SOMENTE um JSON, sem texto extra, sem markdown, sem explicação:
-{"nome":"nome do evento ou partida apostada","odd":2.50,"valor":10.00,"retorno":25.00,"casa":"nome da casa"}
-- odd: cotação decimal (ex: 2.50)
-- valor: valor apostado em reais
-- retorno: retorno total possível
-- nome: ex "Flamengo x Vasco" ou descrição do mercado
-- Para campos não encontrados use null`;
+    const prompt = `Você está vendo um screenshot de um bilhete de aposta esportiva de uma casa de apostas brasileira (Betano, Esportes da Sorte, Bet365, etc).
+
+Extraia os dados e retorne SOMENTE um JSON válido, sem texto extra:
+{"nome":"descrição da aposta","odd":5.25,"valor":3.00,"retorno":15.75,"casa":"Betano"}
+
+Instruções para cada campo:
+- "nome": descrição principal da aposta. Exemplos reais: "Brasil x Noruega - Brasil Qualificar-se + Mais escanteios + Mais de 2.5 Gols", "Brasil Mais de 0.5 Gols no 1º Tempo". Se for múltipla, une as seleções com " + "
+- "odd": a cotação decimal final. Na Betano aparece como número grande (ex: 5.25). Se houver odd original e odd turbinada, usa a maior (turbinada)
+- "valor": valor apostado em reais. Aparece como "Simples R$3,00", "Aposta R$4,00" ou "Aposta Total: R$4,00"
+- "retorno": ganhos potenciais em reais. Aparece como "Ganhos Potenciais R$15,75" ou "Retorno: R$8,00"
+- "casa": nome da casa de apostas visível no topo ou logo
+
+Para campos não encontrados use null. Retorne APENAS o JSON.`;
 
     status.textContent = '⏳ IA lendo a imagem...';
 
