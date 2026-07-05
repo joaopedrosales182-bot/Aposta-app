@@ -288,6 +288,35 @@ body.foco-mode .computed:hover { filter:none; }
 .archive-btn-banca{background:transparent;border:0.5px solid var(--bdr);color:var(--txt2);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;transition:all .15s}
 .archive-btn-banca:hover{border-color:var(--yel);color:var(--yel)}
 
+
+/* IMPORT APOSTA */
+.import-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;display:none;align-items:center;justify-content:center;padding:16px}
+.import-modal-overlay.open{display:flex}
+.import-modal{background:var(--bg1);border:0.5px solid var(--bdr);border-radius:14px;padding:20px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto}
+.import-modal-title{font-size:15px;font-weight:700;color:var(--acc);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.import-tabs{display:flex;gap:6px;margin-bottom:14px}
+.import-tab{flex:1;background:var(--bg2);border:0.5px solid var(--bdr);border-radius:6px;padding:7px;font-size:12px;color:var(--txt2);cursor:pointer;text-align:center;transition:all .15s}
+.import-tab.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.import-url-input{background:var(--bg3);border:0.5px solid var(--bdr);border-radius:7px;padding:9px 12px;color:var(--txt);font-size:13px;width:100%;outline:none;margin-bottom:10px}
+.import-url-input:focus{border-color:var(--acc)}
+.import-drop-area{border:1.5px dashed var(--bdr);border-radius:10px;padding:24px;text-align:center;color:var(--txt2);font-size:13px;cursor:pointer;transition:all .2s;margin-bottom:10px}
+.import-drop-area:hover,.import-drop-area.drag-over{border-color:var(--acc);color:var(--acc);background:rgba(124,131,253,.06)}
+.import-drop-area i{font-size:28px;display:block;margin-bottom:8px;opacity:.6}
+.import-result{background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:10px;display:none}
+.import-result.show{display:block}
+.import-result-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:0.5px solid var(--bdr)}
+.import-result-row:last-child{border-bottom:none}
+.import-result-label{color:var(--txt2)}
+.import-result-val{font-weight:600;color:var(--txt)}
+.import-result-val.acc{color:var(--acc)}
+.import-btn-primary{background:var(--acc);color:#fff;border:none;border-radius:7px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:4px}
+.import-btn-primary:hover{opacity:.9}
+.import-btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.import-close-btn{background:transparent;border:0.5px solid var(--bdr);border-radius:7px;padding:10px;font-size:13px;color:var(--txt2);cursor:pointer;width:100%;margin-top:6px}
+.import-status{font-size:12px;color:var(--txt2);text-align:center;padding:8px;font-style:italic}
+.import-btn-banca{background:transparent;border:0.5px solid var(--bdr);color:var(--txt2);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;transition:all .15s}
+.import-btn-banca:hover{border-color:var(--acc);color:var(--acc)}
+
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:768px){
   .tickets-table thead{display:none}
@@ -329,7 +358,6 @@ body.foco-mode .computed:hover { filter:none; }
 </div>
 
 <div id="pin-screen">
-  <img src="icon.svg" style="width:72px;height:72px;border-radius:16px;margin-bottom:4px"/>
   <h2>Verificação de acesso</h2>
   <p id="pin-msg">Digite seu PIN para entrar</p>
   <input class="pin-input" id="pin-input" type="password" maxlength="6" placeholder="••••••" onkeydown="if(event.key==='Enter')verificarPin()"/>
@@ -533,6 +561,56 @@ body.foco-mode .computed:hover { filter:none; }
     </div>
     <div id="archived-list" class="archived-list" style="display:none"></div>
   </div>
+
+
+<!-- MODAL IMPORT APOSTA -->
+<div class="import-modal-overlay" id="import-modal-overlay" onclick="if(event.target===this)fecharImportModal()">
+  <div class="import-modal">
+    <div class="import-modal-title"><i class="ti ti-link"></i> Importar Aposta — <span id="import-bet-name" style="color:var(--txt)"></span></div>
+    <div class="import-tabs">
+      <div class="import-tab active" id="tab-link" onclick="switchImportTab('link')"><i class="ti ti-link"></i> Link</div>
+      <div class="import-tab" id="tab-img" onclick="switchImportTab('img')"><i class="ti ti-photo"></i> Imagem</div>
+    </div>
+
+    <!-- Tab Link -->
+    <div id="import-tab-link">
+      <input class="import-url-input" id="import-url-input" placeholder="Cole o link da aposta aqui (ex: betano.com/...)" oninput="onImportUrlChange(this.value)"/>
+      <div class="import-status" id="import-url-status">Cole o link da aposta e clique em Analisar</div>
+      <button class="import-btn-primary" id="btn-analisar-link" onclick="analisarLink()"><i class="ti ti-search"></i> Analisar Link</button>
+    </div>
+
+    <!-- Tab Imagem -->
+    <div id="import-tab-img" style="display:none">
+      <div class="import-drop-area" id="import-drop-area" onclick="document.getElementById('import-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleImportDrop(event)">
+        <i class="ti ti-photo-up"></i>
+        Toque para selecionar ou arraste o screenshot da aposta
+        <div style="font-size:11px;margin-top:6px;opacity:.6">Suporta PNG, JPG, WEBP</div>
+      </div>
+      <input type="file" id="import-file-input" accept="image/*" style="display:none" onchange="handleImportFile(this)"/>
+      <div class="import-status" id="import-img-status">Selecione um screenshot da aposta</div>
+    </div>
+
+    <!-- Resultado analisado -->
+    <div class="import-result" id="import-result">
+      <div style="font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Dados detectados</div>
+      <div class="import-result-row"><span class="import-result-label">Nome da aposta</span><span class="import-result-val" id="res-nome">—</span></div>
+      <div class="import-result-row"><span class="import-result-label">Odd</span><span class="import-result-val acc" id="res-odd">—</span></div>
+      <div class="import-result-row"><span class="import-result-label">Valor apostado</span><span class="import-result-val" id="res-valor">—</span></div>
+      <div class="import-result-row"><span class="import-result-label">Retorno possível</span><span class="import-result-val" id="res-retorno">—</span></div>
+      <div style="margin-top:8px">
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:4px">Confirmar/editar antes de salvar:</div>
+        <input class="import-url-input" id="edit-nome" placeholder="Nome da aposta" style="margin-bottom:6px"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <input class="import-url-input" id="edit-odd" type="number" step="0.01" placeholder="Odd" style="margin-bottom:0"/>
+          <input class="import-url-input" id="edit-valor" type="number" step="0.01" placeholder="Valor (R$)" style="margin-bottom:0"/>
+        </div>
+      </div>
+    </div>
+
+    <button class="import-btn-primary" id="btn-confirmar-import" onclick="confirmarImport()" disabled style="margin-top:10px"><i class="ti ti-check"></i> Adicionar Bilhete</button>
+    <button class="import-close-btn" onclick="fecharImportModal()">Cancelar</button>
+  </div>
+</div>
 
   <div class="app-footer">Controle de Apostas Pro · Dados na nuvem · <span id="footer-user"></span></div>
 </div>
@@ -842,7 +920,7 @@ function updateGlobals(){
   const emptyMsg='<div style="color:var(--txt2);font-size:13px;padding:10px;font-style:italic">Nenhuma banca com valor nesta categoria.</div>';
 
   appData.bets.forEach(bet=>{
-    let retB=0,gastoRealB=0,apostadoB=0,lucroB=0,hasTickets=false;
+    let retB=0,gastoRealB=0,gastoPerdeuB=0,apostadoB=0,lucroB=0,hasTickets=false;
     (appData.tickets[bet]||[]).forEach(t=>{
       const c=calcTicket(t);
       tA+=c.gastoBruto; apostadoB+=c.gastoBruto; totalBilhetes++;
@@ -856,7 +934,7 @@ function updateGlobals(){
         const nome=(t.notas||'').split('\n').find(l=>l.trim())||'Aposta';
         timelineEvents.push({bet,nome,lucro:c.lucro,ts:t.id||0});
       } else if(t.resultado==='Perdeu'){
-        tG+=c.gastoLiquido; gastoRealB+=c.gastoLiquido;
+        tG+=c.gastoLiquido; gastoRealB+=c.gastoLiquido; gastoPerdeuB+=c.gastoLiquido;
         tL+=c.lucro; lucroB+=c.lucro; totalP++;
         if(c.lucro<maiorPerda) maiorPerda=c.lucro;
         const nome=(t.notas||'').split('\n').find(l=>l.trim())||'Aposta';
@@ -867,11 +945,12 @@ function updateGlobals(){
     if(hasTickets) bancasAtivas++;
 
     const baseD=parseFloat(appData.deposits[bet]||0);
-    // Banca = depósito inicial - gastos das apostas perdidas + retorno das apostas ganhas
-    // gastoRealB inclui ganhou+perdeu, retB é só o retorno das ganhas
-    // Fórmula correta: base - gastos_perdidos - gastos_ganhos + retorno_ganhos
-    // = base - gastoRealB + retB  ← retB já inclui o valor apostado de volta
-    let bancaR=baseD+retB-gastoRealB;
+    // Banca atual = depósito + retorno completo das ganhas - gastos das perdidas
+    // retB = odd*gasto das ganhas (inclui o valor apostado de volta)
+    // gastoPerdeuB = gasto das perdidas (dinheiro que saiu e não voltou)
+    // Exemplo: apostou R$1 odd 10, ganhou → banca = base + 10 - 0 = base+10 ✓
+    // Exemplo: apostou R$1 odd 10, perdeu → banca = base + 0 - 1 = base-1 ✓
+    let bancaR=baseD+retB-gastoPerdeuB;
     if(bancaR<0) bancaR=0;
     const isSacado=!!appData.withdrawals[bet];
     if(!isSacado) tDep+=bancaR;
@@ -1097,6 +1176,7 @@ function renderBet(bet){
         <button class="add-ticket-btn" onclick="addTicket('${be}')"><i class="ti ti-plus"></i> Bilhete</button>
         ${tickets.length>0?`<button class="add-ticket-btn" style="background:var(--red-bg);color:var(--red);border:0.5px solid var(--red)" onclick="event.stopPropagation();apagarBilhetesBanca('${be}')" title="Apagar todos os bilhetes desta banca"><i class="ti ti-trash"></i></button>`:''}
         <button class="archive-btn-banca" onclick="event.stopPropagation();arquivarBanca('${be}')" title="Arquivar esta banca"><i class="ti ti-archive"></i></button>
+        <button class="import-btn-banca" onclick="event.stopPropagation();abrirImportModal('${be}')" title="Importar aposta via link ou imagem"><i class="ti ti-link"></i> Importar</button>
         <i class="ti ti-chevron-down chevron ${isOpen?'open':''}" id="chev-${sid}"></i>
       </div>
     </div>
@@ -1850,7 +1930,7 @@ function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>cloud
 // ═══════════════════════════════════════════════════════
 // COMPARTILHAR RESULTADO COMO IMAGEM
 // ═══════════════════════════════════════════════════════
-window.compartilharResultado = function(){
+window.compartilharResultado = async function(){
   const hist = loadHistorico();
   const periodo = periodoAtivo || 'total';
   let res = calcResumo(hist, periodo);
@@ -1961,22 +2041,24 @@ window.compartilharResultado = function(){
   ctx.textAlign = 'right';
   ctx.fillText('gerado em '+hoje, 760, 482);
 
-  // Baixar/compartilhar
-  canvas.toBlob(blob=>{
-    const url = URL.createObjectURL(blob);
-    if(navigator.share && navigator.canShare({files:[new File([blob],'resultado.png',{type:'image/png'})]})){
-      navigator.share({
-        title:'Meus resultados — Controle de Apostas',
-        text:lucroStr,
-        files:[new File([blob],'resultado.png',{type:'image/png'})]
-      }).catch(()=>{});
-    } else {
-      const a = document.createElement('a');
-      a.href = url; a.download = 'resultado_'+currentUser+'_'+hoje.replace(/\//g,'-')+'.png';
-      a.click();
+  // Baixar/compartilhar — converte para data URL para compatibilidade iOS
+  const dataURL = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = dataURL;
+  a.download = 'resultado_'+currentUser+'_'+hoje.replace(/\/\//g,'-')+'.png';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // Tenta compartilhar via Web Share API se disponível
+  try{
+    const resp = await fetch(dataURL);
+    const blob = await resp.blob();
+    const file = new File([blob],'resultado.png',{type:'image/png'});
+    if(navigator.share && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'Meus resultados'});
     }
-    setTimeout(()=>URL.revokeObjectURL(url), 5000);
-  },'image/png');
+  }catch(e){}
 };
 
 window.apagarBilhetesBanca = function(bet){
@@ -2203,6 +2285,222 @@ function renderArchivedSection(){
   if(badge){ badge.textContent = archived.length; }
   renderArchivedList();
 }
+
+
+// ═══════════════════════════════════════════════════════
+// IMPORTAR APOSTA VIA LINK OU IMAGEM
+// ═══════════════════════════════════════════════════════
+let importBet = '';
+let importedData = null;
+
+window.abrirImportModal = function(bet){
+  importBet = bet;
+  importedData = null;
+  document.getElementById('import-bet-name').textContent = bet;
+  document.getElementById('import-url-input').value = '';
+  document.getElementById('import-url-status').textContent = 'Cole o link da aposta e clique em Analisar';
+  document.getElementById('import-result').classList.remove('show');
+  document.getElementById('btn-confirmar-import').disabled = true;
+  document.getElementById('import-modal-overlay').classList.add('open');
+  switchImportTab('link');
+};
+
+window.fecharImportModal = function(){
+  document.getElementById('import-modal-overlay').classList.remove('open');
+  importBet = ''; importedData = null;
+};
+
+window.switchImportTab = function(tab){
+  document.getElementById('import-tab-link').style.display = tab==='link'?'block':'none';
+  document.getElementById('import-tab-img').style.display = tab==='img'?'block':'none';
+  document.getElementById('tab-link').classList.toggle('active', tab==='link');
+  document.getElementById('tab-img').classList.toggle('active', tab==='img');
+};
+
+window.onImportUrlChange = function(val){
+  const status = document.getElementById('import-url-status');
+  if(!val.trim()){ status.textContent = 'Cole o link da aposta e clique em Analisar'; return; }
+  // Detectar a casa pelo domínio
+  const casas = {
+    'betano':'Betano','bet365':'Bet365','superbet':'Superbet','betnacional':'Betnacional',
+    'betmgm':'BetMGM','estrelabet':'Estrela Bet','sportingbet':'Sportingbet',
+    'novibet':'Novibet','kto':'KTO','vupi':'Vupi','lottu':'Lottu',
+    'betgorillas':'BetGorillas','betesporte':'Betesporte','reidopitaco':'Rei do Pitaco',
+    'brx':'BRX','esportesdasorte':'Esportes da Sorte'
+  };
+  const lower = val.toLowerCase();
+  const casa = Object.entries(casas).find(([k])=>lower.includes(k));
+  if(casa) status.textContent = '🎯 Casa detectada: '+casa[1];
+  else status.textContent = 'Link válido — clique em Analisar';
+};
+
+window.analisarLink = async function(){
+  const url = document.getElementById('import-url-input').value.trim();
+  if(!url){ return; }
+  const btn = document.getElementById('btn-analisar-link');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Analisando...';
+  document.getElementById('import-url-status').textContent = 'Consultando Claude para extrair os dados...';
+
+  try{
+    // Usa a Claude API para analisar o link e extrair dados da aposta
+    const prompt = `Analise este link de aposta esportiva e extraia os dados em JSON:
+URL: ${url}
+
+Retorne APENAS um JSON válido (sem markdown) com esta estrutura:
+{"nome":"nome do evento apostado","odd":2.50,"valor":10.00,"retorno":25.00,"casa":"nome da casa"}
+
+Se não conseguir extrair algum dado, use null. Foque em extrair a odd e o valor apostado.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:300,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    if(!response.ok) throw new Error('API error');
+    const data = await response.json();
+    const text = data.content?.[0]?.text||'{}';
+    let parsed;
+    try{ parsed = JSON.parse(text.replace(/```json|```/g,'').trim()); }
+    catch(e){ parsed = {}; }
+
+    // Se a API não conseguiu dados do link, pede manualmente
+    exibirResultadoImport({
+      nome: parsed.nome || extrairNomeDaURL(url),
+      odd: parsed.odd || null,
+      valor: parsed.valor || null,
+      retorno: parsed.retorno || null,
+    });
+
+  }catch(e){
+    // Fallback: extrai o que conseguir da URL manualmente
+    exibirResultadoImport({
+      nome: extrairNomeDaURL(url),
+      odd: null, valor: null, retorno: null
+    });
+    document.getElementById('import-url-status').textContent = '⚠️ Não foi possível extrair automaticamente. Preencha os campos manualmente.';
+  }
+
+  btn.disabled = false; btn.innerHTML = '<i class="ti ti-search"></i> Analisar Link';
+};
+
+function extrairNomeDaURL(url){
+  try{
+    const u = new URL(url);
+    // Tenta extrair slug da URL (ex: /pt-br/futebol/brasil-argentina)
+    const parts = u.pathname.split('/').filter(p=>p&&p.length>2&&isNaN(p));
+    return parts.slice(-2).join(' vs ').replace(/-/g,' ') || 'Aposta importada';
+  }catch(e){ return 'Aposta importada'; }
+}
+
+window.handleImportFile = async function(input){
+  const file = input.files[0];
+  if(!file) return;
+  await analisarImagem(file);
+};
+
+window.handleImportDrop = async function(event){
+  event.preventDefault();
+  document.getElementById('import-drop-area').classList.remove('drag-over');
+  const file = event.dataTransfer.files[0];
+  if(!file || !file.type.startsWith('image/')) return;
+  await analisarImagem(file);
+};
+
+async function analisarImagem(file){
+  const status = document.getElementById('import-img-status');
+  status.textContent = '🔍 Analisando imagem com IA...';
+
+  try{
+    // Converter imagem para base64
+    const base64 = await new Promise((res,rej)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>res(reader.result.split(',')[1]);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+
+    const prompt = `Esta é uma screenshot de uma aposta esportiva. Extraia os dados e retorne APENAS um JSON válido (sem markdown):
+{"nome":"nome do evento/partida apostada","odd":2.50,"valor":10.00,"retorno":25.00,"casa":"nome da casa de apostas"}
+Se não encontrar algum dado, use null.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:300,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:file.type,data:base64}},
+          {type:'text',text:prompt}
+        ]}]
+      })
+    });
+
+    if(!response.ok) throw new Error('API error');
+    const data = await response.json();
+    const text = data.content?.[0]?.text||'{}';
+    let parsed;
+    try{ parsed = JSON.parse(text.replace(/```json|```/g,'').trim()); }
+    catch(e){ parsed = {}; }
+
+    exibirResultadoImport({
+      nome: parsed.nome || 'Aposta importada',
+      odd: parsed.odd || null,
+      valor: parsed.valor || null,
+      retorno: parsed.retorno || null,
+    });
+    status.textContent = parsed.odd ? '✓ Dados extraídos! Confirme abaixo.' : '⚠️ Extraído parcialmente — complete os campos.';
+
+  }catch(e){
+    status.textContent = '❌ Erro ao analisar. Preencha os dados manualmente.';
+    exibirResultadoImport({nome:'Aposta importada',odd:null,valor:null,retorno:null});
+  }
+}
+
+function exibirResultadoImport(dados){
+  importedData = dados;
+  document.getElementById('res-nome').textContent = dados.nome||'—';
+  document.getElementById('res-odd').textContent = dados.odd?dados.odd.toFixed(2):'—';
+  document.getElementById('res-valor').textContent = dados.valor?'R$ '+dados.valor.toFixed(2).replace('.',','):'—';
+  document.getElementById('res-retorno').textContent = dados.retorno?'R$ '+dados.retorno.toFixed(2).replace('.',','):'—';
+  document.getElementById('edit-nome').value = dados.nome||'';
+  document.getElementById('edit-odd').value = dados.odd||'';
+  document.getElementById('edit-valor').value = dados.valor||'';
+  document.getElementById('import-result').classList.add('show');
+  document.getElementById('btn-confirmar-import').disabled = false;
+}
+
+window.confirmarImport = function(){
+  if(!importBet) return;
+  const nome = document.getElementById('edit-nome').value.trim() || 'Aposta importada';
+  const odd = parseFloat(document.getElementById('edit-odd').value)||0;
+  const valor = parseFloat(document.getElementById('edit-valor').value)||0;
+
+  if(!appData.tickets[importBet]) appData.tickets[importBet]=[];
+  const newId = Date.now();
+  appData.tickets[importBet].push({
+    id:newId, odd:odd||'', gasto:valor||'',
+    resultado:'Pendente', notas:nome,
+    checkedItems:{}, fbType:'none', fbPartialVal:''
+  });
+  openSections[importBet] = true;
+  expandedNotes[safeId(importBet)+'_'+newId] = true;
+  appData.lastModified = Date.now();
+  fecharImportModal();
+  renderAll();
+  scheduleSave();
+  showSaving('✓ Aposta importada em '+importBet,'ok');
+  // Scroll até a banca
+  setTimeout(()=>{
+    const el = document.getElementById('section-'+safeId(importBet));
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  },200);
+};
 
 // ═══════════════════════════════════════════════════════
 // APAGAR TODAS AS APOSTAS
