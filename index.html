@@ -566,45 +566,59 @@ body.foco-mode .computed:hover { filter:none; }
 <!-- MODAL IMPORT APOSTA -->
 <div class="import-modal-overlay" id="import-modal-overlay" onclick="if(event.target===this)fecharImportModal()">
   <div class="import-modal">
-    <div class="import-modal-title"><i class="ti ti-link"></i> Importar Aposta — <span id="import-bet-name" style="color:var(--txt)"></span></div>
-    <div style="font-size:12px;color:var(--txt2);margin-bottom:12px;display:flex;align-items:center;gap:6px">
-      <i class="ti ti-camera" style="color:var(--acc)"></i>
-      Tire um print do bilhete na casa de apostas e envie abaixo
-    </div>
+    <div class="import-modal-title"><i class="ti ti-camera"></i> Importar Aposta — <span id="import-bet-name" style="color:var(--txt)"></span></div>
 
-    <!-- Tab Imagem -->
-    <div id="import-tab-img" style="display:none">
-      <div style="background:rgba(52,211,153,.07);border:0.5px solid var(--grn);border-radius:7px;padding:8px 12px;font-size:12px;color:var(--grn);margin-bottom:10px;display:flex;gap:6px;align-items:flex-start">
-        <i class="ti ti-sparkles" style="flex-shrink:0;margin-top:1px"></i>
-        <span>Tire um <strong>print do bilhete</strong> na casa de apostas e envie aqui. A IA vai ler odd, valor e nome automaticamente.</span>
-      </div>
-      <div class="import-drop-area" id="import-drop-area" onclick="document.getElementById('import-file-input').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleImportDrop(event)">
-        <i class="ti ti-camera"></i>
-        Toque aqui para enviar o screenshot
-        <div style="font-size:11px;margin-top:6px;opacity:.6">PNG, JPG, WEBP — tire um print mostrando odd e valor</div>
+    <!-- Upload imagem -->
+    <div id="import-upload-area">
+      <div class="import-drop-area" id="import-drop-area"
+        onclick="document.getElementById('import-file-input').click()"
+        ondragover="event.preventDefault();this.classList.add('drag-over')"
+        ondragleave="this.classList.remove('drag-over')"
+        ondrop="handleImportDrop(event)">
+        <i class="ti ti-photo-up" style="font-size:28px;display:block;margin-bottom:8px;opacity:.7"></i>
+        Toque para enviar o print do bilhete
+        <div style="font-size:11px;margin-top:5px;opacity:.5">A IA vai ler os palpites, odd e valor automaticamente</div>
       </div>
       <input type="file" id="import-file-input" accept="image/*" style="display:none" onchange="handleImportFile(this)"/>
-      <div class="import-status" id="import-img-status">Aguardando imagem...</div>
+      <div class="import-status" id="import-img-status"></div>
     </div>
 
-    <!-- Resultado analisado -->
-    <div class="import-result" id="import-result">
-      <div style="font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Dados detectados</div>
-      <div class="import-result-row"><span class="import-result-label">Nome da aposta</span><span class="import-result-val" id="res-nome">—</span></div>
-      <div class="import-result-row"><span class="import-result-label">Odd</span><span class="import-result-val acc" id="res-odd">—</span></div>
-      <div class="import-result-row"><span class="import-result-label">Valor apostado</span><span class="import-result-val" id="res-valor">—</span></div>
-      <div class="import-result-row"><span class="import-result-label">Retorno possível</span><span class="import-result-val" id="res-retorno">—</span></div>
-      <div style="margin-top:8px">
-        <div style="font-size:11px;color:var(--txt2);margin-bottom:4px">Confirmar/editar antes de salvar:</div>
-        <input class="import-url-input" id="edit-nome" placeholder="Nome da aposta" style="margin-bottom:6px"/>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <input class="import-url-input" id="edit-odd" type="number" step="0.01" placeholder="Odd" style="margin-bottom:0"/>
-          <input class="import-url-input" id="edit-valor" type="number" step="0.01" placeholder="Valor (R$)" style="margin-bottom:0"/>
+    <!-- Campos manuais sempre visíveis -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:10px;color:var(--txt2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Odd</div>
+          <input class="import-url-input" id="edit-odd" type="number" step="0.01" min="1.01" placeholder="Ex: 5.25" style="margin-bottom:0" oninput="calcRetornoImport()"/>
         </div>
+        <div>
+          <div style="font-size:10px;color:var(--txt2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Valor (R$)</div>
+          <input class="import-url-input" id="edit-valor" type="number" step="0.01" min="0.01" placeholder="Ex: 3.00" style="margin-bottom:0" oninput="calcRetornoImport()"/>
+        </div>
+      </div>
+
+      <div id="import-retorno-preview" style="display:none;background:var(--bg2);border:0.5px solid var(--grn);border-radius:8px;padding:8px 14px;flex-direction:row;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--txt2)">Retorno potencial</span>
+        <span style="font-size:15px;font-weight:700;color:var(--grn)" id="import-retorno-val">—</span>
+      </div>
+
+      <div>
+        <div style="font-size:10px;color:var(--txt2);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Tipo</div>
+        <select class="import-url-input" id="edit-fbtype" style="margin-bottom:0;cursor:pointer">
+          <option value="none">💰 Dinheiro real</option>
+          <option value="total">🎁 Freebet (grátis)</option>
+          <option value="partial">🎛️ Mista (parcial)</option>
+        </select>
+      </div>
+
+      <!-- Preview dos tópicos preenchidos pela IA -->
+      <div id="import-topicos-preview" style="display:none">
+        <div style="font-size:10px;color:var(--acc);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Palpites detectados</div>
+        <div id="import-topicos-content" style="background:var(--bg2);border:0.5px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--txt);line-height:1.7;white-space:pre-wrap"></div>
+        <div style="font-size:11px;color:var(--txt2);margin-top:4px">Você pode editar após adicionar o bilhete</div>
       </div>
     </div>
 
-    <button class="import-btn-primary" id="btn-confirmar-import" onclick="confirmarImport()" disabled style="margin-top:10px"><i class="ti ti-check"></i> Adicionar Bilhete</button>
+    <button class="import-btn-primary" id="btn-confirmar-import" onclick="confirmarImport()" style="margin-top:12px"><i class="ti ti-plus"></i> Adicionar Bilhete</button>
     <button class="import-close-btn" onclick="fecharImportModal()">Cancelar</button>
   </div>
 </div>
@@ -2297,21 +2311,41 @@ function renderArchivedSection(){
 let importBet = '';
 let importedData = null;
 
+
+window.calcRetornoImport = function(){
+  const odd = parseFloat(document.getElementById('edit-odd').value)||0;
+  const val = parseFloat(document.getElementById('edit-valor').value)||0;
+  const preview = document.getElementById('import-retorno-preview');
+  const valEl = document.getElementById('import-retorno-val');
+  if(odd>0 && val>0){
+    const ret = odd*val;
+    if(valEl) valEl.textContent = 'R$ '+ret.toFixed(2).replace('.',',');
+    if(preview) preview.style.display='flex';
+  } else {
+    if(preview) preview.style.display='none';
+  }
+};
+
 window.abrirImportModal = function(bet){
   importBet = bet;
   importedData = null;
   const nameEl = document.getElementById('import-bet-name');
   if(nameEl) nameEl.textContent = bet;
-  const resultEl = document.getElementById('import-result');
-  if(resultEl) resultEl.classList.remove('show');
-  const btnEl = document.getElementById('btn-confirmar-import');
-  if(btnEl) btnEl.disabled = true;
+  const oddEl = document.getElementById('edit-odd');
+  const valorEl = document.getElementById('edit-valor');
+  const fbtEl = document.getElementById('edit-fbtype');
+  const previewEl = document.getElementById('import-retorno-preview');
+  const topicoEl = document.getElementById('import-topicos-preview');
   const statusEl = document.getElementById('import-img-status');
-  if(statusEl) statusEl.textContent = 'Aguardando imagem...';
   const fileInput = document.getElementById('import-file-input');
+  if(oddEl) oddEl.value = '';
+  if(valorEl) valorEl.value = '';
+  if(fbtEl) fbtEl.value = 'none';
+  if(previewEl) previewEl.style.display = 'none';
+  if(topicoEl) topicoEl.style.display = 'none';
+  if(statusEl) statusEl.textContent = '';
   if(fileInput) fileInput.value = '';
   document.getElementById('import-modal-overlay').classList.add('open');
-  switchImportTab('img');
 };
 
 window.fecharImportModal = function(){
@@ -2398,10 +2432,9 @@ window.handleImportDrop = async function(event){
 
 async function analisarImagem(file){
   const status = document.getElementById('import-img-status');
-  status.textContent = '🔍 Enviando para IA...';
+  if(status) status.textContent = '📤 Enviando imagem...';
 
   try{
-    // Converter para base64
     const base64 = await new Promise((res,rej)=>{
       const reader = new FileReader();
       reader.onload = ()=>res(reader.result.split(',')[1]);
@@ -2412,67 +2445,61 @@ async function analisarImagem(file){
     const mimeType = ['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)
       ? file.type : 'image/jpeg';
 
-    const prompt = `Você está vendo um screenshot de um bilhete de aposta esportiva de uma casa de apostas brasileira (Betano, Esportes da Sorte, Bet365, etc).
+    if(status) status.textContent = '⏳ IA analisando o bilhete...';
 
-Extraia os dados e retorne SOMENTE um JSON válido, sem texto extra:
-{"nome":"descrição da aposta","odd":5.25,"valor":3.00,"retorno":15.75,"casa":"Betano"}
-
-Instruções para cada campo:
-- "nome": descrição principal da aposta. Exemplos reais: "Brasil x Noruega - Brasil Qualificar-se + Mais escanteios + Mais de 2.5 Gols", "Brasil Mais de 0.5 Gols no 1º Tempo". Se for múltipla, une as seleções com " + "
-- "odd": a cotação decimal final. Na Betano aparece como número grande (ex: 5.25). Se houver odd original e odd turbinada, usa a maior (turbinada)
-- "valor": valor apostado em reais. Aparece como "Simples R$3,00", "Aposta R$4,00" ou "Aposta Total: R$4,00"
-- "retorno": ganhos potenciais em reais. Aparece como "Ganhos Potenciais R$15,75" ou "Retorno: R$8,00"
-- "casa": nome da casa de apostas visível no topo ou logo
-
-Para campos não encontrados use null. Retorne APENAS o JSON.`;
-
-    status.textContent = '⏳ IA lendo a imagem...';
-
-    const resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'anthropic-dangerous-direct-browser-ipc':'true'
-      },
-      body:JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:256,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image', source:{type:'base64', media_type:mimeType, data:base64}},
-            {type:'text', text:prompt}
-          ]
-        }]
-      })
+    // Chama o backend Vercel que faz a chamada ao Claude
+    const resp = await fetch('/api/analisar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: base64, mimeType })
     });
 
     if(!resp.ok){
-      const errText = await resp.text();
-      throw new Error('API: '+errText);
+      const err = await resp.text();
+      throw new Error('Backend error: ' + err);
     }
 
-    const apiData = await resp.json();
-    const text = apiData.content?.[0]?.text || '{}';
-    let parsed = {};
-    try{ parsed = JSON.parse(text.replace(/```json|```/g,'').trim()); }
-    catch(e){ console.warn('parse err', e, text); }
+    const parsed = await resp.json();
+    console.log('IA retornou:', parsed);
+
+    // Preencher odd e valor
+    const oddEl = document.getElementById('edit-odd');
+    const valorEl = document.getElementById('edit-valor');
+    if(oddEl && parsed.odd) oddEl.value = parsed.odd;
+    if(valorEl && parsed.valor) valorEl.value = parsed.valor;
+    calcRetornoImport();
+
+    // Montar os tópicos no formato do campo de notas
+    let notasTexto = '';
+    if(parsed.topicos && parsed.topicos.length > 0){
+      parsed.topicos.forEach(t=>{
+        if(t.titulo) notasTexto += t.titulo + '\n';
+        if(t.subtopicos) t.subtopicos.forEach(s=>{ notasTexto += ' - ' + s + '\n'; });
+      });
+    } else if(parsed.nome){
+      notasTexto = parsed.nome;
+    }
+    notasTexto = notasTexto.trim();
+
+    // Salvar as notas para usar no confirmarImport
+    importedData = { ...parsed, notasTexto };
+
+    // Mostrar preview dos tópicos
+    const topicoPreview = document.getElementById('import-topicos-preview');
+    const topicoContent = document.getElementById('import-topicos-content');
+    if(topicoPreview && topicoContent && notasTexto){
+      topicoContent.textContent = notasTexto;
+      topicoPreview.style.display = 'block';
+    }
 
     const temDados = parsed.odd || parsed.valor;
-    exibirResultadoImport({
-      nome: parsed.nome || 'Aposta importada',
-      odd: parsed.odd || null,
-      valor: parsed.valor || null,
-      retorno: parsed.retorno || null,
-    });
-    status.textContent = temDados
-      ? '✅ Dados extraídos! Confira e edite se necessário.'
-      : '⚠️ IA leu a imagem mas não encontrou odd/valor. Preencha manualmente.';
+    if(status) status.textContent = temDados
+      ? '✅ Palpites e dados preenchidos automaticamente!'
+      : '⚠️ Palpites detectados mas odd/valor não encontrados — preencha manualmente.';
 
   }catch(e){
     console.error('Erro imagem:', e);
-    exibirResultadoImport({nome:'Aposta importada', odd:null, valor:null, retorno:null});
-    status.textContent = '⚠️ Erro ao processar. Preencha os campos manualmente.';
+    if(status) status.textContent = '⚠️ Não foi possível analisar. Preencha os campos manualmente.';
   }
 }
 
@@ -2491,16 +2518,26 @@ function exibirResultadoImport(dados){
 
 window.confirmarImport = function(){
   if(!importBet) return;
-  const nome = document.getElementById('edit-nome').value.trim() || 'Aposta importada';
   const odd = parseFloat(document.getElementById('edit-odd').value)||0;
   const valor = parseFloat(document.getElementById('edit-valor').value)||0;
+  const fbType = document.getElementById('edit-fbtype')?.value||'none';
+
+  if(!odd || !valor){
+    alert('Preencha pelo menos a odd e o valor apostado.');
+    return;
+  }
+
+  // Notas: usa o que a IA gerou, ou o nome manual
+  const notasTexto = (importedData && importedData.notasTexto)
+    ? importedData.notasTexto
+    : (document.getElementById('edit-nome')?.value.trim() || 'Aposta importada');
 
   if(!appData.tickets[importBet]) appData.tickets[importBet]=[];
   const newId = Date.now();
   appData.tickets[importBet].push({
-    id:newId, odd:odd||'', gasto:valor||'',
-    resultado:'Pendente', notas:nome,
-    checkedItems:{}, fbType:'none', fbPartialVal:''
+    id:newId, odd:String(odd), gasto:String(valor),
+    resultado:'Pendente', notas:notasTexto,
+    checkedItems:{}, fbType:fbType, fbPartialVal:''
   });
   openSections[importBet] = true;
   expandedNotes[safeId(importBet)+'_'+newId] = true;
@@ -2520,15 +2557,16 @@ window.confirmarImport = function(){
 // APAGAR TODAS AS APOSTAS
 // ═══════════════════════════════════════════════════════
 window.confirmarApagarTudo = function(){
-  const ok1 = confirm('⚠️ Isso vai apagar TODAS as suas apostas, bilhetes e bancas. Esta ação não pode ser desfeita.\n\nTem certeza que quer continuar?');
-  if(!ok1) return;
-  const ok2 = confirm('Última confirmação: todos os dados de apostas serão excluídos permanentemente (o histórico de dias salvos NÃO será afetado).\n\nApagar tudo agora?');
-  if(!ok2) return;
-
-  appData = { bets:[...DEFAULT_BETS], tickets:{}, deposits:{}, withdrawals:{}, lastModified: Date.now() };
+  const totalBilhetes = Object.values(appData.tickets||{}).flat().length;
+  if(!totalBilhetes){ showSaving('Nenhum bilhete para apagar','ok'); return; }
+  const ok = confirm(`⚠️ Isso vai apagar todos os ${totalBilhetes} bilhete${totalBilhetes>1?'s':''} de todas as bancas.\n\nAs bancas em si NÃO serão removidas. Esta ação não pode ser desfeita.\n\nContinuar?`);
+  if(!ok) return;
+  // Apaga apenas os bilhetes, mantém as bancas, depósitos e saques
+  appData.tickets = {};
+  appData.lastModified = Date.now();
   renderAll();
   scheduleSave();
-  showSaving('🗑️ Todas as apostas foram apagadas','ok');
+  showSaving('🗑️ Todos os bilhetes foram apagados','ok');
 };
 
 window.confirmarNovaAposta=function(){
