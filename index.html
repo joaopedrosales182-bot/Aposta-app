@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>Controle de Apostas Pro</title>
 <meta name="theme-color" content="#0a1628"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -2456,7 +2459,7 @@ async function analisarImagem(file){
 
     if(!resp.ok){
       const err = await resp.text();
-      throw new Error('Backend error: ' + err);
+      throw new Error('Erro '+resp.status+': '+err);
     }
 
     const parsed = await resp.json();
@@ -2499,7 +2502,7 @@ async function analisarImagem(file){
 
   }catch(e){
     console.error('Erro imagem:', e);
-    if(status) status.textContent = '⚠️ Não foi possível analisar. Preencha os campos manualmente.';
+    if(status) status.textContent = '❌ '+e.message;
   }
 }
 
