@@ -2399,10 +2399,10 @@ window.analisarLink = async function(){
                 u.pathname.split('/').filter(Boolean).pop();
   }catch(e){}
 
-  exibirResultadoImport({ nome: nome || 'Aposta importada', odd:null, valor:null, retorno:null });
-  status.textContent = shareCode
-    ? `⚠️ Código detectado: ${shareCode}. As casas não permitem acesso externo — preencha odd e valor manualmente.`
-    : '⚠️ Links de apostas não são acessíveis externamente. Preencha odd e valor manualmente, ou use a aba Imagem com um screenshot.';
+  const statusEl2 = document.getElementById('import-img-status');
+  if(statusEl2) statusEl2.textContent = shareCode
+    ? `Cole a odd e o valor manualmente — código detectado: ${shareCode}`
+    : '⚠️ Links não funcionam — use o print do bilhete acima.';
 
   btn.disabled = false; btn.innerHTML = '<i class="ti ti-search"></i> Analisar Link';
 };
@@ -2504,16 +2504,14 @@ async function analisarImagem(file){
 }
 
 function exibirResultadoImport(dados){
+  // Função legada — não usada no modal novo
+  // Apenas armazena os dados para uso posterior
   importedData = dados;
-  document.getElementById('res-nome').textContent = dados.nome||'—';
-  document.getElementById('res-odd').textContent = dados.odd?dados.odd.toFixed(2):'—';
-  document.getElementById('res-valor').textContent = dados.valor?'R$ '+dados.valor.toFixed(2).replace('.',','):'—';
-  document.getElementById('res-retorno').textContent = dados.retorno?'R$ '+dados.retorno.toFixed(2).replace('.',','):'—';
-  document.getElementById('edit-nome').value = dados.nome||'';
-  document.getElementById('edit-odd').value = dados.odd||'';
-  document.getElementById('edit-valor').value = dados.valor||'';
-  document.getElementById('import-result').classList.add('show');
-  document.getElementById('btn-confirmar-import').disabled = false;
+  const oddEl = document.getElementById('edit-odd');
+  const valorEl = document.getElementById('edit-valor');
+  if(oddEl && dados.odd) oddEl.value = dados.odd;
+  if(valorEl && dados.valor) valorEl.value = dados.valor;
+  if(dados.odd || dados.valor) calcRetornoImport();
 }
 
 window.confirmarImport = function(){
